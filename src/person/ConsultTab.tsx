@@ -13,19 +13,28 @@ export default function ConsultTab({ state, dispatch }: Props) {
 
       <section className="card">
         <h2>{CONSULT.coordinatorTitle}</h2>
-        {state.coordinatorRequested ? (
-          <p className="done-note">{CONSULT.requested}</p>
-        ) : (
+        {state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
+        {state.coordinatorMeeting === "requested" && (
+          <div className="confirm">
+            <p className="done-note">{CONSULT.requestedTitle}</p>
+            {CONSULT.requestedLines.map((l) => (
+              <p key={l} className="muted">
+                {l}
+              </p>
+            ))}
+          </div>
+        )}
+        {state.coordinatorMeeting === null && (
           <>
             <p className="muted">{CONSULT.coordinatorNote}</p>
             <div className="stack">
               <ConfirmButton
                 quiet
-                label={CONSULT.request}
-                confirm={CONSULT.confirm}
-                yes={CONSULT.yes}
+                label={state.ticketsLeft ? CONSULT.apply : CONSULT.request}
+                confirm={state.ticketsLeft ? CONSULT.applyConfirm : CONSULT.requestConfirm}
+                yes={state.ticketsLeft ? CONSULT.applyYes : CONSULT.requestYes}
                 no={CONSULT.no}
-                onConfirm={() => dispatch({ type: "requestCoordinator" })}
+                onConfirm={() => dispatch({ type: "askCoordinator" })}
               />
             </div>
           </>

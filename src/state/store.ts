@@ -25,7 +25,8 @@ export type State = {
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
   companyMeetingApplied: boolean;
-  coordinatorRequested: boolean;
+  ticketsLeft: boolean;
+  coordinatorMeeting: "applied" | "requested" | null;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
 };
@@ -43,7 +44,8 @@ export const initialState: State = {
   recoveryJourneySeen: false,
   prepPath: null,
   companyMeetingApplied: false,
-  coordinatorRequested: false,
+  ticketsLeft: true,
+  coordinatorMeeting: null,
   diary: INITIAL_DIARY,
   sentToHr: [],
 };
@@ -60,7 +62,8 @@ export type Action =
   | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
   | { type: "applyCompanyMeeting" }
-  | { type: "requestCoordinator" }
+  | { type: "setTicketsLeft"; on: boolean }
+  | { type: "askCoordinator" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
   | { type: "reset" };
@@ -94,8 +97,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, prepPath: action.path };
     case "applyCompanyMeeting":
       return { ...state, companyMeetingApplied: true };
-    case "requestCoordinator":
-      return { ...state, coordinatorRequested: true };
+    case "setTicketsLeft":
+      return { ...state, ticketsLeft: action.on, coordinatorMeeting: null };
+    case "askCoordinator":
+      return { ...state, coordinatorMeeting: state.ticketsLeft ? "applied" : "requested" };
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
     case "sendToHr":
@@ -112,7 +117,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v7";
+const STORAGE_KEY = "fukushoku-navi-demo-v8";
 
 function load(): State {
   try {

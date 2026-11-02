@@ -51,6 +51,19 @@ export default function DemoBar({ state, dispatch }: Props) {
         </div>
       )}
 
+      {/* 本番では人事の画面で管理する。デモでは相談タブを開いているときだけ切り替えられる */}
+      {state.view === "person" && state.tab === "consult" && (
+        <div className="seg" role="group" aria-label={DEMO_BAR.tickets}>
+          <span className="seg-label">{DEMO_BAR.tickets}</span>
+          <button aria-pressed={state.ticketsLeft} onClick={() => dispatch({ type: "setTicketsLeft", on: true })}>
+            {DEMO_BAR.ticketsYes}
+          </button>
+          <button aria-pressed={!state.ticketsLeft} onClick={() => dispatch({ type: "setTicketsLeft", on: false })}>
+            {DEMO_BAR.ticketsNo}
+          </button>
+        </div>
+      )}
+
       <button className="demo-reset" onClick={() => dispatch({ type: "reset" })}>
         {DEMO_BAR.reset}
       </button>
