@@ -258,6 +258,14 @@ button { font: inherit; cursor: pointer; }
 .tl-kind { font-weight: 600; }
 .tl-stage .tl-kind { color: var(--accent); }
 .hidden-note { margin-top: 12px !important; }
+.stage-guide { margin: 6px 0 12px !important; }
+.stage-control { display: grid; gap: 10px; }
+.stage-control .muted { margin: 0; }
+.psych { padding: 8px 12px; border-radius: 10px; background: var(--bg); }
+.psych p { margin: 0; }
+.psych .btn-quiet { padding-left: 0; color: var(--accent); }
+.stage-back { padding-top: 10px; border-top: 1px solid var(--line); }
+.stage-back .btn-outline { border-color: var(--line); color: var(--muted); }
 .hr-card select { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); margin-bottom: 6px; }
 .hr-textarea {
   width: 100%; margin: 10px 0 6px; font: inherit; color: var(--text); padding: 8px 10px;

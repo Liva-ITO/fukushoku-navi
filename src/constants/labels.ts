@@ -318,11 +318,13 @@ export const HR = {
     coordinatorRequested: "復職コーディネーターとの面談のリクエストがありました（チケットの残りがありません）",
     companyMeeting: "会社との面談の申し込みがありました",
     psychMeeting: "心理の専門家との面談の申し込みがありました（回復期への切り替えの確認）",
+    psychDone: "心理の専門家との面談が済みました。回復期に進めるか確認してください",
     newFromPerson: (n: number) => `本人から連絡が届いています（${n}件）`,
   },
 
   meetingEvent: {
     psych: "心理の専門家との面談の申し込み",
+    psychDone: "心理の専門家との面談が済んだ",
     company: "会社との面談の申し込み",
     coordinatorApplied: "復職コーディネーターとの面談の申し込み",
     coordinatorRequested: "復職コーディネーターとの面談のリクエスト",
@@ -341,8 +343,29 @@ export const HR = {
   hidden: "日記の中身・気分・休息モードかどうか・面談で話した内容は、会社には表示されません",
 
   stageTitle: "段階",
-  stageChange: "段階を変える",
-  stageNote: "段階を変えると、本人の画面も切り替わります。面談などで確かめてから変えてください",
+  // 段階ごとに、人事がすることを一言で出す
+  stageGuide: {
+    acute: "休むことを優先する時期です。連絡は最小限にし、返信を求めない連絡にしてください",
+    recovery: "生活のリズムを整える時期です。リワークの利用や、面談の申し込みに対応します",
+    preReturn: "復職に向けた手順を、本人と一緒に進める時期です",
+    afterReturn: "復職しました",
+  } satisfies Record<Stage, string>,
+  // 段階は人事が「次へ進める」。好きな段階を選ぶ操作は置かない
+  nextLabel: { acute: "回復期に進める", recovery: "準備期に進める" } as Partial<Record<Stage, string>>,
+  psychNone: "心理の専門家との面談：まだ申し込みはありません",
+  psychApplied: "心理の専門家との面談：申し込みがありました",
+  psychDone: "心理の専門家との面談：済みました",
+  psychDoneButton: "面談が済んだことを記録する",
+  nextLockedAcute: "心理の専門家との面談が済むと、回復期に進められます",
+  confirmNext: (name: string, from: string, to: string) =>
+    `${name}さんの段階を「${from}」から「${to}」に進めます。本人の画面も、${to}の内容に変わります。`,
+  nextYes: "進める",
+  backLabel: "前の段階に戻す",
+  confirmBack: (name: string, from: string, to: string) =>
+    `${name}さんの段階を「${from}」から「${to}」に戻します。戻す前に、本人と面談して理由を説明してください。`,
+  backYes: "戻す",
+  confirmNo: "やめておく",
+  preReturnSoon: "復職を確定する操作は、これから作ります",
   stageDemoOnly: "デモでは、社員Aだけ操作できます",
 
   sendTitle: "本人に連絡する",

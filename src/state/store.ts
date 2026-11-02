@@ -24,6 +24,8 @@ export type State = {
   hrMessages: HrMessage[];
   acuteChecks: boolean[];
   rivaMeetingApplied: boolean;
+  // 急性期→回復期に必須の、心理の専門家との面談が済んだか（人事が記録する）
+  psychMeetingDone: boolean;
   recoveryIntroSeen: boolean;
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
@@ -50,6 +52,7 @@ export const initialState: State = {
   hrMessages: INITIAL_HR_MESSAGES,
   acuteChecks: ACUTE.checkItems.map(() => false),
   rivaMeetingApplied: false,
+  psychMeetingDone: false,
   recoveryIntroSeen: false,
   recoveryJourneySeen: false,
   prepPath: null,
@@ -69,6 +72,7 @@ export type Action =
   | { type: "closeIntro" }
   | { type: "toggleAcuteCheck"; index: number }
   | { type: "applyRivaMeeting" }
+  | { type: "markPsychDone" }
   | { type: "closeRecoveryIntro" }
   | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
@@ -98,6 +102,8 @@ function reducer(state: State, action: Action): State {
         stageHistory: [...state.stageHistory, { date: DEMO_TODAY, stage: action.stage }],
         restMode: restAllowed && state.restMode,
         tab: "home",
+        // 急性期に戻したら、回復期に進むための面談はもう一度
+        ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false } : {}),
       };
     }
     case "setRestMode":
@@ -110,6 +116,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, acuteChecks: toggleAt(state.acuteChecks, action.index) };
     case "applyRivaMeeting":
       return { ...state, rivaMeetingApplied: true };
+    case "markPsychDone":
+      return { ...state, psychMeetingDone: true };
     case "closeRecoveryIntro":
       return { ...state, recoveryIntroSeen: true };
     case "markRecoveryJourneySeen":
@@ -161,7 +169,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v9";
+const STORAGE_KEY = "fukushoku-navi-demo-v10";
 
 function load(): State {
   try {

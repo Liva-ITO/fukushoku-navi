@@ -25,7 +25,8 @@ function reworkOf(state: State): string {
 
 function todosOf(state: State): string[] {
   const t: string[] = [];
-  if (state.rivaMeetingApplied) t.push(HR.todoA.psychMeeting);
+  if (state.stage === "acute" && state.psychMeetingDone) t.push(HR.todoA.psychDone);
+  else if (state.stage === "acute" && state.rivaMeetingApplied) t.push(HR.todoA.psychMeeting);
   if (state.companyMeetingApplied) t.push(HR.todoA.companyMeeting);
   if (state.coordinatorMeeting === "applied") t.push(HR.todoA.coordinatorApplied);
   if (state.coordinatorMeeting === "requested") t.push(HR.todoA.coordinatorRequested);
@@ -38,6 +39,7 @@ function eventsOf(state: State): HrEvent[] {
   const today = DEMO_TODAY;
   const meetings: HrEvent[] = [];
   if (state.rivaMeetingApplied) meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.psych });
+  if (state.psychMeetingDone) meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.psychDone });
   if (state.companyMeetingApplied) meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.company });
   if (state.coordinatorMeeting === "applied")
     meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.coordinatorApplied });

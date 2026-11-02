@@ -2,6 +2,7 @@ import { useState, type Dispatch } from "react";
 import { HR, STAGE_LABELS, type Stage } from "../constants/labels";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
+import { ConfirmButton } from "../person/parts";
 import { hrRows, type HrRow } from "./hrData";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -163,31 +164,78 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
 
         <div>
           <section className="hr-card">
-            <h2>{HR.stageTitle}</h2>
-            {row.live ? (
-              <>
-                <select
-                  value={state.stage}
-                  onChange={(e) => dispatch({ type: "setStage", stage: e.target.value as Stage })}
-                  aria-label={HR.stageChange}
-                >
-                  {STAGES.map((s) => (
-                    <option key={s} value={s}>
-                      {STAGE_LABELS[s]}
-                    </option>
-                  ))}
-                </select>
-                <p className="muted">{HR.stageNote}</p>
-              </>
-            ) : (
-              <p className="muted">{HR.stageDemoOnly}</p>
-            )}
+            <h2>
+              {HR.stageTitle}　<StageTag stage={row.stage} />
+            </h2>
+            <p className="muted stage-guide">{HR.stageGuide[row.stage]}</p>
+            {row.live ? <StageControl row={row} state={state} dispatch={dispatch} /> : <p className="muted">{HR.stageDemoOnly}</p>}
           </section>
 
           {row.live && <SendMessage dispatch={dispatch} />}
         </div>
       </div>
     </>
+  );
+}
+
+// 段階は「次へ進める」操作で変える。戻すのは例外なので、小さく置く
+function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
+  const i = STAGES.indexOf(state.stage);
+  const next = STAGES[i + 1];
+  const prev = i > 0 ? STAGES[i - 1] : undefined;
+  const nextLabel = HR.nextLabel[state.stage];
+  // 急性期→回復期は、心理の専門家との面談が済むまで進められない
+  const locked = state.stage === "acute" && !state.psychMeetingDone;
+
+  return (
+    <div className="stage-control">
+      {state.stage === "acute" && (
+        <div className="psych">
+          <p>
+            {state.psychMeetingDone ? HR.psychDone : state.rivaMeetingApplied ? HR.psychApplied : HR.psychNone}
+          </p>
+          {state.rivaMeetingApplied && !state.psychMeetingDone && (
+            <button className="btn-quiet" onClick={() => dispatch({ type: "markPsychDone" })}>
+              {HR.psychDoneButton}
+            </button>
+          )}
+        </div>
+      )}
+
+      {nextLabel && next &&
+        (locked ? (
+          <>
+            <button className="btn-primary" disabled>
+              {nextLabel}
+            </button>
+            <p className="muted">{HR.nextLockedAcute}</p>
+          </>
+        ) : (
+          <ConfirmButton
+            key={state.stage}
+            label={nextLabel}
+            confirm={HR.confirmNext(row.name, STAGE_LABELS[state.stage], STAGE_LABELS[next])}
+            yes={HR.nextYes}
+            no={HR.confirmNo}
+            onConfirm={() => dispatch({ type: "setStage", stage: next })}
+          />
+        ))}
+      {state.stage === "preReturn" && <p className="muted">{HR.preReturnSoon}</p>}
+
+      {prev && state.stage !== "afterReturn" && (
+        <div className="stage-back">
+          <ConfirmButton
+            key={`back-${state.stage}`}
+            quiet
+            label={HR.backLabel}
+            confirm={HR.confirmBack(row.name, STAGE_LABELS[state.stage], STAGE_LABELS[prev])}
+            yes={HR.backYes}
+            no={HR.confirmNo}
+            onConfirm={() => dispatch({ type: "setStage", stage: prev })}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
