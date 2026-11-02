@@ -54,7 +54,14 @@ export const PERSON = {
 export const INITIAL_STAGE_HISTORY: StageChange[] = [{ date: PERSON.leaveStart, stage: "acute" }];
 
 // 人事画面に並ぶ、ほかの休職者（すべて架空）。社員Aだけが本人画面と連動する
-export type HrEvent = { date: string; kind: "stage" | "fromHr" | "fromPerson" | "meeting" | "submit" | "done"; body: string };
+// status は面談のいまの状態、noReply は人事の連絡に「返信は不要です」をつけたか
+export type HrEvent = {
+  date: string;
+  kind: "stage" | "fromHr" | "fromPerson" | "meeting" | "submit" | "done";
+  body: string;
+  status?: string;
+  noReply?: boolean;
+};
 // 人事が対応すること。due は期限（満了日など）があるときだけ
 export type HrTodo = { key: string; text: string; date: string; due?: string };
 export type OtherPerson = {

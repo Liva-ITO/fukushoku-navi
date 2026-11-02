@@ -29,10 +29,13 @@ export type State = {
   recoveryIntroSeen: boolean;
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
-  companyMeetingApplied: boolean;
+  // 会社との面談。人事が日程を決め、実施を記録する（産業医やほかの担当者とも共有するため）
+  companyMeeting: { status: "applied" | "scheduled" | "done"; date?: string } | null;
   // 面談チケットの残り（会社全体）。人事が管理し、本人には数を見せない
   ticketsLeft: number;
   coordinatorMeeting: "applied" | "requested" | null;
+  // 支援機関から会社に届く報告。伝えるのは、実施したか・日程を連絡したかだけ（話した内容は届かない）
+  coordinatorReport: "done" | "notified" | "declined" | null;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
   // 人事画面で開いている人（null なら一覧）
@@ -61,9 +64,10 @@ export const initialState: State = {
   recoveryIntroSeen: false,
   recoveryJourneySeen: false,
   prepPath: null,
-  companyMeetingApplied: false,
+  companyMeeting: null,
   ticketsLeft: DEMO_TICKETS,
   coordinatorMeeting: null,
+  coordinatorReport: null,
   diary: INITIAL_DIARY,
   sentToHr: [],
   hrSelected: null,
@@ -85,6 +89,9 @@ export type Action =
   | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
   | { type: "applyCompanyMeeting" }
+  | { type: "scheduleCompanyMeeting"; date: string }
+  | { type: "finishCompanyMeeting" }
+  | { type: "coordinatorReport"; report: "done" | "notified" | "declined" }
   | { type: "setTicketsLeft"; on: boolean }
   | { type: "refillTickets" }
   | { type: "askCoordinator" }
@@ -134,19 +141,26 @@ function reducer(state: State, action: Action): State {
     case "setPrepPath":
       return { ...state, prepPath: action.path };
     case "applyCompanyMeeting":
-      return { ...state, companyMeetingApplied: true };
+      return { ...state, companyMeeting: { status: "applied" } };
+    case "scheduleCompanyMeeting":
+      return { ...state, companyMeeting: { status: "scheduled", date: action.date } };
+    case "finishCompanyMeeting":
+      return state.companyMeeting ? { ...state, companyMeeting: { ...state.companyMeeting, status: "done" } } : state;
+    case "coordinatorReport":
+      return { ...state, coordinatorReport: action.report };
     case "setTicketsLeft":
       return {
         ...state,
         ticketsLeft: action.on ? Math.max(state.ticketsLeft, DEMO_TICKETS) : 0,
         coordinatorMeeting: null,
+        coordinatorReport: null,
       };
     case "refillTickets":
       return { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS };
     case "askCoordinator":
       return state.ticketsLeft > 0
-        ? { ...state, coordinatorMeeting: "applied", ticketsLeft: state.ticketsLeft - 1 }
-        : { ...state, coordinatorMeeting: "requested" };
+        ? { ...state, coordinatorMeeting: "applied", coordinatorReport: null, ticketsLeft: state.ticketsLeft - 1 }
+        : { ...state, coordinatorMeeting: "requested", coordinatorReport: null };
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
     case "sendToHr":
@@ -189,7 +203,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v12";
+const STORAGE_KEY = "fukushoku-navi-demo-v13";
 
 function load(): State {
   try {

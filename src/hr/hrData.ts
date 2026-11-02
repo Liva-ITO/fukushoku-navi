@@ -32,9 +32,9 @@ function todosOf(state: State): HrTodo[] {
   const at = (key: string, text: string) => t.push({ key, text, date: DEMO_TODAY });
   if (state.stage === "acute" && state.psychMeetingDone) at("a-psych-done", HR.todoA.psychDone);
   else if (state.stage === "acute" && state.rivaMeetingApplied) at("a-psych", HR.todoA.psychMeeting);
-  if (state.companyMeetingApplied) at("a-company", HR.todoA.companyMeeting);
-  if (state.coordinatorMeeting === "applied") at("a-coord", HR.todoA.coordinatorApplied);
-  if (state.coordinatorMeeting === "requested") at("a-coord-req", HR.todoA.coordinatorRequested);
+  if (state.companyMeeting?.status === "applied") at("a-company", HR.todoA.companyMeeting);
+  if (state.coordinatorMeeting === "applied" && !state.coordinatorReport) at("a-coord", HR.todoA.coordinatorApplied);
+  if (state.coordinatorMeeting === "requested" && !state.coordinatorReport) at("a-coord-req", HR.todoA.coordinatorRequested);
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
   if (state.sentToHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length));
   return t;
@@ -55,22 +55,44 @@ const byDate = (events: HrEvent[]) =>
 
 function eventsOf(state: State): HrEvent[] {
   const today = DEMO_TODAY;
-  const meetings: HrEvent[] = [];
-  if (state.rivaMeetingApplied) meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.psych });
-  if (state.psychMeetingDone) meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.psychDone });
-  if (state.companyMeetingApplied) meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.company });
-  if (state.coordinatorMeeting === "applied")
-    meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.coordinatorApplied });
-  if (state.coordinatorMeeting === "requested")
-    meetings.push({ date: today, kind: "meeting", body: HR.meetingEvent.coordinatorRequested });
+  // 面談は1件を1行にし、状態の印を変えていく
+  const meetings: HrEvent[] = meetingsOf(state).map((m) => ({ date: today, kind: "meeting", body: m.name, status: m.status }));
 
   return byDate([
     ...state.stageHistory.map((s) => ({ date: s.date, kind: "stage" as const, body: STAGE_LABELS[s.stage] })),
-    ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.body })),
+    ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.body, noReply: m.noReplyNeeded })),
     ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body })),
     ...meetings,
     ...doneEvents(state, PERSON.id),
   ]);
+}
+
+// 社員Aの面談と、いまの状態
+export type Meeting = { key: "psych" | "company" | "coordinator"; name: string; status: string };
+const monthDay = (d: string) => d.slice(5).replace("-", "/");
+
+export function meetingsOf(state: State): Meeting[] {
+  const m: Meeting[] = [];
+  const st = HR.meetingStatus;
+  if (state.rivaMeetingApplied)
+    m.push({ key: "psych", name: HR.meetingName.psych, status: state.psychMeetingDone ? st.done : st.applied });
+  const c = state.companyMeeting;
+  if (c)
+    m.push({
+      key: "company",
+      name: HR.meetingName.company,
+      status: c.status === "done" ? st.done : c.status === "scheduled" ? st.scheduled(monthDay(c.date ?? "")) : st.applied,
+    });
+  if (state.coordinatorMeeting === "applied")
+    m.push({ key: "coordinator", name: HR.meetingName.coordinator, status: state.coordinatorReport === "done" ? st.done : st.applied });
+  if (state.coordinatorMeeting === "requested")
+    m.push({
+      key: "coordinator",
+      name: HR.meetingName.coordinatorRequest,
+      status:
+        state.coordinatorReport === "notified" ? st.notified : state.coordinatorReport === "declined" ? st.declined : st.requested,
+    });
+  return m;
 }
 
 export function hrRows(state: State): HrRow[] {

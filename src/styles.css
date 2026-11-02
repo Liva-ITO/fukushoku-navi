@@ -330,3 +330,14 @@ button { font: inherit; cursor: pointer; }
   background: #fff; white-space: pre-wrap;
 }
 .hr-back-bottom { margin: 16px 0 0; }
+
+/* 面談の状態・返信不要の印 */
+.status-tag {
+  display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid var(--line); font-size: 12px; font-weight: 400; color: var(--muted); background: #fff;
+}
+.meeting-list { list-style: none; margin: 0 0 10px; padding: 0; }
+.meeting-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.meeting-action { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.meeting-action input { margin-left: 6px; }
+.demo-report { padding: 6px 8px; border: 1px dashed var(--line); border-radius: 8px; }

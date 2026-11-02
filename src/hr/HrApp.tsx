@@ -3,8 +3,8 @@ import { HR, STAGE_LABELS, type Stage } from "../constants/labels";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
-import { daysUntil, hrRows, isIncoming, sortTodos, type HrRow } from "./hrData";
-import type { HrTodo } from "../data/demo";
+import { daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
+import { DEMO_TODAY, type HrEvent, type HrTodo } from "../data/demo";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -188,7 +188,10 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
             {newItems.map(({ e }, i) => (
               <li key={i}>
                 <span className="tl-date">{shortDate(e.date)}</span>
-                <span className="tl-kind">{HR.event[e.kind as "fromPerson" | "submit" | "meeting"]}</span>
+                <span className="tl-kind">
+                  {HR.event[e.kind as "fromPerson" | "submit" | "meeting"]}
+                  <EventTags e={e} />
+                </span>
                 <span className="tl-body">{e.body}</span>
               </li>
             ))}
@@ -221,6 +224,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
                 <span className="tl-kind">
                   {e.kind === "stage" ? HR.event.stage(e.body) : HR.event[e.kind]}
                   {isNew && <span className="new-tag">{HR.newTag}</span>}
+                  <EventTags e={e} />
                 </span>
                 {e.kind !== "stage" && <span className="tl-body">{e.body}</span>}
               </li>
@@ -238,6 +242,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
             {row.live ? <StageControl row={row} state={state} dispatch={dispatch} /> : <p className="muted">{HR.stageDemoOnly}</p>}
           </section>
 
+          {row.live && <Meetings state={state} dispatch={dispatch} />}
           {row.live && <SendMessage name={row.name} stage={row.stage} dispatch={dispatch} />}
         </div>
       </div>
@@ -245,6 +250,79 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
       {/* 下まで読んだあと、上まで戻らずに一覧へ */}
       <BackButton dispatch={dispatch} bottom />
     </>
+  );
+}
+
+// 面談の状態と、「返信は不要です」をつけたか
+function EventTags({ e }: { e: HrEvent }) {
+  return (
+    <>
+      {e.status && <span className="status-tag">{e.status}</span>}
+      {e.noReply && <span className="status-tag">{HR.noReplyTag}</span>}
+    </>
+  );
+}
+
+// 面談の状態。会社との面談は人事が日程と実施を記録し、コーディネーターとの面談は支援機関からの報告で変わる
+function Meetings({ state, dispatch }: Props) {
+  const [date, setDate] = useState("");
+  const list = meetingsOf(state);
+  if (list.length === 0) return null;
+  const c = state.companyMeeting;
+  const coordOpen = state.coordinatorMeeting !== null && state.coordinatorReport === null;
+
+  return (
+    <section className="hr-card">
+      <h2>{HR.meetingTitle}</h2>
+      <ul className="meeting-list">
+        {list.map((m) => (
+          <li key={m.key}>
+            <span>{m.name}</span>
+            <span className="status-tag">{m.status}</span>
+          </li>
+        ))}
+      </ul>
+
+      {c?.status === "applied" && (
+        <div className="meeting-action">
+          <label className="muted">
+            {HR.companyDate}
+            <input type="date" min={DEMO_TODAY} value={date} onChange={(e) => setDate(e.target.value)} />
+          </label>
+          <button className="btn-outline btn-small" disabled={!date} onClick={() => dispatch({ type: "scheduleCompanyMeeting", date })}>
+            {HR.companySchedule}
+          </button>
+        </div>
+      )}
+      {c?.status === "scheduled" && (
+        <div className="meeting-action">
+          <button className="btn-outline btn-small" onClick={() => dispatch({ type: "finishCompanyMeeting" })}>
+            {HR.companyDone}
+          </button>
+        </div>
+      )}
+
+      {coordOpen && (
+        <div className="meeting-action demo-report">
+          <span className="muted">{HR.demoReport}</span>
+          {state.coordinatorMeeting === "applied" ? (
+            <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "coordinatorReport", report: "done" })}>
+              {HR.reportDone}
+            </button>
+          ) : (
+            <>
+              <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "coordinatorReport", report: "notified" })}>
+                {HR.reportNotified}
+              </button>
+              <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "coordinatorReport", report: "declined" })}>
+                {HR.reportDeclined}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+      <p className="muted">{HR.meetingNote}</p>
+    </section>
   );
 }
 

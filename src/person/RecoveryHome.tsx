@@ -9,6 +9,9 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 const REWORK_PATHS: PrepPath[] = ["rivatore", "rivabiz"];
 
 // 回復期：生活のリズムを整える。ゴールは見せるが、急かさない
+// 2026-11-10 → 11月10日
+const japaneseDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
+
 export default function RecoveryHome({ state, dispatch }: Props) {
   const path = state.prepPath;
   const nextItems =
@@ -103,8 +106,14 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         {/* 自分のペースで準備する人だけ、ここから会社との面談を申し込む。リワークはプログラムの中で確かめる */}
         {path === "self" && (
           <div className="next-step">
-            {state.companyMeetingApplied ? (
-              <p className="done-note">{RECOVERY.meetCompanyApplied}</p>
+            {state.companyMeeting ? (
+              <p className="done-note">
+                {state.companyMeeting.status === "done"
+                  ? RECOVERY.meetCompanyDone
+                  : state.companyMeeting.status === "scheduled" && state.companyMeeting.date
+                    ? RECOVERY.meetCompanyScheduled(japaneseDate(state.companyMeeting.date))
+                    : RECOVERY.meetCompanyApplied}
+              </p>
             ) : (
               <>
                 <p className="muted">{RECOVERY.meetCompanyNote}</p>
