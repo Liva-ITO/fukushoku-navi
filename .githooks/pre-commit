@@ -1,0 +1,3 @@
+#!/bin/sh
+# 公開前チェック（ステージされた変更）
+exec node scripts/check-public-safety.mjs --staged

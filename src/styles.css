@@ -1,0 +1,115 @@
+:root {
+  --bg: #f4f1ec;
+  --surface: #fffdf9;
+  --text: #3b3a36;
+  --muted: #7d7a72;
+  --line: #e4dfd6;
+  --accent: #5e8c7d;
+  --accent-soft: #e6efeb;
+  --bar-bg: #2f3b38;
+  --bar-text: #f1f4f2;
+  --radius: 14px;
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+button { font: inherit; cursor: pointer; }
+
+/* デモ操作バー（審査員向け） */
+.demo-bar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  padding: 8px 16px;
+  background: var(--bar-bg); color: var(--bar-text);
+  font-size: 13px;
+}
+.demo-bar-title { font-weight: 700; opacity: .8; }
+.seg { display: inline-flex; align-items: center; gap: 2px; }
+.seg-label { margin-right: 6px; }
+.seg button, .demo-reset, .demo-field select {
+  border: 1px solid #5d6b67; background: transparent; color: var(--bar-text);
+  padding: 3px 10px; border-radius: 6px; font-size: 13px;
+}
+.seg button[aria-pressed="true"] { background: var(--bar-text); color: var(--bar-bg); }
+.demo-field { display: inline-flex; align-items: center; gap: 6px; }
+.demo-field select option { color: var(--text); }
+.demo-reset { margin-left: auto; }
+
+/* 本人画面：スマホ幅 */
+.stage-person { display: flex; justify-content: center; padding: 24px 16px; }
+.phone {
+  width: 100%; max-width: 390px; min-height: 760px;
+  display: flex; flex-direction: column;
+  background: var(--surface); border-radius: 28px;
+  box-shadow: 0 8px 30px rgba(60, 50, 30, .08);
+  overflow: hidden;
+}
+.phone-header { padding: 16px 20px 4px; }
+.app-name { font-size: 13px; color: var(--muted); }
+.phone-body { flex: 1; padding: 8px 20px 24px; }
+.tab-bar {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid var(--line);
+}
+.tab-bar button {
+  border: 0; background: none; padding: 12px 0; font-size: 12px; color: var(--muted);
+}
+.tab-bar button[aria-current="page"] { color: var(--accent); font-weight: 700; }
+
+@media (max-width: 480px) {
+  .stage-person { padding: 0; }
+  .phone { border-radius: 0; box-shadow: none; min-height: calc(100vh - 44px); }
+}
+
+/* ホーム共通 */
+.greeting { font-size: 15px; color: var(--muted); margin: 8px 0 4px; }
+.lead { font-size: 17px; margin: 0 0 20px; }
+.card {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.card h2 { font-size: 14px; margin: 0 0 6px; color: var(--muted); font-weight: 600; }
+.card p { margin: 0; }
+.card-quiet { background: transparent; }
+.card-quiet summary { font-size: 14px; color: var(--muted); cursor: pointer; }
+.list-plain { list-style: none; margin: 0; padding: 0; }
+.list-plain li { padding: 6px 0; }
+.muted { color: var(--muted); font-size: 13px; }
+.tag-soft {
+  display: inline-block; margin-top: 8px; padding: 1px 10px;
+  border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px;
+}
+.link-soft {
+  display: block; width: 100%; margin: 0 0 14px; padding: 12px;
+  border: 1px dashed var(--line); border-radius: var(--radius);
+  background: none; color: var(--accent); text-align: left;
+}
+.check { display: flex; gap: 10px; align-items: center; }
+.next-step { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.next-step p { margin: 0 0 10px; }
+.done-note { color: var(--accent); }
+.btn-primary {
+  border: 0; border-radius: 999px; padding: 10px 22px;
+  background: var(--accent); color: #fff;
+}
+.placeholder { color: var(--muted); text-align: center; margin-top: 40px; }
+
+/* 人事画面：PC幅 */
+.stage-hr { padding: 24px 16px; }
+.hr { max-width: 1280px; margin: 0 auto; }
+
+/* はじめの案内 */
+.intro-backdrop {
+  position: fixed; inset: 0; z-index: 20;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(40, 40, 35, .35);
+}
+.intro {
+  max-width: 440px; background: var(--surface); border-radius: var(--radius);
+  padding: 24px; text-align: center;
+}
+.intro p { margin: 0 0 12px; }
+.intro-note { font-size: 13px; color: var(--muted); }
