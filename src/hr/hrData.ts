@@ -33,7 +33,7 @@ function todosOf(state: State): HrTodo[] {
   if (state.stage === "acute" && state.psychMeetingDone) at("a-psych-done", HR.todoA.psychDone);
   else if (state.stage === "acute" && state.rivaMeetingApplied) at("a-psych", HR.todoA.psychMeeting);
   if (state.companyMeeting?.status === "applied") at("a-company", HR.todoA.companyMeeting);
-  if (state.coordinatorMeeting === "applied" && !state.coordinatorReport) at("a-coord", HR.todoA.coordinatorApplied);
+  // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
   if (state.coordinatorMeeting === "requested" && !state.coordinatorReport) at("a-coord-req", HR.todoA.coordinatorRequested);
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
   if (state.sentToHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length));

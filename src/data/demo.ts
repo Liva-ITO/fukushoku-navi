@@ -104,12 +104,13 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveStart: "2026-10-20",
     leaveEnd: "2027-04-19",
     rework: "未定",
-    todo: { key: "c-coord", text: "復職コーディネーターとの面談の申し込みがありました", date: "2026-11-03" },
+    todo: { key: "c-sick", text: "傷病手当金の申請書が届きました。会社の記入欄を書いて提出してください", date: "2026-11-03" },
     seen: 0,
     events: [
       { date: "2026-10-20", kind: "stage", body: "急性期" },
-      { date: "2026-10-22", kind: "fromHr", body: "手続きのご案内です。急ぎではありませんので、落ち着いたときにご確認ください。" },
-      { date: "2026-11-03", kind: "meeting", body: "復職コーディネーターとの面談の申し込み" },
+      { date: "2026-10-22", kind: "fromHr", body: "傷病手当金の申請書をお送りします。主治医の記入が済んだら、送ってください。" },
+      { date: "2026-11-02", kind: "meeting", body: "復職コーディネーターとの面談", status: "申し込み" },
+      { date: "2026-11-03", kind: "submit", body: "傷病手当金の申請書（10月分・主治医の記入済み）" },
     ],
   },
   {

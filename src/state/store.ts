@@ -155,8 +155,13 @@ function reducer(state: State, action: Action): State {
         coordinatorMeeting: null,
         coordinatorReport: null,
       };
-    case "refillTickets":
-      return { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS };
+    case "refillTickets": {
+      // 待っているリクエストは、補充したら受け付ける（チケットを1枚使う）
+      const waiting = state.coordinatorMeeting === "requested" && state.coordinatorReport === null;
+      return waiting
+        ? { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS - 1, coordinatorMeeting: "applied" }
+        : { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS };
+    }
     case "askCoordinator":
       return state.ticketsLeft > 0
         ? { ...state, coordinatorMeeting: "applied", coordinatorReport: null, ticketsLeft: state.ticketsLeft - 1 }

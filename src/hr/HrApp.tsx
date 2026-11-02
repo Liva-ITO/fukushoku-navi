@@ -53,6 +53,22 @@ function DoneButton({ todo, personId, dispatch }: { todo: HrTodo; personId: stri
   );
 }
 
+// リクエストに人事ができるのは、チケットを補充することだけ（補充すると受け付けられる）
+const REQUEST_KEY = "a-coord-req";
+
+function RefillButton({ label, dispatch }: { label: string; dispatch: Dispatch<Action> }) {
+  return (
+    <ConfirmButton
+      quiet
+      label={label}
+      confirm={HR.refillConfirm}
+      yes={HR.refillYes}
+      no={HR.confirmNo}
+      onConfirm={() => dispatch({ type: "refillTickets" })}
+    />
+  );
+}
+
 // 本人から届いたもののうち、開く前に見ていなかったものに「新着」の印をつける
 function markNew(row: HrRow) {
   let n = 0;
@@ -95,9 +111,7 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
           <p className="tile-label">{HR.tickets}</p>
           <div className="tile-row">
             <p className="tile-value">{HR.ticketsUnit(state.ticketsLeft)}</p>
-            <button className="btn-outline" onClick={() => dispatch({ type: "refillTickets" })}>
-              {HR.refill}
-            </button>
+            <RefillButton label={HR.refill} dispatch={dispatch} />
           </div>
           <p className="muted">{HR.ticketsNote}</p>
         </div>
@@ -117,7 +131,11 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
                   <button className="btn-quiet" onClick={() => open(row)}>
                     {HR.open}
                   </button>
-                  <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
+                  {todo.key === REQUEST_KEY ? (
+                    <RefillButton label={HR.refillTodo} dispatch={dispatch} />
+                  ) : (
+                    <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
+                  )}
                 </span>
               </li>
             ))}
@@ -206,7 +224,11 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
             {sortTodos(row.todos.map((todo) => ({ todo }))).map(({ todo }) => (
               <li key={todo.key} className="todo-detail">
                 <TodoText todo={todo} />
-                <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
+                {todo.key === REQUEST_KEY ? (
+                  <RefillButton label={HR.refillTodo} dispatch={dispatch} />
+                ) : (
+                  <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
+                )}
               </li>
             ))}
           </ul>
