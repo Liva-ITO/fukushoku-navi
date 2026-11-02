@@ -115,6 +115,13 @@ export const RECOVERY = {
 
   restButton: "今日はしんどい",
 
+  // 自分のペースで準備する人向け。ひとりで抱え込まないよう、本とリヴァへの相談の入口を置く
+  selfTitle: "自分のペースで準備するときに",
+  booksTitle: "おすすめの本",
+  books: [{ title: "メンタル不調者のための 脱うつ 書くだけ30日ワーク", note: "書き込みながら、復職の準備を進めるワーク" }],
+  selfConsult: "ひとりで進めていて迷ったら、リヴァの復職コーディネーターに相談できます",
+  selfConsultButton: "相談する",
+
   meetCompanyNote: "目安に近づいてきたと感じたら、申し込めます",
   meetCompany: "会社と面談する",
   meetCompanyConfirm: "会社との面談を申し込みます。申し込むと、会社から日程の連絡が届きます。",

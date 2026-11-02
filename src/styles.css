@@ -130,7 +130,8 @@ button { font: inherit; cursor: pointer; }
 .path-option-indent { margin-left: 12px; width: calc(100% - 12px); }
 .path-option:hover { border-color: var(--accent); }
 .path-name { font-weight: 600; }
-.path-chosen { display: flex; justify-content: space-between; align-items: center; }
+.path-chosen { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.path-chosen .btn-quiet { white-space: nowrap; }
 .rest-link { margin: -12px 0 14px; text-align: right; }
 .link-muted { color: var(--muted); text-decoration: underline; }
 

@@ -63,6 +63,28 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         )}
       </section>
 
+      {path === "self" && (
+        <section className="card">
+          <h2>{RECOVERY.selfTitle}</h2>
+          <p className="path-group">{RECOVERY.booksTitle}</p>
+          <ul className="list-plain">
+            {RECOVERY.books.map((b) => (
+              <li key={b.title}>
+                {b.title}
+                <br />
+                <span className="muted">{b.note}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="next-step">
+            <p className="muted">{RECOVERY.selfConsult}</p>
+            <button className="btn-outline" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>
+              {RECOVERY.selfConsultButton}
+            </button>
+          </div>
+        </section>
+      )}
+
       <section className="card">
         <h2>{RECOVERY.nextTitle}</h2>
         <ul className="list-dot">
