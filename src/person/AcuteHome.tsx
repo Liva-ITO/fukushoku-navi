@@ -1,8 +1,8 @@
 import type { Dispatch } from "react";
-import { ACUTE, greeting } from "../constants/labels";
+import { ACUTE, REST, greeting } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
-import { ConfirmButton, HrNoticeFold, ReadingsCard } from "./parts";
+import { ConfirmButton, CoordinatorCard, HrNoticeFold, ReadingsCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -22,6 +22,9 @@ export default function AcuteHome({ state, dispatch }: Props) {
       <button className="link-soft" onClick={() => dispatch({ type: "setTab", tab: "record" })}>
         {ACUTE.recordEntry}
       </button>
+
+      {/* 大きく体調を崩している時期なので、休息モードと同じく、チケットがなければ公的な窓口を出す */}
+      <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} publicWhenEmpty />
 
       <section className="card">
         <h2>{ACUTE.todoTitle}</h2>
