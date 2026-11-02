@@ -1,4 +1,4 @@
-import { useState, type Dispatch } from "react";
+import { useEffect, useState, type Dispatch } from "react";
 import { HR, STAGE_LABELS, type Stage } from "../constants/labels";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
@@ -15,6 +15,11 @@ const shortDate = (d: string) => d.replace(/-/g, "/");
 export default function HrApp({ state, dispatch }: Props) {
   const rows = hrRows(state);
   const selected = rows.find((r) => r.id === state.hrSelected);
+
+  // 一覧と詳しい画面を切り替えたら、いちばん上から見せる
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [state.hrSelected]);
 
   return (
     <div className="hr">
