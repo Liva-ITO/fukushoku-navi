@@ -68,13 +68,19 @@ export default function RecoveryHome({ state, dispatch }: Props) {
           <h2>{RECOVERY.selfTitle}</h2>
           <p className="path-group">{RECOVERY.booksTitle}</p>
           <ul className="list-plain">
-            {RECOVERY.books.map((b) => (
-              <li key={b.title}>
-                {b.title}
-                <br />
-                <span className="muted">{b.note}</span>
-              </li>
-            ))}
+            {RECOVERY.books.map((b, i) =>
+              b.note ? (
+                <li key={i}>
+                  {b.title}
+                  <br />
+                  <span className="muted">{b.note}</span>
+                </li>
+              ) : (
+                <li key={i} className="muted">
+                  {b.title}
+                </li>
+              ),
+            )}
           </ul>
           <div className="next-step">
             <p className="muted">{RECOVERY.selfConsult}</p>
