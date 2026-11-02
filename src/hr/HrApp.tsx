@@ -161,6 +161,8 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
 }
 
 function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
+  // 開く前に見ていなかったもの。経緯の中だけだと埋もれるので、いちばん上にも出す
+  const newItems = markNew(row).filter((x) => x.isNew).reverse();
   return (
     <>
       <button className="btn-quiet hr-back" onClick={() => dispatch({ type: "hrSelect", id: null })}>
@@ -172,6 +174,24 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
         </h1>
         <StageTag stage={row.stage} />
       </div>
+
+      {newItems.length > 0 && (
+        <section className="hr-card hr-card-new">
+          <h2>
+            {HR.newTitle}
+            <span className="new-tag">{HR.newsCount(newItems.length)}</span>
+          </h2>
+          <ul className="new-list">
+            {newItems.map(({ e }, i) => (
+              <li key={i}>
+                <span className="tl-date">{shortDate(e.date)}</span>
+                <span className="tl-kind">{HR.event[e.kind as "fromPerson" | "submit" | "meeting"]}</span>
+                <span className="tl-body">{e.body}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {row.todos.length > 0 && (
         <section className="hr-card hr-card-todo">
