@@ -3,7 +3,7 @@ import { ACUTE, COMMON, CONSULT, RECORD } from "../constants/labels";
 import type { HrMessage } from "../data/demo";
 import type { Action, State } from "../state/store";
 
-// リヴァの復職コーディネーターへの相談。チケットが残っていれば申し込み、なければリクエスト。
+// 復職コーディネーターへの相談。チケットが残っていれば申し込み、なければリクエスト。
 // 休息モードでは、チケットがないときはリクエストの代わりに公的な相談窓口を出す
 export function CoordinatorCard({
   state,

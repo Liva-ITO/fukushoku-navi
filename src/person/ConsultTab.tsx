@@ -5,7 +5,7 @@ import { CoordinatorCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
-// 相談：リヴァとの面談は、段階に関係なく、相談したいときに本人が選ぶ
+// 相談：復職コーディネーターとの面談は、段階に関係なく、相談したいときに本人が選ぶ
 export default function ConsultTab({ state, dispatch }: Props) {
   return (
     <div>
