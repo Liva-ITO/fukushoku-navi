@@ -61,7 +61,15 @@ button { font: inherit; cursor: pointer; }
 
 @media (max-width: 480px) {
   .stage-person { padding: 0; }
-  .phone { border-radius: 0; box-shadow: none; min-height: calc(100vh - 44px); }
+  .phone { border-radius: 0; box-shadow: none; min-height: calc(100dvh - 44px); overflow: visible; }
+  /* 実機では画面の下に固定し、指で押しやすい高さにする */
+  .tab-bar {
+    position: sticky; bottom: 0; z-index: 4;
+    background: var(--surface);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .phone-rest .tab-bar { background: #f7f5f1; }
+  .tab-bar button { padding: 14px 0 16px; font-size: 13px; }
 }
 
 /* ホーム共通 */
