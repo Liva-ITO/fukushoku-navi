@@ -170,9 +170,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
   const newItems = markNew(row).filter((x) => x.isNew).reverse();
   return (
     <>
-      <button className="btn-quiet hr-back" onClick={() => dispatch({ type: "hrSelect", id: null })}>
-        ← {HR.back}
-      </button>
+      <BackButton dispatch={dispatch} />
       <div className="hr-head">
         <h1 className="hr-title">
           {row.name}　<span className="muted">{row.dept}</span>
@@ -243,7 +241,18 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
           {row.live && <SendMessage name={row.name} stage={row.stage} dispatch={dispatch} />}
         </div>
       </div>
+
+      {/* 下まで読んだあと、上まで戻らずに一覧へ */}
+      <BackButton dispatch={dispatch} bottom />
     </>
+  );
+}
+
+function BackButton({ dispatch, bottom }: { dispatch: Dispatch<Action>; bottom?: boolean }) {
+  return (
+    <button className={`btn-quiet hr-back${bottom ? " hr-back-bottom" : ""}`} onClick={() => dispatch({ type: "hrSelect", id: null })}>
+      ← {HR.back}
+    </button>
   );
 }
 
