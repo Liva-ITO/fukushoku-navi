@@ -62,9 +62,11 @@ button { font: inherit; cursor: pointer; }
 @media (max-width: 480px) {
   .stage-person { padding: 0; }
   .phone { border-radius: 0; box-shadow: none; min-height: calc(100dvh - 44px); overflow: visible; }
-  /* 実機では画面の下に固定し、指で押しやすい高さにする */
+  /* 実機では画面の下に固定し、指で押しやすい高さにする。
+     sticky だと iPhone の Safari で最初は元の位置に止まり、スクロールしてから下に張りつくので fixed にする */
+  .phone-body { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
   .tab-bar {
-    position: sticky; bottom: 0; z-index: 4;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 4;
     background: var(--surface);
     padding-bottom: env(safe-area-inset-bottom);
   }
