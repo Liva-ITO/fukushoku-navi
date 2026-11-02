@@ -36,15 +36,15 @@ export const COMMON = {
 
 export const ACUTE = {
   message:
-    "いまは、休むことがいちばんの仕事です。何かをしなければと思わなくて大丈夫です。開きたくなったときに、ここを開いてください。",
-  hrContactTitle: "人事からの連絡",
+    "いまは、休んでいて大丈夫です。何かをしなければと思わなくてかまいません。開きたくなったときに、ここを開いてください。",
+  hrContactSummary: (n: number) => `人事からのお知らせが${n}件`,
   readingsTitle: "少し楽になる読みもの",
   readings: [
     { title: "休んでいいと思えないときに", minutes: 3 },
     { title: "眠れない夜のための短い音声", minutes: 5 },
     { title: "家族に今の状態を伝えるには", minutes: 4 },
   ],
-  recordEntry: "書けそうなときに、記録をつけておこう",
+  recordEntry: "日記",
   todoTitle: "やれるならやってみよう",
   todo: "起きたらカーテンを開ける",
   checkTitle: "気が向いたときに",
@@ -52,12 +52,14 @@ export const ACUTE = {
   checkItems: [
     "通院・服薬ができている",
     "家族や主治医以外と少し話せる",
-    "週2回程度外出できる",
-    "復職への意欲が見え始めた",
+    "週2日は外出できる",
   ],
   checkAllDone: "次に進めそうか、心理の専門家と一緒に確かめてみよう",
   checkButton: "心理の専門家と話してみる",
   checkButtonNote: "この面談は、チケットを使いません",
+  checkConfirm: "リヴァの心理の専門家との面談を申し込みます。申し込むと、リヴァから日程の連絡が届きます。",
+  checkConfirmYes: "申し込む",
+  checkConfirmNo: "やめておく",
   checkApplied: "申し込みました。リヴァから日程の連絡が届きます",
 };
 

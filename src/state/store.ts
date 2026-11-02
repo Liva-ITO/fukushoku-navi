@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import type { Stage, Tab } from "../constants/labels";
+import { ACUTE, type Stage, type Tab } from "../constants/labels";
 import { INITIAL_HR_MESSAGES, type HrMessage } from "../data/demo";
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
@@ -23,7 +23,7 @@ export const initialState: State = {
   tab: "home",
   introSeen: false,
   hrMessages: INITIAL_HR_MESSAGES,
-  acuteChecks: [false, false, false, false],
+  acuteChecks: ACUTE.checkItems.map(() => false),
   rivaMeetingApplied: false,
 };
 
@@ -64,7 +64,8 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-const STORAGE_KEY = "fukushoku-navi-demo-v1";
+// 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
+const STORAGE_KEY = "fukushoku-navi-demo-v2";
 
 function load(): State {
   try {
