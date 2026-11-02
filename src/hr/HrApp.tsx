@@ -240,7 +240,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
             {row.live ? <StageControl row={row} state={state} dispatch={dispatch} /> : <p className="muted">{HR.stageDemoOnly}</p>}
           </section>
 
-          {row.live && <SendMessage name={row.name} dispatch={dispatch} />}
+          {row.live && <SendMessage name={row.name} stage={row.stage} dispatch={dispatch} />}
         </div>
       </div>
     </>
@@ -309,7 +309,8 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
 }
 
 // 送る前に、宛先と本文をもう一度見せる
-function SendMessage({ name, dispatch }: { name: string; dispatch: Dispatch<Action> }) {
+function SendMessage({ name, stage, dispatch }: { name: string; stage: Stage; dispatch: Dispatch<Action> }) {
+  const templates = stage === "acute" ? HR.templates : [...HR.templates, ...HR.templatesFromRecovery];
   const [text, setText] = useState("");
   const [noReply, setNoReply] = useState(false);
   const [sent, setSent] = useState(false);
@@ -352,9 +353,17 @@ function SendMessage({ name, dispatch }: { name: string; dispatch: Dispatch<Acti
         <>
           <p className="muted">{HR.sendNote}</p>
           <div className="chips">
-            {HR.templates.map((t) => (
-              <button key={t} className="chip" aria-pressed={text === t} onClick={() => setText(t)}>
-                {t}
+            {templates.map((t) => (
+              <button
+                key={t.text}
+                className="chip"
+                aria-pressed={text === t.text}
+                onClick={() => {
+                  setText(t.text);
+                  setNoReply(t.noReply);
+                }}
+              >
+                {t.text}
               </button>
             ))}
           </div>
