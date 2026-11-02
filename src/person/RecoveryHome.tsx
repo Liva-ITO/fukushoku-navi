@@ -19,6 +19,11 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       <p className="greeting">{greeting(PERSON.name, new Date().getHours())}</p>
       <p className="stage-chip">{STAGE_LABELS.recovery}</p>
       <p className="lead lead-small">{RECOVERY.stageNote}</p>
+      <p className="rest-link">
+        <button className="link-small link-muted" onClick={() => dispatch({ type: "setRestMode", on: true })}>
+          {RECOVERY.restButton}
+        </button>
+      </p>
 
       {!state.recoveryIntroSeen && (
         <section className="card card-intro">
@@ -30,30 +35,6 @@ export default function RecoveryHome({ state, dispatch }: Props) {
           </button>
         </section>
       )}
-
-      <section className="card">
-        <h2>{RECOVERY.todayTitle}</h2>
-        <ul className="list-plain">
-          {RECOVERY.todayItems.map((item, i) => (
-            <li key={item}>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={state.todayTodos[i]}
-                  onChange={() => dispatch({ type: "toggleTodayTodo", index: i })}
-                />
-                {item}
-              </label>
-            </li>
-          ))}
-        </ul>
-        <div className="today-foot">
-          <p className="muted">{RECOVERY.todayNote}</p>
-          <button className="link-small link-muted" onClick={() => dispatch({ type: "setRestMode", on: true })}>
-            {RECOVERY.restButton}
-          </button>
-        </div>
-      </section>
 
       <HrNoticeFold messages={state.hrMessages} />
 

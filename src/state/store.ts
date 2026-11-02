@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import { ACUTE, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
+import { ACUTE, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
   INITIAL_DIARY,
@@ -25,7 +25,6 @@ export type State = {
   recoveryIntroSeen: boolean;
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
-  todayTodos: boolean[];
   preReturnMeeting: MeetingWith | null;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
@@ -43,7 +42,6 @@ export const initialState: State = {
   recoveryIntroSeen: false,
   recoveryJourneySeen: false,
   prepPath: null,
-  todayTodos: RECOVERY.todayItems.map(() => false),
   preReturnMeeting: null,
   diary: INITIAL_DIARY,
   sentToHr: [],
@@ -60,7 +58,6 @@ export type Action =
   | { type: "closeRecoveryIntro" }
   | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
-  | { type: "toggleTodayTodo"; index: number }
   | { type: "applyPreReturnMeeting"; with: MeetingWith }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
@@ -93,8 +90,6 @@ function reducer(state: State, action: Action): State {
       return { ...state, recoveryJourneySeen: true };
     case "setPrepPath":
       return { ...state, prepPath: action.path };
-    case "toggleTodayTodo":
-      return { ...state, todayTodos: toggleAt(state.todayTodos, action.index) };
     case "applyPreReturnMeeting":
       return { ...state, preReturnMeeting: action.with };
     case "saveDiary":
@@ -113,7 +108,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v5";
+const STORAGE_KEY = "fukushoku-navi-demo-v6";
 
 function load(): State {
   try {

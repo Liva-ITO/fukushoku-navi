@@ -131,7 +131,7 @@ button { font: inherit; cursor: pointer; }
 .path-option:hover { border-color: var(--accent); }
 .path-name { font-weight: 600; }
 .path-chosen { display: flex; justify-content: space-between; align-items: center; }
-.today-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.rest-link { margin: -12px 0 14px; text-align: right; }
 .link-muted { color: var(--muted); text-decoration: underline; }
 
 /* 休息モード：色を落として静かにする */
