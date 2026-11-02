@@ -375,7 +375,8 @@ export const HR = {
   preReturnSoon: "復職を確定する操作は、これから作ります",
   stageDemoOnly: "デモでは、社員Aだけ操作できます",
 
-  sendTitle: "本人に連絡する",
+  // 送り先の取り違えを防ぐため、見出しと確認に名前を出す
+  sendTitle: (name: string) => `${name}さんに連絡する`,
   sendNote: "例文から選んで、書きかえて送れます",
   templates: [
     "その後、体調はいかがですか。返信は急ぎません。",
@@ -384,5 +385,7 @@ export const HR = {
   ],
   noReply: "「返信は不要です」をつける",
   send: "送る",
+  sendCheck: (name: string) => `${name}さんに、次の内容を送ります`,
+  sendCheckNoReply: "「返信は不要です」をつけて送ります",
   sent: "送りました。本人の画面に届いています",
 };

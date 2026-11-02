@@ -240,7 +240,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
             {row.live ? <StageControl row={row} state={state} dispatch={dispatch} /> : <p className="muted">{HR.stageDemoOnly}</p>}
           </section>
 
-          {row.live && <SendMessage dispatch={dispatch} />}
+          {row.live && <SendMessage name={row.name} dispatch={dispatch} />}
         </div>
       </div>
     </>
@@ -308,21 +308,46 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
   );
 }
 
-function SendMessage({ dispatch }: { dispatch: Dispatch<Action> }) {
+// 送る前に、宛先と本文をもう一度見せる
+function SendMessage({ name, dispatch }: { name: string; dispatch: Dispatch<Action> }) {
   const [text, setText] = useState("");
   const [noReply, setNoReply] = useState(false);
   const [sent, setSent] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   return (
     <section className="hr-card">
-      <h2>{HR.sendTitle}</h2>
+      <h2>{HR.sendTitle(name)}</h2>
       {sent ? (
         <>
           <p className="done-note">{HR.sent}</p>
           <button className="btn-quiet" onClick={() => setSent(false)}>
-            {HR.sendTitle}
+            {HR.sendTitle(name)}
           </button>
         </>
+      ) : checking ? (
+        <div className="confirm send-check">
+          <p>{HR.sendCheck(name)}</p>
+          <blockquote className="send-preview">{text.trim()}</blockquote>
+          {noReply && <p className="muted">{HR.sendCheckNoReply}</p>}
+          <div className="confirm-actions">
+            <button
+              className="btn-primary"
+              onClick={() => {
+                dispatch({ type: "sendHrMessage", body: text.trim(), noReplyNeeded: noReply });
+                setText("");
+                setNoReply(false);
+                setChecking(false);
+                setSent(true);
+              }}
+            >
+              {HR.send}
+            </button>
+            <button className="btn-quiet" onClick={() => setChecking(false)}>
+              {HR.confirmNo}
+            </button>
+          </div>
+        </div>
       ) : (
         <>
           <p className="muted">{HR.sendNote}</p>
@@ -341,12 +366,7 @@ function SendMessage({ dispatch }: { dispatch: Dispatch<Action> }) {
           <button
             className="btn-primary send-row"
             disabled={!text.trim()}
-            onClick={() => {
-              dispatch({ type: "sendHrMessage", body: text.trim(), noReplyNeeded: noReply });
-              setText("");
-              setNoReply(false);
-              setSent(true);
-            }}
+            onClick={() => setChecking(true)}
           >
             {HR.send}
           </button>

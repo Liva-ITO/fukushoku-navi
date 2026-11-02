@@ -323,3 +323,9 @@ button { font: inherit; cursor: pointer; }
 }
 .intro p { margin: 0 0 12px; }
 .intro-note { font-size: 13px; color: var(--muted); }
+
+/* 送る前の確認：本文をそのまま見せる */
+.send-preview {
+  margin: 0 0 10px; padding: 10px 12px; border-left: 3px solid var(--accent);
+  background: #fff; white-space: pre-wrap;
+}
