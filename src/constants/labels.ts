@@ -104,8 +104,7 @@ export const RECOVERY = {
 
   restButton: "今日はしんどい",
 
-  nextStepTitle: "そろそろ次に進めそうなら",
-  nextStepNote: "復職に向けて、話す相手を選べます",
+  nextStepNote: "目安に近づいてきたと感じたら、面談を申し込めます。話す相手を選べます",
   meetCompany: "会社と面談する",
   meetCompanyConfirm: "会社との面談を申し込みます。申し込むと、会社から日程の連絡が届きます。",
   meetCompanyApplied: "申し込みました。会社から日程の連絡が届きます",

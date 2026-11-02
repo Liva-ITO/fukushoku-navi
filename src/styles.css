@@ -131,10 +131,8 @@ button { font: inherit; cursor: pointer; }
 .path-option:hover { border-color: var(--accent); }
 .path-name { font-weight: 600; }
 .path-chosen { display: flex; justify-content: space-between; align-items: center; }
-.btn-rest {
-  display: block; width: 100%; margin: 0 0 14px; padding: 12px;
-  border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--muted);
-}
+.today-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.link-muted { color: var(--muted); text-decoration: underline; }
 
 /* 休息モード：色を落として静かにする */
 .phone-rest { background: #f7f5f1; }

@@ -47,12 +47,13 @@ export default function RecoveryHome({ state, dispatch }: Props) {
             </li>
           ))}
         </ul>
-        <p className="muted">{RECOVERY.todayNote}</p>
+        <div className="today-foot">
+          <p className="muted">{RECOVERY.todayNote}</p>
+          <button className="link-small link-muted" onClick={() => dispatch({ type: "setRestMode", on: true })}>
+            {RECOVERY.restButton}
+          </button>
+        </div>
       </section>
-
-      <button className="btn-rest" onClick={() => dispatch({ type: "setRestMode", on: true })}>
-        {RECOVERY.restButton}
-      </button>
 
       <HrNoticeFold messages={state.hrMessages} />
 
@@ -88,38 +89,38 @@ export default function RecoveryHome({ state, dispatch }: Props) {
           ))}
         </ul>
         <p className="muted next-note">{RECOVERY.nextNote}</p>
-      </section>
 
-      <section className="card card-quiet-box">
-        <h2>{RECOVERY.nextStepTitle}</h2>
-        {state.preReturnMeeting ? (
-          <p className="done-note">
-            {state.preReturnMeeting === "company" ? RECOVERY.meetCompanyApplied : RECOVERY.meetRivaApplied}
-          </p>
-        ) : (
-          <>
-            <p className="muted">{RECOVERY.nextStepNote}</p>
-            <div className="stack">
-              <ConfirmButton
-                quiet
-                label={RECOVERY.meetCompany}
-                confirm={RECOVERY.meetCompanyConfirm}
-                yes={RECOVERY.confirmYes}
-                no={RECOVERY.confirmNo}
-                onConfirm={() => dispatch({ type: "applyPreReturnMeeting", with: "company" })}
-              />
-              <ConfirmButton
-                quiet
-                label={RECOVERY.meetRiva}
-                note={RECOVERY.meetRivaNote}
-                confirm={RECOVERY.meetRivaConfirm}
-                yes={RECOVERY.confirmYes}
-                no={RECOVERY.confirmNo}
-                onConfirm={() => dispatch({ type: "applyPreReturnMeeting", with: "riva" })}
-              />
-            </div>
-          </>
-        )}
+        {/* 面談は「目安」の続きとして置く。別の枠にすると、急に出てきたように見えるため */}
+        <div className="next-step">
+          {state.preReturnMeeting ? (
+            <p className="done-note">
+              {state.preReturnMeeting === "company" ? RECOVERY.meetCompanyApplied : RECOVERY.meetRivaApplied}
+            </p>
+          ) : (
+            <>
+              <p className="muted">{RECOVERY.nextStepNote}</p>
+              <div className="stack">
+                <ConfirmButton
+                  quiet
+                  label={RECOVERY.meetCompany}
+                  confirm={RECOVERY.meetCompanyConfirm}
+                  yes={RECOVERY.confirmYes}
+                  no={RECOVERY.confirmNo}
+                  onConfirm={() => dispatch({ type: "applyPreReturnMeeting", with: "company" })}
+                />
+                <ConfirmButton
+                  quiet
+                  label={RECOVERY.meetRiva}
+                  note={RECOVERY.meetRivaNote}
+                  confirm={RECOVERY.meetRivaConfirm}
+                  yes={RECOVERY.confirmYes}
+                  no={RECOVERY.confirmNo}
+                  onConfirm={() => dispatch({ type: "applyPreReturnMeeting", with: "riva" })}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </section>
     </div>
   );
