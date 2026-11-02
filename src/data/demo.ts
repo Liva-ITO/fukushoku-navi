@@ -54,7 +54,9 @@ export const PERSON = {
 export const INITIAL_STAGE_HISTORY: StageChange[] = [{ date: PERSON.leaveStart, stage: "acute" }];
 
 // 人事画面に並ぶ、ほかの休職者（すべて架空）。社員Aだけが本人画面と連動する
-export type HrEvent = { date: string; kind: "stage" | "fromHr" | "fromPerson" | "meeting" | "submit"; body: string };
+export type HrEvent = { date: string; kind: "stage" | "fromHr" | "fromPerson" | "meeting" | "submit" | "done"; body: string };
+// 人事が対応すること。due は期限（満了日など）があるときだけ
+export type HrTodo = { key: string; text: string; date: string; due?: string };
 export type OtherPerson = {
   id: string;
   name: string;
@@ -63,7 +65,7 @@ export type OtherPerson = {
   leaveStart: string;
   leaveEnd: string;
   rework: string;
-  todo: string | null;
+  todo: HrTodo | null;
   news: number; // 本人から届いた、まだ見ていないもの
   events: HrEvent[];
 };
@@ -77,7 +79,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveStart: "2026-06-22",
     leaveEnd: "2026-12-21",
     rework: "通うリワーク",
-    todo: "休職期間の満了日が近づいています（12/21）",
+    todo: { key: "b-end", text: "休職期間の満了日が近づいています", date: "2026-11-04", due: "2026-12-21" },
     news: 0,
     events: [
       { date: "2026-06-22", kind: "stage", body: "急性期" },
@@ -95,7 +97,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveStart: "2026-10-20",
     leaveEnd: "2027-04-19",
     rework: "未定",
-    todo: "復職コーディネーターとの面談の申し込みがありました",
+    todo: { key: "c-coord", text: "復職コーディネーターとの面談の申し込みがありました", date: "2026-11-03" },
     news: 1,
     events: [
       { date: "2026-10-20", kind: "stage", body: "急性期" },
@@ -111,7 +113,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveStart: "2026-07-13",
     leaveEnd: "2027-01-12",
     rework: "自分のペース",
-    todo: "会社との面談の申し込みがありました（準備期への切り替えの相談）",
+    todo: { key: "d-company", text: "会社との面談の申し込みがありました（準備期への切り替えの相談）", date: "2026-11-02" },
     news: 1,
     events: [
       { date: "2026-07-13", kind: "stage", body: "急性期" },
@@ -128,7 +130,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveStart: "2026-04-13",
     leaveEnd: "2027-04-12",
     rework: "オンラインのリワーク",
-    todo: "主治医の診断書が提出されました。復職日の確定を待っています",
+    todo: { key: "e-return", text: "主治医の診断書が提出されました。復職日の確定を待っています", date: "2026-10-28" },
     news: 1,
     events: [
       { date: "2026-04-13", kind: "stage", body: "急性期" },

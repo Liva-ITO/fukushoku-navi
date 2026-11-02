@@ -37,6 +37,10 @@ export type State = {
   sentToHr: SentItem[];
   // 人事画面で開いている人（null なら一覧）
   hrSelected: string | null;
+  // 人事が対応済みにしたこと（経緯にも残す）
+  hrDone: { key: string; personId: string; text: string; date: string }[];
+  // 人事が詳しい画面で見た件数（新着を消すため）。社員Aは本人から届いた数、ほかの人は1
+  hrSeen: Record<string, number>;
 };
 
 const DEMO_TICKETS = 3;
@@ -62,6 +66,8 @@ export const initialState: State = {
   diary: INITIAL_DIARY,
   sentToHr: [],
   hrSelected: null,
+  hrDone: [],
+  hrSeen: {},
 };
 
 export type Action =
@@ -84,6 +90,7 @@ export type Action =
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
   | { type: "sendHrMessage"; body: string; noReplyNeeded: boolean }
   | { type: "hrSelect"; id: string | null }
+  | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
 
 const toggleAt = (list: boolean[], index: number) => list.map((v, i) => (i === index ? !v : v));
@@ -162,14 +169,24 @@ function reducer(state: State, action: Action): State {
         ],
       };
     case "hrSelect":
-      return { ...state, hrSelected: action.id };
+      if (action.id === null) return { ...state, hrSelected: null };
+      return {
+        ...state,
+        hrSelected: action.id,
+        hrSeen: { ...state.hrSeen, [action.id]: action.id === "a" ? state.sentToHr.length : 1 },
+      };
+    case "hrMarkDone":
+      return {
+        ...state,
+        hrDone: [...state.hrDone, { key: action.key, personId: action.personId, text: action.text, date: DEMO_TODAY }],
+      };
     case "reset":
       return { ...initialState, introSeen: true, view: state.view };
   }
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v10";
+const STORAGE_KEY = "fukushoku-navi-demo-v11";
 
 function load(): State {
   try {

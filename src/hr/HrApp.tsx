@@ -3,7 +3,8 @@ import { HR, STAGE_LABELS, type Stage } from "../constants/labels";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
-import { hrRows, type HrRow } from "./hrData";
+import { daysUntil, hrRows, sortTodos, type HrRow } from "./hrData";
+import type { HrTodo } from "../data/demo";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -26,12 +27,33 @@ export default function HrApp({ state, dispatch }: Props) {
   );
 }
 
+// 届いた日と、期限があれば「あと○日」を添える
+function TodoText({ todo }: { todo: HrTodo }) {
+  return (
+    <span className="todo-text">
+      {todo.text}
+      <span className="todo-meta">
+        {HR.received(shortDate(todo.date).slice(5))}
+        {todo.due && <span className="todo-due">{HR.dueLeft(daysUntil(todo.due))}</span>}
+      </span>
+    </span>
+  );
+}
+
+function DoneButton({ todo, personId, dispatch }: { todo: HrTodo; personId: string; dispatch: Dispatch<Action> }) {
+  return (
+    <button className="btn-outline btn-small" onClick={() => dispatch({ type: "hrMarkDone", key: todo.key, personId, text: todo.text })}>
+      {HR.done}
+    </button>
+  );
+}
+
 function StageTag({ stage }: { stage: Stage }) {
   return <span className={`stage-tag stage-${stage}`}>{STAGE_LABELS[stage]}</span>;
 }
 
 function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
-  const todos = rows.flatMap((r) => r.todos.map((t) => ({ row: r, text: t })));
+  const todos = sortTodos(rows.flatMap((r) => r.todos.map((todo) => ({ row: r, todo }))));
   const open = (id: string) => dispatch({ type: "hrSelect", id });
 
   return (
@@ -72,13 +94,16 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
           <p className="muted">{HR.todoEmpty}</p>
         ) : (
           <ul className="todo-list">
-            {todos.map(({ row, text }) => (
-              <li key={`${row.id}-${text}`}>
+            {todos.map(({ row, todo }) => (
+              <li key={todo.key}>
                 <span className="todo-name">{row.name}</span>
-                <span className="todo-text">{text}</span>
-                <button className="btn-quiet" onClick={() => open(row.id)}>
-                  {HR.open}
-                </button>
+                <TodoText todo={todo} />
+                <span className="todo-actions">
+                  <button className="btn-quiet" onClick={() => open(row.id)}>
+                    {HR.open}
+                  </button>
+                  <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
+                </span>
               </li>
             ))}
           </ul>
@@ -138,9 +163,12 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
       {row.todos.length > 0 && (
         <section className="hr-card hr-card-todo">
           <h2>{HR.todoTitle}</h2>
-          <ul className="list-plain">
-            {row.todos.map((t) => (
-              <li key={t}>{t}</li>
+          <ul className="todo-list">
+            {sortTodos(row.todos.map((todo) => ({ todo }))).map(({ todo }) => (
+              <li key={todo.key} className="todo-detail">
+                <TodoText todo={todo} />
+                <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
+              </li>
             ))}
           </ul>
         </section>

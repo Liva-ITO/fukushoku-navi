@@ -292,6 +292,9 @@ export const HR = {
   todoTitle: "対応が必要なこと",
   todoEmpty: "いまはありません",
   open: "開く",
+  done: "対応済みにする",
+  received: (d: string) => `${d} 受付`,
+  dueLeft: (n: number) => `期限まであと${n}日`,
 
   listTitle: "休職者の一覧",
   cols: {
@@ -339,6 +342,7 @@ export const HR = {
     fromPerson: "本人から",
     meeting: "申し込み",
     submit: "提出",
+    done: "対応済み",
   },
   hidden: "日記の中身・気分・休息モードかどうか・面談で話した内容は、会社には表示されません",
 
