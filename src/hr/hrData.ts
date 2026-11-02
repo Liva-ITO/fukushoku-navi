@@ -12,6 +12,9 @@ export type HrRow = {
   leaveEnd: string;
   rework: string;
   news: number;
+  incoming: number; // 本人から届いたもの（連絡・提出・申し込み）の数
+  seen: number; // そのうち人事が見た数
+  newFrom: number; // 開く前に見ていた数。経緯でこれより後のものに「新着」をつける
   todos: HrTodo[];
   events: HrEvent[];
   live: boolean; // 本人画面と連動しているか
@@ -82,7 +85,10 @@ export function hrRows(state: State): HrRow[] {
     leaveStart: PERSON.leaveStart,
     leaveEnd: PERSON.leaveEnd,
     rework: reworkOf(state),
-    news: Math.max(0, state.sentToHr.length - (state.hrSeen[PERSON.id] ?? 0)),
+    news: 0,
+    incoming: 0,
+    seen: state.hrSeen[PERSON.id] ?? 0,
+    newFrom: state.hrNewFrom[PERSON.id] ?? 0,
     todos: open(todosOf(state)),
     events: eventsOf(state),
     live: true,
@@ -95,15 +101,24 @@ export function hrRows(state: State): HrRow[] {
     leaveStart: p.leaveStart,
     leaveEnd: p.leaveEnd,
     rework: p.rework,
-    news: state.hrSeen[p.id] ? 0 : p.news,
+    news: 0,
+    incoming: 0,
+    seen: state.hrSeen[p.id] ?? p.seen,
+    newFrom: state.hrNewFrom[p.id] ?? p.seen,
     todos: open(p.todo ? [p.todo] : []),
     events: byDate([...p.events, ...doneEvents(state, p.id)]),
     live: false,
   }));
-  return [a, ...others];
+  // 新着＝本人から届いたもののうち、人事がまだ見ていないもの
+  return [a, ...others].map((r) => {
+    const incoming = r.events.filter(isIncoming).length;
+    return { ...r, incoming, news: Math.max(0, incoming - r.seen) };
+  });
 }
 
 // 期限が近いもの → 新しく届いたもの、の順
+export const isIncoming = (e: HrEvent) => e.kind === "fromPerson" || e.kind === "submit" || e.kind === "meeting";
+
 export function sortTodos<T extends { todo: HrTodo }>(items: T[]): T[] {
   return [...items].sort((x, y) => {
     const a = x.todo;

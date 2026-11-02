@@ -3,7 +3,7 @@ import { HR, STAGE_LABELS, type Stage } from "../constants/labels";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
-import { daysUntil, hrRows, sortTodos, type HrRow } from "./hrData";
+import { daysUntil, hrRows, isIncoming, sortTodos, type HrRow } from "./hrData";
 import type { HrTodo } from "../data/demo";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -48,13 +48,23 @@ function DoneButton({ todo, personId, dispatch }: { todo: HrTodo; personId: stri
   );
 }
 
+// 本人から届いたもののうち、開く前に見ていなかったものに「新着」の印をつける
+function markNew(row: HrRow) {
+  let n = 0;
+  return row.events.map((e) => {
+    if (!isIncoming(e)) return { e, isNew: false };
+    n += 1;
+    return { e, isNew: n > row.newFrom };
+  });
+}
+
 function StageTag({ stage }: { stage: Stage }) {
   return <span className={`stage-tag stage-${stage}`}>{STAGE_LABELS[stage]}</span>;
 }
 
 function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
   const todos = sortTodos(rows.flatMap((r) => r.todos.map((todo) => ({ row: r, todo }))));
-  const open = (id: string) => dispatch({ type: "hrSelect", id });
+  const open = (r: HrRow) => dispatch({ type: "hrSelect", id: r.id, incoming: r.incoming, prevSeen: r.seen });
 
   return (
     <>
@@ -99,7 +109,7 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
                 <span className="todo-name">{row.name}</span>
                 <TodoText todo={todo} />
                 <span className="todo-actions">
-                  <button className="btn-quiet" onClick={() => open(row.id)}>
+                  <button className="btn-quiet" onClick={() => open(row)}>
                     {HR.open}
                   </button>
                   <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
@@ -127,7 +137,7 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} onClick={() => open(r.id)}>
+              <tr key={r.id} onClick={() => open(r)}>
                 <td>
                   <button className="link-row">{r.name}</button>
                 </td>
@@ -144,6 +154,7 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
           </tbody>
         </table>
         </div>
+        <p className="muted table-note">{HR.newsNote}</p>
       </section>
     </>
   );
@@ -181,10 +192,13 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
           <h2>{HR.historyTitle}</h2>
           <p className="muted">{HR.historyNote}</p>
           <ol className="timeline">
-            {[...row.events].reverse().map((e, i) => (
-              <li key={i} className={`tl tl-${e.kind}`}>
+            {markNew(row).reverse().map(({ e, isNew }, i) => (
+              <li key={i} className={`tl tl-${e.kind}${isNew ? " tl-new" : ""}`}>
                 <span className="tl-date">{shortDate(e.date)}</span>
-                <span className="tl-kind">{e.kind === "stage" ? HR.event.stage(e.body) : HR.event[e.kind]}</span>
+                <span className="tl-kind">
+                  {e.kind === "stage" ? HR.event.stage(e.body) : HR.event[e.kind]}
+                  {isNew && <span className="new-tag">{HR.newTag}</span>}
+                </span>
                 {e.kind !== "stage" && <span className="tl-body">{e.body}</span>}
               </li>
             ))}

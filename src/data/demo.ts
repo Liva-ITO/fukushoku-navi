@@ -66,7 +66,7 @@ export type OtherPerson = {
   leaveEnd: string;
   rework: string;
   todo: HrTodo | null;
-  news: number; // 本人から届いた、まだ見ていないもの
+  seen: number; // 本人から届いたもの（連絡・提出・申し込み）のうち、人事がもう見た件数
   events: HrEvent[];
 };
 
@@ -80,7 +80,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveEnd: "2026-12-21",
     rework: "通うリワーク",
     todo: { key: "b-end", text: "休職期間の満了日が近づいています", date: "2026-11-04", due: "2026-12-21" },
-    news: 0,
+    seen: 2,
     events: [
       { date: "2026-06-22", kind: "stage", body: "急性期" },
       { date: "2026-08-24", kind: "stage", body: "回復期" },
@@ -98,7 +98,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveEnd: "2027-04-19",
     rework: "未定",
     todo: { key: "c-coord", text: "復職コーディネーターとの面談の申し込みがありました", date: "2026-11-03" },
-    news: 1,
+    seen: 0,
     events: [
       { date: "2026-10-20", kind: "stage", body: "急性期" },
       { date: "2026-10-22", kind: "fromHr", body: "手続きのご案内です。急ぎではありませんので、落ち着いたときにご確認ください。" },
@@ -114,7 +114,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveEnd: "2027-01-12",
     rework: "自分のペース",
     todo: { key: "d-company", text: "会社との面談の申し込みがありました（準備期への切り替えの相談）", date: "2026-11-02" },
-    news: 1,
+    seen: 1,
     events: [
       { date: "2026-07-13", kind: "stage", body: "急性期" },
       { date: "2026-09-14", kind: "stage", body: "回復期" },
@@ -131,7 +131,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveEnd: "2027-04-12",
     rework: "オンラインのリワーク",
     todo: { key: "e-return", text: "主治医の診断書が提出されました。復職日の確定を待っています", date: "2026-10-28" },
-    news: 1,
+    seen: 1,
     events: [
       { date: "2026-04-13", kind: "stage", body: "急性期" },
       { date: "2026-06-08", kind: "stage", body: "回復期" },

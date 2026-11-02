@@ -39,8 +39,9 @@ export type State = {
   hrSelected: string | null;
   // 人事が対応済みにしたこと（経緯にも残す）
   hrDone: { key: string; personId: string; text: string; date: string }[];
-  // 人事が詳しい画面で見た件数（新着を消すため）。社員Aは本人から届いた数、ほかの人は1
+  // 人事が詳しい画面で見た件数（新着を消すため）と、開く前に見ていた件数（どれが新着だったかを示すため）
   hrSeen: Record<string, number>;
+  hrNewFrom: Record<string, number>;
 };
 
 const DEMO_TICKETS = 3;
@@ -68,6 +69,7 @@ export const initialState: State = {
   hrSelected: null,
   hrDone: [],
   hrSeen: {},
+  hrNewFrom: {},
 };
 
 export type Action =
@@ -89,7 +91,7 @@ export type Action =
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
   | { type: "sendHrMessage"; body: string; noReplyNeeded: boolean }
-  | { type: "hrSelect"; id: string | null }
+  | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
 
@@ -173,7 +175,8 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         hrSelected: action.id,
-        hrSeen: { ...state.hrSeen, [action.id]: action.id === "a" ? state.sentToHr.length : 1 },
+        hrSeen: { ...state.hrSeen, [action.id]: action.incoming ?? 0 },
+        hrNewFrom: { ...state.hrNewFrom, [action.id]: action.prevSeen ?? 0 },
       };
     case "hrMarkDone":
       return {
@@ -186,7 +189,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v11";
+const STORAGE_KEY = "fukushoku-navi-demo-v12";
 
 function load(): State {
   try {
