@@ -112,6 +112,7 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
 
       <section className="hr-card">
         <h2>{HR.listTitle}</h2>
+        <div className="table-wrap">
         <table className="hr-table">
           <thead>
             <tr>
@@ -142,6 +143,7 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
             ))}
           </tbody>
         </table>
+        </div>
       </section>
     </>
   );

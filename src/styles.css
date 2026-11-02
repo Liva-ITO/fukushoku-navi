@@ -279,10 +279,24 @@ button { font: inherit; cursor: pointer; }
   border: 1px solid var(--line); border-radius: 10px;
 }
 
+.table-wrap { overflow-x: auto; }
+.hr-table th, .hr-table td { white-space: nowrap; }
+
 @media (max-width: 900px) {
   .tiles, .hr-columns { grid-template-columns: 1fr; }
   .hr-head { flex-direction: column; }
+  .notify { max-width: none; width: 100%; }
   .tl { grid-template-columns: 1fr; gap: 0; }
+}
+
+/* スマホで人事画面を見るとき：項目を縦に積む */
+@media (max-width: 700px) {
+  .stage-hr { padding: 12px; }
+  .hr-card { padding: 14px; }
+  .todo-list li, .todo-list li.todo-detail { grid-template-columns: 1fr; gap: 4px; padding: 12px 0; }
+  .todo-meta { flex-wrap: wrap; gap: 4px 12px; }
+  .todo-actions { gap: 8px; }
+  .todo-actions .btn-quiet { padding-left: 0; }
 }
 
 /* はじめの案内 */
