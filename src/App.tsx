@@ -14,7 +14,7 @@ export default function App() {
         {state.view === "person" ? (
           <PersonApp state={state} dispatch={dispatch} />
         ) : (
-          <HrApp state={state} />
+          <HrApp state={state} dispatch={dispatch} />
         )}
       </main>
 

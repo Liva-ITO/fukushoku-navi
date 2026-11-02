@@ -1,5 +1,5 @@
 // デモ用の架空データ。実在の人・会社とは関係ありません。
-import type { Meal, SleepQuality } from "../constants/labels";
+import type { Meal, SleepQuality, Stage } from "../constants/labels";
 
 // デモの「今日」は固定する（挨拶の時間帯だけは実際の時刻を使う）
 export const DEMO_TODAY = "2026-11-04";
@@ -41,9 +41,110 @@ export const emptyEntry = (): DiaryEntry => ({
   note: "",
 });
 
+export type StageChange = { date: string; stage: Stage };
+
 export const PERSON = {
+  id: "a",
   name: "社員A",
+  dept: "営業部",
+  leaveStart: "2026-10-06",
+  leaveEnd: "2027-04-05",
 };
+
+export const INITIAL_STAGE_HISTORY: StageChange[] = [{ date: PERSON.leaveStart, stage: "acute" }];
+
+// 人事画面に並ぶ、ほかの休職者（すべて架空）。社員Aだけが本人画面と連動する
+export type HrEvent = { date: string; kind: "stage" | "fromHr" | "fromPerson" | "meeting" | "submit"; body: string };
+export type OtherPerson = {
+  id: string;
+  name: string;
+  dept: string;
+  stage: Stage;
+  leaveStart: string;
+  leaveEnd: string;
+  rework: string;
+  todo: string | null;
+  news: number; // 本人から届いた、まだ見ていないもの
+  events: HrEvent[];
+};
+
+export const OTHER_PEOPLE: OtherPerson[] = [
+  {
+    id: "b",
+    name: "社員B",
+    dept: "開発部",
+    stage: "recovery",
+    leaveStart: "2026-06-22",
+    leaveEnd: "2026-12-21",
+    rework: "通うリワーク",
+    todo: "休職期間の満了日が近づいています（12/21）",
+    news: 0,
+    events: [
+      { date: "2026-06-22", kind: "stage", body: "急性期" },
+      { date: "2026-08-24", kind: "stage", body: "回復期" },
+      { date: "2026-09-07", kind: "fromPerson", body: "通院してきました。順調と言われました" },
+      { date: "2026-10-19", kind: "fromHr", body: "その後、体調はいかがですか。返信は急ぎません。" },
+      { date: "2026-10-21", kind: "fromPerson", body: "少しずつ良くなっています。プログラムに週3日通えています" },
+    ],
+  },
+  {
+    id: "c",
+    name: "社員C",
+    dept: "総務部",
+    stage: "acute",
+    leaveStart: "2026-10-20",
+    leaveEnd: "2027-04-19",
+    rework: "未定",
+    todo: "復職コーディネーターとの面談の申し込みがありました",
+    news: 1,
+    events: [
+      { date: "2026-10-20", kind: "stage", body: "急性期" },
+      { date: "2026-10-22", kind: "fromHr", body: "手続きのご案内です。急ぎではありませんので、落ち着いたときにご確認ください。" },
+      { date: "2026-11-03", kind: "meeting", body: "復職コーディネーターとの面談の申し込み" },
+    ],
+  },
+  {
+    id: "d",
+    name: "社員D",
+    dept: "営業部",
+    stage: "recovery",
+    leaveStart: "2026-07-13",
+    leaveEnd: "2027-01-12",
+    rework: "自分のペース",
+    todo: "会社との面談の申し込みがありました（準備期への切り替えの相談）",
+    news: 1,
+    events: [
+      { date: "2026-07-13", kind: "stage", body: "急性期" },
+      { date: "2026-09-14", kind: "stage", body: "回復期" },
+      { date: "2026-10-05", kind: "fromPerson", body: "通院してきました。少し様子を見ることになりました" },
+      { date: "2026-11-02", kind: "meeting", body: "会社との面談の申し込み" },
+    ],
+  },
+  {
+    id: "e",
+    name: "社員E",
+    dept: "開発部",
+    stage: "preReturn",
+    leaveStart: "2026-04-13",
+    leaveEnd: "2027-04-12",
+    rework: "オンラインのリワーク",
+    todo: "主治医の診断書が提出されました。復職日の確定を待っています",
+    news: 1,
+    events: [
+      { date: "2026-04-13", kind: "stage", body: "急性期" },
+      { date: "2026-06-08", kind: "stage", body: "回復期" },
+      { date: "2026-09-01", kind: "stage", body: "準備期" },
+      { date: "2026-10-15", kind: "submit", body: "記録のまとめ（直近4週間）" },
+      { date: "2026-10-28", kind: "submit", body: "主治医の診断書（復職可）" },
+    ],
+  },
+];
+
+// 休職を始めた日から今日までの日数
+export function daysSince(start: string, today = DEMO_TODAY): number {
+  const ms = new Date(`${today}T00:00:00`).getTime() - new Date(`${start}T00:00:00`).getTime();
+  return Math.round(ms / 86400000);
+}
 
 export const INITIAL_HR_MESSAGES: HrMessage[] = [
   {

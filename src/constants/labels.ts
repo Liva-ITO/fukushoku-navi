@@ -275,3 +275,84 @@ export const DEMO_BAR = {
   introClose: "はじめる",
   notAi: "AIが相談や診断をするアプリではありません。判断するのは、医師・産業医・会社・支援機関の専門家です。",
 };
+
+// 会社（人事・産業保健）の画面。本人が提出したもの・やり取り・申し込みがあったことだけを出す。
+// 日記の中身、気分、休息モードかどうか、面談で話した内容は出さない
+export const HR = {
+  title: "休職者の状況",
+  people: "休職中",
+  peopleUnit: (n: number) => `${n}人`,
+  todoCount: "対応が必要なこと",
+  todoUnit: (n: number) => `${n}件`,
+  tickets: "面談チケットの残り（会社全体）",
+  ticketsUnit: (n: number) => `${n}枚`,
+  refill: "5枚補充する",
+  ticketsNote: "本人には枚数を見せていません。残りがないときは、本人からは「リクエスト」として届きます",
+
+  todoTitle: "対応が必要なこと",
+  todoEmpty: "いまはありません",
+  open: "開く",
+
+  listTitle: "休職者の一覧",
+  cols: {
+    name: "氏名",
+    dept: "部署",
+    stage: "段階",
+    days: "休職日数",
+    end: "休職期間の満了日",
+    rework: "リワーク",
+    news: "新着",
+  },
+  days: (n: number) => `${n}日`,
+  newsCount: (n: number) => `${n}件`,
+  reworkNone: "未定",
+  reworkSelf: "自分のペース",
+
+  notifyTitle: "こんな通知が届きます",
+  notifyBody: "【復職ナビポータル】対応が必要なことが1件あります",
+  notifyNote: "本番では担当者のメールやチャットに届きます。名前や中身は書きません",
+
+  // 社員A（本人画面と連動）の「対応が必要なこと」
+  todoA: {
+    coordinatorApplied: "復職コーディネーターとの面談の申し込みがありました",
+    coordinatorRequested: "復職コーディネーターとの面談のリクエストがありました（チケットの残りがありません）",
+    companyMeeting: "会社との面談の申し込みがありました",
+    psychMeeting: "心理の専門家との面談の申し込みがありました（回復期への切り替えの確認）",
+    newFromPerson: (n: number) => `本人から連絡が届いています（${n}件）`,
+  },
+
+  meetingEvent: {
+    psych: "心理の専門家との面談の申し込み",
+    company: "会社との面談の申し込み",
+    coordinatorApplied: "復職コーディネーターとの面談の申し込み",
+    coordinatorRequested: "復職コーディネーターとの面談のリクエスト",
+  },
+
+  back: "一覧に戻る",
+  historyTitle: "これまでの経緯",
+  historyNote: "担当が変わっても流れが分かるよう、段階の切り替え・やり取り・提出物・申し込みを日付順に並べています",
+  event: {
+    stage: (label: string) => `段階：${label}`,
+    fromHr: "人事から",
+    fromPerson: "本人から",
+    meeting: "申し込み",
+    submit: "提出",
+  },
+  hidden: "日記の中身・気分・休息モードかどうか・面談で話した内容は、会社には表示されません",
+
+  stageTitle: "段階",
+  stageChange: "段階を変える",
+  stageNote: "段階を変えると、本人の画面も切り替わります。面談などで確かめてから変えてください",
+  stageDemoOnly: "デモでは、社員Aだけ操作できます",
+
+  sendTitle: "本人に連絡する",
+  sendNote: "例文から選んで、書きかえて送れます",
+  templates: [
+    "その後、体調はいかがですか。返信は急ぎません。",
+    "手続きのご案内です。急ぎではありませんので、落ち着いたときにご確認ください。",
+    "面談の日程について、ご都合のよい日を教えてください。",
+  ],
+  noReply: "「返信は不要です」をつける",
+  send: "送る",
+  sent: "送りました。本人の画面に届いています",
+};

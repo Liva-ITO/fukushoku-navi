@@ -56,10 +56,10 @@ export default function DemoBar({ state, dispatch }: Props) {
         (state.tab === "consult" || (state.tab === "home" && (state.restMode || state.stage === "acute"))) && (
         <div className="seg" role="group" aria-label={DEMO_BAR.tickets}>
           <span className="seg-label">{DEMO_BAR.tickets}</span>
-          <button aria-pressed={state.ticketsLeft} onClick={() => dispatch({ type: "setTicketsLeft", on: true })}>
+          <button aria-pressed={state.ticketsLeft > 0} onClick={() => dispatch({ type: "setTicketsLeft", on: true })}>
             {DEMO_BAR.ticketsYes}
           </button>
-          <button aria-pressed={!state.ticketsLeft} onClick={() => dispatch({ type: "setTicketsLeft", on: false })}>
+          <button aria-pressed={state.ticketsLeft === 0} onClick={() => dispatch({ type: "setTicketsLeft", on: false })}>
             {DEMO_BAR.ticketsNo}
           </button>
         </div>

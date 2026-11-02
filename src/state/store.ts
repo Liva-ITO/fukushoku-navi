@@ -4,9 +4,11 @@ import {
   DEMO_TODAY,
   INITIAL_DIARY,
   INITIAL_HR_MESSAGES,
+  INITIAL_STAGE_HISTORY,
   type DiaryEntry,
   type HrMessage,
   type SentItem,
+  type StageChange,
 } from "../data/demo";
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
@@ -15,6 +17,7 @@ export type View = "person" | "hr";
 export type State = {
   view: View;
   stage: Stage;
+  stageHistory: StageChange[];
   restMode: boolean;
   tab: Tab;
   introSeen: boolean;
@@ -25,15 +28,22 @@ export type State = {
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
   companyMeetingApplied: boolean;
-  ticketsLeft: boolean;
+  // 面談チケットの残り（会社全体）。人事が管理し、本人には数を見せない
+  ticketsLeft: number;
   coordinatorMeeting: "applied" | "requested" | null;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
+  // 人事画面で開いている人（null なら一覧）
+  hrSelected: string | null;
 };
+
+const DEMO_TICKETS = 3;
+const REFILL_TICKETS = 5;
 
 export const initialState: State = {
   view: "person",
   stage: "acute",
+  stageHistory: INITIAL_STAGE_HISTORY,
   restMode: false,
   tab: "home",
   introSeen: false,
@@ -44,10 +54,11 @@ export const initialState: State = {
   recoveryJourneySeen: false,
   prepPath: null,
   companyMeetingApplied: false,
-  ticketsLeft: true,
+  ticketsLeft: DEMO_TICKETS,
   coordinatorMeeting: null,
   diary: INITIAL_DIARY,
   sentToHr: [],
+  hrSelected: null,
 };
 
 export type Action =
@@ -63,9 +74,12 @@ export type Action =
   | { type: "setPrepPath"; path: PrepPath | null }
   | { type: "applyCompanyMeeting" }
   | { type: "setTicketsLeft"; on: boolean }
+  | { type: "refillTickets" }
   | { type: "askCoordinator" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
+  | { type: "sendHrMessage"; body: string; noReplyNeeded: boolean }
+  | { type: "hrSelect"; id: string | null }
   | { type: "reset" };
 
 const toggleAt = (list: boolean[], index: number) => list.map((v, i) => (i === index ? !v : v));
@@ -75,9 +89,16 @@ function reducer(state: State, action: Action): State {
     case "setView":
       return { ...state, view: action.view };
     case "setStage": {
+      if (action.stage === state.stage) return state;
       // 休息モードは回復期・準備期だけ
       const restAllowed = action.stage === "recovery" || action.stage === "preReturn";
-      return { ...state, stage: action.stage, restMode: restAllowed && state.restMode, tab: "home" };
+      return {
+        ...state,
+        stage: action.stage,
+        stageHistory: [...state.stageHistory, { date: DEMO_TODAY, stage: action.stage }],
+        restMode: restAllowed && state.restMode,
+        tab: "home",
+      };
     }
     case "setRestMode":
       return { ...state, restMode: action.on, tab: "home" };
@@ -98,9 +119,17 @@ function reducer(state: State, action: Action): State {
     case "applyCompanyMeeting":
       return { ...state, companyMeetingApplied: true };
     case "setTicketsLeft":
-      return { ...state, ticketsLeft: action.on, coordinatorMeeting: null };
+      return {
+        ...state,
+        ticketsLeft: action.on ? Math.max(state.ticketsLeft, DEMO_TICKETS) : 0,
+        coordinatorMeeting: null,
+      };
+    case "refillTickets":
+      return { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS };
     case "askCoordinator":
-      return { ...state, coordinatorMeeting: state.ticketsLeft ? "applied" : "requested" };
+      return state.ticketsLeft > 0
+        ? { ...state, coordinatorMeeting: "applied", ticketsLeft: state.ticketsLeft - 1 }
+        : { ...state, coordinatorMeeting: "requested" };
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
     case "sendToHr":
@@ -111,13 +140,28 @@ function reducer(state: State, action: Action): State {
           { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: action.kind, body: action.body },
         ],
       };
+    case "sendHrMessage":
+      return {
+        ...state,
+        hrMessages: [
+          ...state.hrMessages,
+          {
+            id: `m${state.hrMessages.length + 1}`,
+            date: DEMO_TODAY,
+            body: action.body,
+            noReplyNeeded: action.noReplyNeeded,
+          },
+        ],
+      };
+    case "hrSelect":
+      return { ...state, hrSelected: action.id };
     case "reset":
-      return { ...initialState, introSeen: true };
+      return { ...initialState, introSeen: true, view: state.view };
   }
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v8";
+const STORAGE_KEY = "fukushoku-navi-demo-v9";
 
 function load(): State {
   try {

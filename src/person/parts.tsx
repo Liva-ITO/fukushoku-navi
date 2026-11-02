@@ -18,7 +18,8 @@ export function CoordinatorCard({
   note?: string;
   publicWhenEmpty?: boolean;
 }) {
-  if (publicWhenEmpty && !state.ticketsLeft && state.coordinatorMeeting === null) {
+  const hasTickets = state.ticketsLeft > 0;
+  if (publicWhenEmpty && !hasTickets && state.coordinatorMeeting === null) {
     return (
       <section className="card">
         <h2>{title}</h2>
@@ -46,9 +47,9 @@ export function CoordinatorCard({
           <div className="stack">
             <ConfirmButton
               quiet
-              label={state.ticketsLeft ? CONSULT.apply : CONSULT.request}
-              confirm={state.ticketsLeft ? CONSULT.applyConfirm : CONSULT.requestConfirm}
-              yes={state.ticketsLeft ? CONSULT.applyYes : CONSULT.requestYes}
+              label={hasTickets ? CONSULT.apply : CONSULT.request}
+              confirm={hasTickets ? CONSULT.applyConfirm : CONSULT.requestConfirm}
+              yes={hasTickets ? CONSULT.applyYes : CONSULT.requestYes}
               no={CONSULT.no}
               onConfirm={() => dispatch({ type: "askCoordinator" })}
             />
