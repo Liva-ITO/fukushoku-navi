@@ -1,4 +1,4 @@
-import { useState, type Dispatch } from "react";
+import { useEffect, useState, type Dispatch } from "react";
 import { APP_NAME, COMMON, JOURNEY, TABS, type Tab } from "../constants/labels";
 import JourneySheet from "./JourneySheet";
 import type { Action, State } from "../state/store";
@@ -21,6 +21,14 @@ function Home({ state, dispatch }: Props) {
 
 export default function PersonApp({ state, dispatch }: Props) {
   const [journeyOpen, setJourneyOpen] = useState(false);
+
+  // 回復期に入ったときに一度だけ、復職までの流れを見せる（急性期の人には自動では出さない）
+  useEffect(() => {
+    if (state.stage === "recovery" && !state.recoveryJourneySeen) {
+      setJourneyOpen(true);
+      dispatch({ type: "markRecoveryJourneySeen" });
+    }
+  }, [state.stage, state.recoveryJourneySeen, dispatch]);
 
   return (
     <div className={state.restMode ? "phone phone-rest" : "phone"}>

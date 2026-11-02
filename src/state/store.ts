@@ -23,6 +23,7 @@ export type State = {
   acuteChecks: boolean[];
   rivaMeetingApplied: boolean;
   recoveryIntroSeen: boolean;
+  recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
   todayTodos: boolean[];
   preReturnMeeting: MeetingWith | null;
@@ -40,6 +41,7 @@ export const initialState: State = {
   acuteChecks: ACUTE.checkItems.map(() => false),
   rivaMeetingApplied: false,
   recoveryIntroSeen: false,
+  recoveryJourneySeen: false,
   prepPath: null,
   todayTodos: RECOVERY.todayItems.map(() => false),
   preReturnMeeting: null,
@@ -56,6 +58,7 @@ export type Action =
   | { type: "toggleAcuteCheck"; index: number }
   | { type: "applyRivaMeeting" }
   | { type: "closeRecoveryIntro" }
+  | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
   | { type: "toggleTodayTodo"; index: number }
   | { type: "applyPreReturnMeeting"; with: MeetingWith }
@@ -86,6 +89,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, rivaMeetingApplied: true };
     case "closeRecoveryIntro":
       return { ...state, recoveryIntroSeen: true };
+    case "markRecoveryJourneySeen":
+      return { ...state, recoveryJourneySeen: true };
     case "setPrepPath":
       return { ...state, prepPath: action.path };
     case "toggleTodayTodo":
@@ -108,7 +113,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v4";
+const STORAGE_KEY = "fukushoku-navi-demo-v5";
 
 function load(): State {
   try {
