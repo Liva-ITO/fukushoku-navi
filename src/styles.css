@@ -174,6 +174,12 @@ button { font: inherit; cursor: pointer; }
 .week-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line); }
 .week-dot-on { background: var(--accent); border-color: var(--accent); }
 
+/* 連絡 */
+.send-row { margin-top: 12px; }
+.field-tight { margin-top: 0; }
+.examples-label { margin: 10px 0 0; }
+.btn-primary:disabled { opacity: .4; cursor: default; }
+
 .placeholder { color: var(--muted); text-align: center; margin-top: 40px; }
 
 /* 人事画面：PC幅 */

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ACUTE, COMMON } from "../constants/labels";
+import { ACUTE, COMMON, RECORD } from "../constants/labels";
 import type { HrMessage } from "../data/demo";
 
 // 人事からの連絡は1行にたたむ。本文は、本人が開いたときだけ見える
@@ -25,7 +25,7 @@ export function ReadingsCard() {
         {ACUTE.readings.map((r) => (
           <li key={r.title}>
             {r.title}
-            <span className="muted">（{r.minutes}分）</span>
+            <span className="muted">（{RECORD.minutes(r.minutes)}）</span>
           </li>
         ))}
       </ul>

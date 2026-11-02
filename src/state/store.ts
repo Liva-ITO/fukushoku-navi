@@ -1,6 +1,13 @@
 import { useEffect, useReducer } from "react";
 import { ACUTE, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
-import { DEMO_TODAY, INITIAL_DIARY, INITIAL_HR_MESSAGES, type DiaryEntry, type HrMessage } from "../data/demo";
+import {
+  DEMO_TODAY,
+  INITIAL_DIARY,
+  INITIAL_HR_MESSAGES,
+  type DiaryEntry,
+  type HrMessage,
+  type SentItem,
+} from "../data/demo";
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
 export type View = "person" | "hr";
@@ -20,6 +27,7 @@ export type State = {
   todayTodos: boolean[];
   preReturnMeeting: MeetingWith | null;
   diary: Record<string, DiaryEntry>;
+  sentToHr: SentItem[];
 };
 
 export const initialState: State = {
@@ -36,6 +44,7 @@ export const initialState: State = {
   todayTodos: RECOVERY.todayItems.map(() => false),
   preReturnMeeting: null,
   diary: INITIAL_DIARY,
+  sentToHr: [],
 };
 
 export type Action =
@@ -51,6 +60,7 @@ export type Action =
   | { type: "toggleTodayTodo"; index: number }
   | { type: "applyPreReturnMeeting"; with: MeetingWith }
   | { type: "saveDiary"; entry: DiaryEntry }
+  | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
   | { type: "reset" };
 
 const toggleAt = (list: boolean[], index: number) => list.map((v, i) => (i === index ? !v : v));
@@ -84,13 +94,21 @@ function reducer(state: State, action: Action): State {
       return { ...state, preReturnMeeting: action.with };
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
+    case "sendToHr":
+      return {
+        ...state,
+        sentToHr: [
+          ...state.sentToHr,
+          { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: action.kind, body: action.body },
+        ],
+      };
     case "reset":
       return { ...initialState, introSeen: true };
   }
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v3";
+const STORAGE_KEY = "fukushoku-navi-demo-v4";
 
 function load(): State {
   try {

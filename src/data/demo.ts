@@ -11,6 +11,14 @@ export type HrMessage = {
   noReplyNeeded: boolean;
 };
 
+// 本人から会社に届いたもの（返信・通院の報告・提出物）。会社に見えるのはこれだけ
+export type SentItem = {
+  id: string;
+  date: string;
+  kind: "reply" | "visit";
+  body: string;
+};
+
 export type DiaryEntry = {
   wake: string;
   sleep: string;

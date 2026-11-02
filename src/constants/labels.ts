@@ -162,6 +162,30 @@ export const RECORD = {
   weekdays: ["日", "月", "火", "水", "木", "金", "土"],
 };
 
+export const CONTACT = {
+  title: "人事との連絡",
+  fromHr: "人事から",
+  replyTitle: "返信する",
+  // 急性期は例文を選ぶだけ。回復期からは自分の言葉で書く（復職に向けた練習）
+  replyPickNote: "選ぶだけで送れます",
+  replyWriteNote: "自分の言葉で書いてみよう。短くて大丈夫です",
+  replyExamplesLabel: "書き出しの例",
+  examples: ["少しずつ良くなっています", "今は休むことに専念しています", "確認しました", "もう少し時間をください", "ありがとうございます"],
+  send: "送る",
+  cancel: "やめておく",
+  sent: "送りました",
+
+  visitTitle: "通院のあとに",
+  visitButton: "通院してきました",
+  visitNote: "選ぶだけで、人事に届きます",
+  visitOptions: ["順調と言われました", "少し様子を見ることになりました", "薬が変わりました"],
+  visitSent: "送りました。おつかれさまでした",
+  visitBody: (option: string) => `通院してきました。${option}`,
+
+  historyTitle: "会社に届いたもの",
+  historyEmpty: "まだありません",
+};
+
 export const DEMO_BAR = {
   title: "デモ操作",
   viewAs: "見る画面",

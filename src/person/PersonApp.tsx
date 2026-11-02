@@ -5,6 +5,7 @@ import AcuteHome from "./AcuteHome";
 import RecoveryHome from "./RecoveryHome";
 import RestHome from "./RestHome";
 import DiaryTab from "./DiaryTab";
+import ContactTab from "./ContactTab";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -27,7 +28,8 @@ export default function PersonApp({ state, dispatch }: Props) {
       <div className="phone-body">
         {state.tab === "home" && <Home state={state} dispatch={dispatch} />}
         {state.tab === "record" && <DiaryTab state={state} dispatch={dispatch} />}
-        {state.tab !== "home" && state.tab !== "record" && <p className="placeholder">{COMMON.comingSoon}</p>}
+        {state.tab === "contact" && <ContactTab state={state} dispatch={dispatch} />}
+        {(state.tab === "contents" || state.tab === "consult") && <p className="placeholder">{COMMON.comingSoon}</p>}
       </div>
 
       <nav className="tab-bar">
