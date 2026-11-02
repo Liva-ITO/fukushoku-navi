@@ -57,14 +57,13 @@ export default function JourneySheet({ stage, onClose }: Props) {
             <li key={s.stage} className={s.stage === stage ? "journey-item journey-item-now" : "journey-item"}>
               <p className="journey-name">
                 {STAGE_LABELS[s.stage]}
-                {s.duration && <span className="muted">　目安 {s.duration}</span>}
                 {s.stage === stage && <span className="tag-soft">{JOURNEY.now}</span>}
               </p>
               <p className="journey-body">{s.body}</p>
             </li>
           ))}
         </ol>
-        <p className="muted">{JOURNEY.durationNote}</p>
+        <p className="muted">{JOURNEY.paceNote}</p>
 
         <button className="btn-outline btn-wide" onClick={onClose}>
           {JOURNEY.close}
