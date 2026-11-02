@@ -13,6 +13,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
   const path = state.prepPath;
   const nextItems =
     path === null ? RECOVERY.next.none : path === "self" ? RECOVERY.next.self : RECOVERY.next.rework;
+  const noteKey = path === null ? "none" : path === "self" ? "self" : "rework";
 
   return (
     <div className="home">
@@ -69,39 +70,28 @@ export default function RecoveryHome({ state, dispatch }: Props) {
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p className="muted next-note">{RECOVERY.nextNote}</p>
+        <p className="muted next-note">{RECOVERY.nextNote[noteKey]}</p>
 
-        {/* 面談は「目安」の続きとして置く。別の枠にすると、急に出てきたように見えるため */}
-        <div className="next-step">
-          {state.preReturnMeeting ? (
-            <p className="done-note">
-              {state.preReturnMeeting === "company" ? RECOVERY.meetCompanyApplied : RECOVERY.meetRivaApplied}
-            </p>
-          ) : (
-            <>
-              <p className="muted">{RECOVERY.nextStepNote}</p>
-              <div className="stack">
+        {/* 自分のペースで準備する人だけ、ここから会社との面談を申し込む。リワークはプログラムの中で確かめる */}
+        {path === "self" && (
+          <div className="next-step">
+            {state.companyMeetingApplied ? (
+              <p className="done-note">{RECOVERY.meetCompanyApplied}</p>
+            ) : (
+              <>
+                <p className="muted">{RECOVERY.meetCompanyNote}</p>
                 <ConfirmButton
                   quiet
                   label={RECOVERY.meetCompany}
                   confirm={RECOVERY.meetCompanyConfirm}
                   yes={RECOVERY.confirmYes}
                   no={RECOVERY.confirmNo}
-                  onConfirm={() => dispatch({ type: "applyPreReturnMeeting", with: "company" })}
+                  onConfirm={() => dispatch({ type: "applyCompanyMeeting" })}
                 />
-                <ConfirmButton
-                  quiet
-                  label={RECOVERY.meetRiva}
-                  note={RECOVERY.meetRivaNote}
-                  confirm={RECOVERY.meetRivaConfirm}
-                  yes={RECOVERY.confirmYes}
-                  no={RECOVERY.confirmNo}
-                  onConfirm={() => dispatch({ type: "applyPreReturnMeeting", with: "riva" })}
-                />
-              </div>
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

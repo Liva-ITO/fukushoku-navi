@@ -11,7 +11,6 @@ import {
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
 export type View = "person" | "hr";
-export type MeetingWith = "company" | "riva";
 
 export type State = {
   view: View;
@@ -25,7 +24,8 @@ export type State = {
   recoveryIntroSeen: boolean;
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
-  preReturnMeeting: MeetingWith | null;
+  companyMeetingApplied: boolean;
+  coordinatorRequested: boolean;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
 };
@@ -42,7 +42,8 @@ export const initialState: State = {
   recoveryIntroSeen: false,
   recoveryJourneySeen: false,
   prepPath: null,
-  preReturnMeeting: null,
+  companyMeetingApplied: false,
+  coordinatorRequested: false,
   diary: INITIAL_DIARY,
   sentToHr: [],
 };
@@ -58,7 +59,8 @@ export type Action =
   | { type: "closeRecoveryIntro" }
   | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
-  | { type: "applyPreReturnMeeting"; with: MeetingWith }
+  | { type: "applyCompanyMeeting" }
+  | { type: "requestCoordinator" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
   | { type: "reset" };
@@ -90,8 +92,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, recoveryJourneySeen: true };
     case "setPrepPath":
       return { ...state, prepPath: action.path };
-    case "applyPreReturnMeeting":
-      return { ...state, preReturnMeeting: action.with };
+    case "applyCompanyMeeting":
+      return { ...state, companyMeetingApplied: true };
+    case "requestCoordinator":
+      return { ...state, coordinatorRequested: true };
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
     case "sendToHr":
@@ -108,7 +112,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v6";
+const STORAGE_KEY = "fukushoku-navi-demo-v7";
 
 function load(): State {
   try {

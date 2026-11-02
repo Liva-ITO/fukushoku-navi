@@ -53,7 +53,6 @@ export default function AcuteHome({ state, dispatch }: Props) {
             ) : (
               <ConfirmButton
                 label={ACUTE.checkButton}
-                note={ACUTE.checkButtonNote}
                 confirm={ACUTE.checkConfirm}
                 yes={ACUTE.checkConfirmYes}
                 no={ACUTE.checkConfirmNo}
