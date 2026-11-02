@@ -120,6 +120,7 @@ button { font: inherit; cursor: pointer; }
 .card-quiet-box { background: transparent; }
 .list-dot { margin: 0; padding-left: 1.2em; }
 .list-dot li { padding: 2px 0; }
+.next-note { margin-top: 8px !important; }
 .path-group { margin: 10px 0 4px !important; font-weight: 600; }
 .path-option {
   display: flex; flex-direction: column; align-items: flex-start; width: 100%;

@@ -87,6 +87,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
             <li key={item}>{item}</li>
           ))}
         </ul>
+        <p className="muted next-note">{RECOVERY.nextNote}</p>
       </section>
 
       <section className="card card-quiet-box">
