@@ -1,5 +1,6 @@
-import type { Dispatch } from "react";
-import { APP_NAME, COMMON, TABS, type Tab } from "../constants/labels";
+import { useState, type Dispatch } from "react";
+import { APP_NAME, COMMON, JOURNEY, TABS, type Tab } from "../constants/labels";
+import JourneySheet from "./JourneySheet";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
 import RecoveryHome from "./RecoveryHome";
@@ -19,11 +20,17 @@ function Home({ state, dispatch }: Props) {
 }
 
 export default function PersonApp({ state, dispatch }: Props) {
+  const [journeyOpen, setJourneyOpen] = useState(false);
+
   return (
     <div className={state.restMode ? "phone phone-rest" : "phone"}>
       <header className="phone-header">
         <span className="app-name">{APP_NAME}</span>
+        <button className="link-small" onClick={() => setJourneyOpen(true)}>
+          {JOURNEY.open}
+        </button>
       </header>
+      {journeyOpen && <JourneySheet stage={state.stage} onClose={() => setJourneyOpen(false)} />}
 
       <div className="phone-body">
         {state.tab === "home" && <Home state={state} dispatch={dispatch} />}

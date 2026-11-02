@@ -162,6 +162,24 @@ export const RECORD = {
   weekdays: ["日", "月", "火", "水", "木", "金", "土"],
 };
 
+// 段階の全体像。本人が「いまどこにいて、この先どうなるか」をイメージできるようにする
+export const JOURNEY = {
+  open: "復職までの流れ",
+  title: "復職までの流れ",
+  lead: "休職から復職までは、だいたいこんな流れです。調子は一直線には良くならず、波を描きながら少しずつ上がっていきます。",
+  axisCondition: "調子",
+  axisTime: "時間",
+  now: "いまここ",
+  durationNote: "期間はあくまで目安です。人によって大きく違います。",
+  stages: [
+    { stage: "acute", duration: "1〜3か月", body: "心と体を休ませる時期です。外に出られない日があっても、何もできなくても大丈夫です。" },
+    { stage: "recovery", duration: "3〜6か月", body: "生活のリズムを整えて、少しずつ活動を増やしていく時期です。調子が落ちる日があるのは自然なことです。" },
+    { stage: "preReturn", duration: "1〜2か月", body: "会社と一緒に、復職の日を決めていく時期です。最後の仕上げをします。" },
+    { stage: "afterReturn", duration: "", body: "働きながら、自分のペースを保つ時期です。崩れかけたときは、休職中に作った「自分の取説」を見返せます。" },
+  ] satisfies { stage: Stage; duration: string; body: string }[],
+  close: "閉じる",
+};
+
 export const CONTACT = {
   title: "人事との連絡",
   fromHr: "人事から",

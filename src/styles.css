@@ -180,6 +180,27 @@ button { font: inherit; cursor: pointer; }
 .examples-label { margin: 10px 0 0; }
 .btn-primary:disabled { opacity: .4; cursor: default; }
 
+/* 復職までの流れ */
+.phone { position: relative; }
+.phone-header { display: flex; justify-content: space-between; align-items: center; }
+.link-small { border: 0; background: none; color: var(--accent); font-size: 13px; padding: 4px 0; }
+.sheet { position: absolute; inset: 0; z-index: 5; background: var(--surface); overflow-y: auto; }
+.sheet-body { padding: 16px 20px 24px; }
+.journey-lead { margin: 4px 0 12px; }
+.journey-chart { width: 100%; height: auto; display: block; margin-bottom: 12px; }
+.band { fill: transparent; }
+.band-now { fill: var(--accent-soft); }
+.band-label { font-size: 11px; fill: var(--muted); }
+.curve { fill: none; stroke: #d9925b; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.now-dot { fill: var(--accent); stroke: #fff; stroke-width: 2; }
+.now-label { font-size: 11px; font-weight: 700; fill: var(--accent); }
+.journey-list { list-style: none; margin: 0 0 8px; padding: 0; }
+.journey-item { padding: 10px 12px; border-left: 3px solid var(--line); margin-bottom: 8px; }
+.journey-item-now { border-left-color: var(--accent); background: #fff; border-radius: 0 10px 10px 0; }
+.journey-name { margin: 0; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.journey-name .tag-soft { margin-top: 0; }
+.journey-body { margin: 2px 0 0; font-size: 14px; }
+
 .placeholder { color: var(--muted); text-align: center; margin-top: 40px; }
 
 /* 人事画面：PC幅 */
