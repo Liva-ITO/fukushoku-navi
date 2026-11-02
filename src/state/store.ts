@@ -1,9 +1,10 @@
 import { useEffect, useReducer } from "react";
-import { ACUTE, type Stage, type Tab } from "../constants/labels";
-import { INITIAL_HR_MESSAGES, type HrMessage } from "../data/demo";
+import { ACUTE, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
+import { DEMO_TODAY, INITIAL_DIARY, INITIAL_HR_MESSAGES, type DiaryEntry, type HrMessage } from "../data/demo";
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
 export type View = "person" | "hr";
+export type MeetingWith = "company" | "riva";
 
 export type State = {
   view: View;
@@ -14,6 +15,11 @@ export type State = {
   hrMessages: HrMessage[];
   acuteChecks: boolean[];
   rivaMeetingApplied: boolean;
+  recoveryIntroSeen: boolean;
+  prepPath: PrepPath | null;
+  todayTodos: boolean[];
+  preReturnMeeting: MeetingWith | null;
+  diary: Record<string, DiaryEntry>;
 };
 
 export const initialState: State = {
@@ -25,6 +31,11 @@ export const initialState: State = {
   hrMessages: INITIAL_HR_MESSAGES,
   acuteChecks: ACUTE.checkItems.map(() => false),
   rivaMeetingApplied: false,
+  recoveryIntroSeen: false,
+  prepPath: null,
+  todayTodos: RECOVERY.todayItems.map(() => false),
+  preReturnMeeting: null,
+  diary: INITIAL_DIARY,
 };
 
 export type Action =
@@ -35,7 +46,14 @@ export type Action =
   | { type: "closeIntro" }
   | { type: "toggleAcuteCheck"; index: number }
   | { type: "applyRivaMeeting" }
+  | { type: "closeRecoveryIntro" }
+  | { type: "setPrepPath"; path: PrepPath | null }
+  | { type: "toggleTodayTodo"; index: number }
+  | { type: "applyPreReturnMeeting"; with: MeetingWith }
+  | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "reset" };
+
+const toggleAt = (list: boolean[], index: number) => list.map((v, i) => (i === index ? !v : v));
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -47,25 +65,32 @@ function reducer(state: State, action: Action): State {
       return { ...state, stage: action.stage, restMode: restAllowed && state.restMode, tab: "home" };
     }
     case "setRestMode":
-      return { ...state, restMode: action.on };
+      return { ...state, restMode: action.on, tab: "home" };
     case "setTab":
       return { ...state, tab: action.tab };
     case "closeIntro":
       return { ...state, introSeen: true };
     case "toggleAcuteCheck":
-      return {
-        ...state,
-        acuteChecks: state.acuteChecks.map((v, i) => (i === action.index ? !v : v)),
-      };
+      return { ...state, acuteChecks: toggleAt(state.acuteChecks, action.index) };
     case "applyRivaMeeting":
       return { ...state, rivaMeetingApplied: true };
+    case "closeRecoveryIntro":
+      return { ...state, recoveryIntroSeen: true };
+    case "setPrepPath":
+      return { ...state, prepPath: action.path };
+    case "toggleTodayTodo":
+      return { ...state, todayTodos: toggleAt(state.todayTodos, action.index) };
+    case "applyPreReturnMeeting":
+      return { ...state, preReturnMeeting: action.with };
+    case "saveDiary":
+      return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
     case "reset":
       return { ...initialState, introSeen: true };
   }
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v2";
+const STORAGE_KEY = "fukushoku-navi-demo-v3";
 
 function load(): State {
   try {

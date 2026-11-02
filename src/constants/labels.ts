@@ -63,6 +63,105 @@ export const ACUTE = {
   checkApplied: "申し込みました。リヴァから日程の連絡が届きます",
 };
 
+export type PrepPath = "rivatore" | "rivabiz" | "self";
+
+export const RECOVERY = {
+  introLines: [
+    "回復期に入りました。ここからは、生活のリズムを少しずつ整えていく時期です。",
+    "調子が落ちる日があるのは自然なことです。そのときは「今日はしんどい」を押してください。画面が静かになります。",
+  ],
+  introClose: "わかりました",
+  stageNote: "生活のリズムを整えながら、次の一歩を考えはじめる時期です",
+
+  pathTitle: "準備の進め方",
+  pathNote: "復職に向けた準備は、2つの道から選べます。どちらを選んでも大丈夫です。途中で変えることもできます",
+  pathRework: "リワークを使う",
+  pathReworkNote: "専門のプログラムで、仲間と一緒に準備する",
+  pathOptions: {
+    rivatore: { name: "リヴァトレ", note: "通いながら、仲間と一緒にトレーニングする" },
+    rivabiz: { name: "リヴァBiz", note: "自宅からオンラインで参加できる" },
+    self: { name: "自分のペースで準備する", note: "このアプリの記録やガイドを使って、自分で準備を進める" },
+  } satisfies Record<PrepPath, { name: string; note: string }>,
+  pathChosen: (name: string) => `いまの進め方：${name}`,
+  pathChange: "変える",
+
+  nextTitle: "次の段階までにやること",
+  next: {
+    none: ["起きる時刻を2週間そろえる", "週2回外出する", "1日1回、家事をひとつする"],
+    rework: ["プログラムに決まったペースで参加する", "プログラムで、休職につながった出来事をふり返る"],
+    self: [
+      "起きる時刻を2週間そろえる",
+      "日中に、家の外で2〜3時間過ごす日をつくる（図書館など）",
+      "段階ごとのガイドを読み進める",
+    ],
+  },
+
+  todayTitle: "今日のすること",
+  todayNote: "できなくても大丈夫です",
+  todayItems: ["決めた時刻に起きる", "15分散歩する", "家事をひとつする"],
+
+  restButton: "今日はしんどい",
+
+  nextStepTitle: "そろそろ次に進めそうなら",
+  nextStepNote: "復職に向けて、話す相手を選べます",
+  meetCompany: "会社と面談する",
+  meetCompanyConfirm: "会社との面談を申し込みます。申し込むと、会社から日程の連絡が届きます。",
+  meetCompanyApplied: "申し込みました。会社から日程の連絡が届きます",
+  meetRiva: "心理の専門家に相談する",
+  meetRivaNote: "リヴァの面談です。チケットを1枚使います",
+  meetRivaConfirm: "リヴァの心理の専門家との面談を申し込みます。チケットを1枚使います。申し込むと、リヴァから日程の連絡が届きます。",
+  meetRivaApplied: "申し込みました。リヴァから日程の連絡が届きます",
+  confirmYes: "申し込む",
+  confirmNo: "やめておく",
+};
+
+export const REST = {
+  lines: [
+    "今日は、休む日にして大丈夫です。",
+    "調子に波があるのは、回復の途中ではよくあることです。段階は変わりません。会社にも伝わりません。",
+  ],
+  recordEntry: "日記",
+  back: "少し動けそう",
+};
+
+export type SleepQuality = "good" | "normal" | "poor";
+export type Meal = "morning" | "noon" | "night";
+
+export const RECORD = {
+  title: "今日の記録",
+  privacy: "ここに書いたことは、自分だけが見られます。会社には、自分で提出したときだけ届きます",
+  wake: "起きた時刻",
+  sleep: "寝た時刻",
+  sleepQuality: "睡眠",
+  sleepQualityOptions: { good: "よく眠れた", normal: "ふつう", poor: "あまり眠れなかった" } satisfies Record<SleepQuality, string>,
+  meals: "食事",
+  mealOptions: { morning: "朝", noon: "昼", night: "夜" } satisfies Record<Meal, string>,
+  activity: "体を動かした・外に出た",
+  activityYes: "した",
+  activityNo: "しなかった",
+  activityMinutes: [15, 30, 60],
+  minutes: (n: number) => `${n}分`,
+  mood: "気分",
+  // 気分は言葉を出さず、顔だけで選ぶ
+  moodFaces: ["😣", "😟", "😐", "🙂", "😊"],
+  note: "ひとこと",
+  notePlaceholder: "書かなくても大丈夫です",
+  voice: "話して入力",
+  voiceListening: "聞いています…",
+  save: "残す",
+  saved: "今日の記録を見る",
+  edit: "書きなおす",
+  thanks: [
+    "記録できましたね。それだけで十分です",
+    "今日の自分を残せました",
+    "書いてくれて、ありがとうございます",
+    "書けた日も、書けなかった日も、どちらも大丈夫です",
+  ],
+  weekTitle: "今週の記録",
+  // 書けなかった日は空欄のまま。×や警告色は使わない
+  weekdays: ["日", "月", "火", "水", "木", "金", "土"],
+};
+
 export const DEMO_BAR = {
   title: "デモ操作",
   viewAs: "見る画面",

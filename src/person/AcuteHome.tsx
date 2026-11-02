@@ -1,14 +1,13 @@
-import { useState, type Dispatch } from "react";
-import { ACUTE, COMMON, greeting } from "../constants/labels";
+import type { Dispatch } from "react";
+import { ACUTE, greeting } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
+import { ConfirmButton, HrNoticeFold, ReadingsCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
 // 急性期：やることを求めない、静かなホーム。赤いバッジや数字は出さない
 export default function AcuteHome({ state, dispatch }: Props) {
-  const [confirming, setConfirming] = useState(false);
-  const latest = state.hrMessages[state.hrMessages.length - 1];
   const allChecked = state.acuteChecks.every(Boolean);
 
   return (
@@ -16,28 +15,9 @@ export default function AcuteHome({ state, dispatch }: Props) {
       <p className="greeting">{greeting(PERSON.name, new Date().getHours())}</p>
       <p className="lead">{ACUTE.message}</p>
 
-      {/* 人事からの連絡は1行にたたむ。本文は、本人が開いたときだけ見える */}
-      {latest && (
-        <details className="card card-fold">
-          <summary>
-            {ACUTE.hrContactSummary(state.hrMessages.length)}
-            {latest.noReplyNeeded && <span className="tag-soft">{COMMON.noReplyNeeded}</span>}
-          </summary>
-          <p className="fold-body">{latest.body}</p>
-        </details>
-      )}
+      <HrNoticeFold messages={state.hrMessages} />
 
-      <section className="card">
-        <h2>{ACUTE.readingsTitle}</h2>
-        <ul className="list-plain">
-          {ACUTE.readings.map((r) => (
-            <li key={r.title}>
-              {r.title}
-              <span className="muted">（{r.minutes}分）</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ReadingsCard />
 
       <button className="link-soft" onClick={() => dispatch({ type: "setTab", tab: "record" })}>
         {ACUTE.recordEntry}
@@ -70,32 +50,15 @@ export default function AcuteHome({ state, dispatch }: Props) {
             <p>{ACUTE.checkAllDone}</p>
             {state.rivaMeetingApplied ? (
               <p className="done-note">{ACUTE.checkApplied}</p>
-            ) : confirming ? (
-              // いきなり申し込みにせず、誰から連絡が来るかを先に見せる
-              <div className="confirm">
-                <p>{ACUTE.checkConfirm}</p>
-                <div className="confirm-actions">
-                  <button
-                    className="btn-primary"
-                    onClick={() => {
-                      dispatch({ type: "applyRivaMeeting" });
-                      setConfirming(false);
-                    }}
-                  >
-                    {ACUTE.checkConfirmYes}
-                  </button>
-                  <button className="btn-quiet" onClick={() => setConfirming(false)}>
-                    {ACUTE.checkConfirmNo}
-                  </button>
-                </div>
-              </div>
             ) : (
-              <>
-                <button className="btn-primary" onClick={() => setConfirming(true)}>
-                  {ACUTE.checkButton}
-                </button>
-                <p className="muted">{ACUTE.checkButtonNote}</p>
-              </>
+              <ConfirmButton
+                label={ACUTE.checkButton}
+                note={ACUTE.checkButtonNote}
+                confirm={ACUTE.checkConfirm}
+                yes={ACUTE.checkConfirmYes}
+                no={ACUTE.checkConfirmNo}
+                onConfirm={() => dispatch({ type: "applyRivaMeeting" })}
+              />
             )}
           </div>
         )}
