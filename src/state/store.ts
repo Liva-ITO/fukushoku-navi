@@ -6,7 +6,9 @@ import {
   INITIAL_DIARY,
   INITIAL_STAGE_HISTORY,
   PERSON,
+  SAMPLE_PERSON,
   SAMPLE_SELF_REPORT,
+  INITIAL_HR_MESSAGES,
   type DiaryEntry,
   type HrMessage,
   type SentItem,
@@ -626,15 +628,29 @@ function reducer(state: State, action: Action): State {
       return { ...action.state, ...local, tab: action.state.stage !== state.stage ? "home" : local.tab };
     }
     case "reset":
-      return { ...initialState, introSeen: true, view: state.view };
+      return { ...startState(), introSeen: true, view: state.view };
   }
+}
+
+// 見本のモードでは、最初から本人（社員A）が登録済みで始めた状態にする。段階はデモ操作で自由に切り替えられる
+function startState(): State {
+  if (!BROWSE) return initialState;
+  return {
+    ...initialState,
+    live: SAMPLE_PERSON,
+    personStarted: true,
+    stageHistory: [{ date: SAMPLE_PERSON.leaveStart, stage: "acute" }],
+    hrMessages: INITIAL_HR_MESSAGES,
+  };
 }
 
 // 保存の名前は固定する。項目を足しても、読みこむときに最初の状態で足りない項目が補われるので、
 // ページを更新しても途中から続けられる（番号を上げると、それまでの進み具合が消えてしまう）。
 // 形が合わなくなる変更のときだけ、名前を変える
-const STORAGE_KEY = "fukushoku-navi-demo";
-const PREVIOUS_KEY = "fukushoku-navi-demo-v40"; // 名前を固定する前の保存。あれば引きつぐ
+// 「画面を見る（見本）」は、アドレスの ?mode=browse で切り替える。通しのデモとは保存を分ける
+export const BROWSE = typeof location !== "undefined" && new URLSearchParams(location.search).get("mode") === "browse";
+const STORAGE_KEY = BROWSE ? "fukushoku-navi-browse" : "fukushoku-navi-demo";
+const PREVIOUS_KEY = BROWSE ? "" : "fukushoku-navi-demo-v40"; // 名前を固定する前の保存。あれば引きつぐ
 const LOCAL_STORAGE_KEY = `${STORAGE_KEY}-window`;
 
 // ウィンドウごとに持つもの（見ている画面）。ほかのウィンドウとは合わせず、このウィンドウの中だけに保存する。
@@ -653,7 +669,7 @@ function shared(state: State): Omit<State, LocalKey> {
 }
 
 function load(): State {
-  let s = initialState;
+  let s = startState();
   try {
     const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(PREVIOUS_KEY);
     if (raw) s = { ...s, ...JSON.parse(raw) };

@@ -1,6 +1,6 @@
 import { useState, type Dispatch } from "react";
 import { DEMO_BAR, STAGE_LABELS, type Stage } from "../constants/labels";
-import type { Action, State } from "../state/store";
+import { BROWSE, type Action, type State } from "../state/store";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -17,7 +17,10 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
 
   return (
     <div className={`demo-bar${open ? " demo-open" : ""}`} aria-label={DEMO_BAR.title}>
-      <span className="demo-bar-title">{DEMO_BAR.title}</span>
+      <span className="demo-bar-title">
+        {DEMO_BAR.title}
+        {BROWSE && <span className="demo-browse-tag">{DEMO_BAR.browseTag}</span>}
+      </span>
       <button className="demo-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span>
           {state.view === "hr"
@@ -103,6 +106,9 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
         </div>
       )}
 
+      <a className="demo-mode" href={BROWSE ? location.pathname : `${location.pathname}?mode=browse`}>
+        {BROWSE ? DEMO_BAR.toJourney : DEMO_BAR.toBrowse}
+      </a>
       <button className="demo-reset" onClick={() => dispatch({ type: "reset" })}>
         {DEMO_BAR.reset}
       </button>

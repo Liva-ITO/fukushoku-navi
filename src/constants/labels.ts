@@ -487,6 +487,10 @@ export const DEMO_BAR = {
   on: "オン",
   off: "オフ",
   reset: "最初の状態に戻す",
+  // 通しのデモ（登録から復職まで）と、どの画面も自由に見られる見本を行き来する
+  toBrowse: "画面を見る（見本）",
+  toJourney: "通しのデモに戻る",
+  browseTag: "見本",
   // スマホでは1行にたたみ、いまの状態だけを出す
   summary: (view: "person" | "hr", stage: string, rest: boolean) =>
     view === "hr" ? "人事" : `本人・${stage}${rest ? "・休息モード" : ""}`,

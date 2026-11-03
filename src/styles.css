@@ -723,3 +723,7 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
   .report-doc { position: absolute; left: 0; top: 0; box-shadow: none; max-width: none; padding: 0; }
   .no-print { display: none !important; }
 }
+
+/* 通しのデモ／見本の切り替え */
+.demo-mode { color: #fff; text-decoration: underline; font-size: 13px; white-space: nowrap; padding: 6px 4px; }
+.demo-browse-tag { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #f3d9a4; color: #3b3a36; font-size: 12px; font-weight: 700; }
