@@ -32,7 +32,7 @@ export default function HrApp({ state, dispatch }: Props) {
   return (
     <div className="hr">
       <nav className="hr-nav">
-        {(["list", "analytics"] as const).map((p) => (
+        {(["list", "analytics", "settings"] as const).map((p) => (
           <button
             key={p}
             aria-current={state.hrPage === p || (p === "list" && state.hrPage === "invite") ? "page" : undefined}
@@ -44,6 +44,8 @@ export default function HrApp({ state, dispatch }: Props) {
       </nav>
       {state.hrPage === "analytics" ? (
         <Analytics />
+      ) : state.hrPage === "settings" ? (
+        <CompanySettings state={state} dispatch={dispatch} />
       ) : state.hrPage === "invite" ? (
         <InviteForm dispatch={dispatch} />
       ) : (
@@ -230,7 +232,6 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
         </section>
       )}
 
-      <CompanySettings state={state} dispatch={dispatch} />
     </>
   );
 }
@@ -656,11 +657,67 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
 
 // 会社として最初に一度決めること。人ごとには選ばない
 function CompanySettings({ state, dispatch }: Props) {
+  const set = (patch: Parameters<typeof setCompany>[0]) => dispatch(setCompany(patch));
   return (
-    <section className="hr-card">
-      <h2>{HR.settingsTitle}</h2>
+    <section className="hr-card settings">
+      <h1 className="hr-title">{HR.settingsTitle}</h1>
       <p className="muted">{HR.settingsNote}</p>
-      <fieldset className="return-order">
+      <p className="muted">{HR.settingsDemoNote}</p>
+
+      <fieldset className="setting">
+        <legend>{HR.maxLeaveLabel}</legend>
+        <select className="hr-input" value={state.maxLeave} onChange={(e) => set({ maxLeave: e.target.value })}>
+          {HR.maxLeaveOptions.map((o) => (
+            <option key={o}>{o}</option>
+          ))}
+        </select>
+        <p className="muted">{HR.maxLeaveNote}</p>
+      </fieldset>
+
+      <fieldset className="setting">
+        <legend>{HR.sickLeaveLabel}</legend>
+        <div className="setting-row">
+          <label className="check">
+            <input type="radio" name="sick" checked={state.sickLeave} onChange={() => set({ sickLeave: true })} />
+            {HR.sickLeaveYes}
+          </label>
+          <label className="check">
+            <input type="radio" name="sick" checked={!state.sickLeave} onChange={() => set({ sickLeave: false })} />
+            {HR.sickLeaveNo}
+          </label>
+          {state.sickLeave && (
+            <label className="check">
+              {HR.sickLeaveDays}
+              <input
+                className="hr-input setting-days"
+                type="number"
+                min={1}
+                value={state.sickLeaveDays}
+                onChange={(e) => set({ sickLeaveDays: Number(e.target.value) })}
+              />
+              {HR.sickLeaveDaysUnit}
+            </label>
+          )}
+        </div>
+        <p className="muted">{HR.sickLeaveNote}</p>
+      </fieldset>
+
+      <fieldset className="setting">
+        <legend>{HR.rehabLabel}</legend>
+        <div className="setting-row">
+          <label className="check">
+            <input type="radio" name="rehab" checked={state.rehab} onChange={() => set({ rehab: true })} />
+            {HR.rehabYes}
+          </label>
+          <label className="check">
+            <input type="radio" name="rehab" checked={!state.rehab} onChange={() => set({ rehab: false })} />
+            {HR.rehabNo}
+          </label>
+        </div>
+        <p className="muted">{HR.rehabNote}</p>
+      </fieldset>
+
+      <fieldset className="setting">
         <legend>{HR.returnOrderLabel}</legend>
         {(["occFirst", "doctorFirst"] as const).map((o) => (
           <label key={o} className="check">
@@ -670,9 +727,13 @@ function CompanySettings({ state, dispatch }: Props) {
         ))}
         <p className="muted">{HR.returnOrderNote[state.returnOrder]}</p>
       </fieldset>
+
+      <p className="muted">{HR.settingsMore}</p>
     </section>
   );
 }
+
+const setCompany = (patch: Extract<Action, { type: "setCompany" }>["patch"]): Action => ({ type: "setCompany", patch });
 
 // 招待のときに入力した、復職に向けた課題（会社の見立て）
 function IssuesCard({ row }: { row: HrRow }) {

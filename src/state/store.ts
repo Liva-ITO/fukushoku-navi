@@ -68,6 +68,11 @@ export type State = {
   coordSeen: number; // 本人が相談タブで見た件数（①の印を消すため）
   // 復職までの手順。順番は会社の設定（産業医との面談を先にするか、主治医の診断書を先にするか）
   returnOrder: ReturnOrder;
+  // 会社の設定（見本）。いまは手順の順番だけが画面に反映される
+  maxLeave: string;
+  sickLeave: boolean;
+  sickLeaveDays: number;
+  rehab: boolean;
   occMeeting: { status: "scheduled" | "done"; date: string } | null;
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
@@ -79,7 +84,7 @@ export type State = {
   // 人事画面で開いている人（null なら一覧）
   hrSelected: string | null;
   // 人事画面の上のタブ（休職者の一覧／データ分析）
-  hrPage: "list" | "analytics" | "invite";
+  hrPage: "list" | "analytics" | "invite" | "settings";
   // 人事が招待した人（デモでは一覧に増えるだけ。本人はまだ始めていない）
   invited: Invited[];
   // 本人が招待から始めたか（デモでは、最初の画面で個人アカウントのボタンを押したら始まる）
@@ -119,6 +124,10 @@ export const initialState: State = {
   coordInbox: [],
   coordSeen: 0,
   returnOrder: "occFirst",
+  maxLeave: "1年6か月",
+  sickLeave: true,
+  sickLeaveDays: 30,
+  rehab: true,
   occMeeting: null,
   doctorNote: false,
   returnDecision: null,
@@ -176,7 +185,8 @@ export type Action =
   | { type: "sendHrMessage"; title: string; body: string; noReplyNeeded: boolean }
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
-  | { type: "hrPage"; page: "list" | "analytics" | "invite" }
+  | { type: "hrPage"; page: "list" | "analytics" | "invite" | "settings" }
+  | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "sickLeave" | "sickLeaveDays" | "rehab">> }
   | { type: "invite"; person: Omit<Invited, "id" | "date"> }
   | { type: "startPerson" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
@@ -373,6 +383,8 @@ function reducer(state: State, action: Action): State {
         hrSeen: { ...state.hrSeen, [action.id]: action.incoming ?? 0 },
         hrNewFrom: { ...state.hrNewFrom, [action.id]: action.prevSeen ?? 0 },
       };
+    case "setCompany":
+      return { ...state, ...action.patch };
     case "invite":
       return {
         ...state,
@@ -393,7 +405,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v22";
+const STORAGE_KEY = "fukushoku-navi-demo-v23";
 
 function load(): State {
   try {

@@ -456,7 +456,22 @@ export const HR = {
   // 準備期：復職までの手順（職場復帰支援の手引き 第2〜第4ステップ）。どの手順からでも押せ、確定だけは全部そろってから
   returnTitle: "復職までの手順",
   settingsTitle: "会社の設定",
-  settingsNote: "最初に一度決めておけば、全員に同じ設定が使われます",
+  settingsNote: "会社の決まり（就業規則など）に合わせて、最初に一度決めておきます。全員に同じ設定が使われます",
+  settingsDemoNote: "デモでは、「復職までの手順の順番」だけが画面に反映されます。ほかの項目は見本です",
+  settingsMore: "設定の項目は、運用に合わせてこれから増やします",
+  maxLeaveLabel: "休職期間（最長）",
+  maxLeaveOptions: ["6か月", "1年", "1年6か月", "2年", "勤続年数で変わる"],
+  maxLeaveNote: "休職者を招待するときの、満了日の目安に使います",
+  sickLeaveLabel: "病気休暇",
+  sickLeaveYes: "あり",
+  sickLeaveNo: "なし",
+  sickLeaveDays: "日数",
+  sickLeaveDaysUnit: "日",
+  sickLeaveNote: "休職の前に使える休暇があるかどうか。休職の開始日の考え方に関わります",
+  rehabLabel: "リハビリ出勤（試し出勤）",
+  rehabYes: "あり",
+  rehabNo: "なし",
+  rehabNote: "復職の前に、試しに出勤する制度があるかどうか。準備期の手順に関わります",
   returnOrderLabel: "復職までの手順の順番",
   returnOrderNow: (order: string) => `手順の順番は、会社の設定で決めています（${order}）`,
   returnOrders: {
@@ -534,7 +549,7 @@ export const HR = {
 
 // 人事のデータ分析（数字はすべて見本）
 export const ANALYTICS = {
-  nav: { list: "休職者の一覧", analytics: "データ分析" },
+  nav: { list: "休職者の一覧", analytics: "データ分析", settings: "会社の設定" },
   title: "データ分析",
   sample: "数字はすべて見本です（架空の会社・過去3年）",
   period: "過去3年",

@@ -521,3 +521,12 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .issues-ref summary { list-style: none; gap: 6px; }
 .issues-ref summary::-webkit-details-marker { display: none; }
 .issues-ref summary::after { content: "▼"; font-size: 10px; }
+
+/* 会社の設定 */
+.settings { max-width: 720px; }
+.setting { border: 0; border-top: 1px solid var(--line); padding: 14px 0 6px; margin: 10px 0 0; display: grid; gap: 6px; }
+.setting legend { font-weight: 600; padding: 0; float: left; width: 100%; margin-bottom: 6px; }
+.setting select { justify-self: start; }
+.setting-row { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.setting-days { width: 80px; }
+.setting .muted { margin: 0; }
