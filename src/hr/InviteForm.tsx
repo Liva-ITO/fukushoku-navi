@@ -15,7 +15,9 @@ export default function InviteForm({ depts, dispatch }: { depts: string[]; dispa
   const [issues, setIssues] = useState("");
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState<string | null>(null);
-  const ready = name.trim() && dept.trim() && leaveStart && leaveEnd && /.+@.+\..+/.test(email.trim());
+  // 満了日は開始日より後（同じ日や前の日は、入れまちがい）
+  const endInvalid = leaveEnd !== "" && leaveEnd <= leaveStart;
+  const ready = name.trim() && dept.trim() && leaveStart && leaveEnd && !endInvalid && /.+@.+\..+/.test(email.trim());
 
   if (sent)
     return (
@@ -76,6 +78,7 @@ export default function InviteForm({ depts, dispatch }: { depts: string[]; dispa
         <label className="hr-field">
           {INVITE.leaveEnd}
           <input className="hr-input" type="date" min={leaveStart} value={leaveEnd} onChange={(e) => setLeaveEnd(e.target.value)} />
+          {endInvalid && <span className="field-error">{INVITE.leaveEndInvalid}</span>}
         </label>
       </div>
       <label className="hr-field">

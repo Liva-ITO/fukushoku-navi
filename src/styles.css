@@ -735,3 +735,10 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
   .hr-nav { gap: 6px; margin-bottom: 16px; }
   .hr-nav button { padding: 6px 14px; font-size: 14px; }
 }
+
+/* 登録内容 */
+.reg-list { margin: 0 0 10px; display: grid; gap: 4px; font-size: 14px; }
+.reg-list div { display: grid; grid-template-columns: 10em 1fr; gap: 8px; }
+.reg-list dt { color: var(--muted); }
+.reg-list dd { margin: 0; overflow-wrap: anywhere; }
+.field-error { color: #a34a2a; font-size: 13px; }

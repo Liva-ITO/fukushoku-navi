@@ -56,7 +56,7 @@ export const INITIAL_STAGE_HISTORY: StageChange[] = [];
 // status は面談のいまの状態、noReply は人事の連絡に「返信は不要です」をつけたか
 export type HrEvent = {
   date: string;
-  kind: "stage" | "fromHr" | "fromPerson" | "meeting" | "submit" | "done" | "decision";
+  kind: "stage" | "fromHr" | "fromPerson" | "meeting" | "submit" | "done" | "decision" | "edit";
   body: string;
   status?: string;
   noReply?: boolean;

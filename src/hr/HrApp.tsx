@@ -376,6 +376,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
           </section>
 
           {row.live && row.stage !== "afterReturn" && <Meetings state={state} dispatch={dispatch} />}
+          {(row.live || row.pending) && <RegistrationCard row={row} state={state} dispatch={dispatch} />}
           <IssuesCard row={row} dispatch={dispatch} />
           {!row.pending && row.stage !== "afterReturn" && (
             <SendMessage
@@ -915,6 +916,95 @@ function InviteResend({ id, invite, dispatch }: { id: string; invite: NonNullabl
         </>
       )}
     </div>
+  );
+}
+
+// 登録内容（スタッフも直せる）。直したことは「登録の変更」として経緯に残す
+function RegistrationCard({ row, state, dispatch }: { row: HrRow } & Props) {
+  const src = row.id === PERSON.id ? state.live : state.invited.find((p) => p.id === row.id);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(src ?? null);
+  if (!src || !draft) return null;
+  const F = INVITE.regField;
+  const keys = ["name", "dept", "leaveStart", "leaveEnd", "email"] as const;
+  const show = (k: (typeof keys)[number], v: string) => (k === "leaveStart" || k === "leaveEnd" ? shortDate(v) : v);
+  const changes = keys.filter((k) => draft[k].trim() !== src[k]);
+  const endInvalid = draft.leaveEnd <= draft.leaveStart;
+  const emailInvalid = !/.+@.+\..+/.test(draft.email.trim());
+
+  return (
+    <section className="hr-card">
+      <h2>{INVITE.regTitle}</h2>
+      {!open ? (
+        <>
+          <dl className="reg-list">
+            {keys.map((k) => (
+              <div key={k}>
+                <dt>{F[k]}</dt>
+                <dd>{show(k, src[k]) || "—"}</dd>
+              </div>
+            ))}
+          </dl>
+          {row.stage !== "afterReturn" && (
+            <button
+              className="btn-outline btn-small"
+              onClick={() => {
+                setDraft(src);
+                setOpen(true);
+              }}
+            >
+              {INVITE.regEdit}
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="issues-add">
+          <label className="hr-field">
+            {F.name}
+            <input className="hr-input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+          </label>
+          <label className="hr-field">
+            {F.dept}
+            <select className="hr-input" value={draft.dept} onChange={(e) => setDraft({ ...draft, dept: e.target.value })}>
+              {[...new Set([draft.dept, ...state.depts])].map((d) => (
+                <option key={d}>{d}</option>
+              ))}
+            </select>
+          </label>
+          <label className="hr-field">
+            {F.leaveStart}
+            <input className="hr-input" type="date" value={draft.leaveStart} onChange={(e) => setDraft({ ...draft, leaveStart: e.target.value })} />
+          </label>
+          <label className="hr-field">
+            {F.leaveEnd}
+            <input className="hr-input" type="date" min={draft.leaveStart} value={draft.leaveEnd} onChange={(e) => setDraft({ ...draft, leaveEnd: e.target.value })} />
+            {endInvalid && <span className="field-error">{INVITE.leaveEndInvalid}</span>}
+          </label>
+          <label className="hr-field">
+            {F.email}
+            <input className="hr-input" type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
+          </label>
+          <p className="muted">{INVITE.regNote}</p>
+          <div className="confirm-actions">
+            <button
+              className="btn-primary btn-small"
+              disabled={changes.length === 0 || endInvalid || emailInvalid || !draft.name.trim()}
+              onClick={() => {
+                const patch = Object.fromEntries(changes.map((k) => [k, draft[k].trim()]));
+                const text = INVITE.regEvent(changes.map((k) => INVITE.regChange(F[k], show(k, src[k]), show(k, draft[k].trim()))));
+                dispatch({ type: "editRegistration", personId: row.id, patch, text });
+                setOpen(false);
+              }}
+            >
+              {INVITE.regSave}
+            </button>
+            <button className="btn-quiet btn-small" onClick={() => setOpen(false)}>
+              {INVITE.regCancel}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

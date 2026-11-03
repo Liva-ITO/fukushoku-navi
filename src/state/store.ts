@@ -51,6 +51,7 @@ export type ReturnOrder = "occFirst" | "doctorFirst";
 export type HrAccount = { id: string; name: string; position: string; role: "admin" | "staff"; email?: string };
 // 済んだ面談の記録（経緯に、面談の日付で1行ずつ残す。やり直しても前の面談は消えない）
 export type MeetingLog = { date: string; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
+export type RegPatch = Partial<Pick<Invited, "name" | "dept" | "leaveStart" | "leaveEnd" | "email">>;
 export type Torisetsu = { reason: string; signs: string; actions: string; help: string };
 export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
 
@@ -108,6 +109,8 @@ export type State = {
   meetingLog: MeetingLog[];
   // 会社の見立ての追記（人ごと・日付つき）。本人には見せない
   issueNotes: Record<string, { date: string; text: string }[]>;
+  // 登録内容を直した記録（人ごと・日付つき）
+  regEdits: { personId: string; date: string; text: string }[];
   // 自分の取説（本人だけのもの。会社には届かない）
   torisetsu: Torisetsu | null;
   doctorNote: boolean;
@@ -182,6 +185,7 @@ export const initialState: State = {
   occOpinions: [],
   meetingLog: [],
   issueNotes: {},
+  regEdits: [],
   torisetsu: null,
   doctorNote: false,
   returnDecision: null,
@@ -258,6 +262,7 @@ export type Action =
   | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "depts" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
   | { type: "reworkReport" }
   | { type: "addIssueNote"; personId: string; text: string }
+  | { type: "editRegistration"; personId: string; patch: RegPatch; text: string }
   | { type: "saveTorisetsu"; torisetsu: Torisetsu }
   | { type: "sendSelfReport"; report: SelfReport }
   | { type: "demoSelfReport" }
@@ -547,6 +552,20 @@ function reducer(state: State, action: Action): State {
       return { ...state, selfReports: [...state.selfReports, { ...SAMPLE_SELF_REPORT, date: DEMO_TODAY }] };
     case "saveTorisetsu":
       return { ...state, torisetsu: action.torisetsu };
+    case "editRegistration": {
+      const log = [...state.regEdits, { personId: action.personId, date: DEMO_TODAY, text: action.text }];
+      if (action.personId === PERSON.id && state.live) {
+        const live = { ...state.live, ...action.patch };
+        // 休職の開始日を直したら、段階の記録の最初の日も合わせる
+        const hist = state.stageHistory.map((h, i) => (i === 0 ? { ...h, date: live.leaveStart } : h));
+        return { ...state, live, stageHistory: hist, regEdits: log };
+      }
+      return {
+        ...state,
+        invited: state.invited.map((p) => (p.id === action.personId ? { ...p, ...action.patch } : p)),
+        regEdits: log,
+      };
+    }
     case "addIssueNote":
       return {
         ...state,

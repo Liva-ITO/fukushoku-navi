@@ -47,9 +47,10 @@ function todosOf(state: State): HrTodo[] {
 }
 
 function doneEvents(state: State, personId: string): HrEvent[] {
-  return state.hrDone
-    .filter((d) => d.personId === personId)
-    .map((d) => ({ date: d.date, kind: "done" as const, body: d.text }));
+  return [
+    ...state.hrDone.filter((d) => d.personId === personId).map((d) => ({ date: d.date, kind: "done" as const, body: d.text })),
+    ...state.regEdits.filter((d) => d.personId === personId).map((d) => ({ date: d.date, kind: "edit" as const, body: d.text, byHr: true })),
+  ];
 }
 
 const byDate = (events: HrEvent[]) =>
@@ -180,6 +181,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     events: [
       { date: p.date, kind: "done" as const, body: INVITE.event, byHr: true },
       ...p.resends.map((r) => ({ date: r.date, kind: "done" as const, body: INVITE.resendEvent(r.email), byHr: true })),
+      ...doneEvents(state, p.id),
     ],
     invite: { date: p.date, email: p.email, resends: p.resends },
     live: false,

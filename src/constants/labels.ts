@@ -605,6 +605,7 @@ export const HR = {
     submit: "提出",
     done: "対応済み",
     decision: "会社の判断",
+    edit: "登録の変更",
   },
   hidden: "本人の日記の中身・気分・休息モードかどうか・支援機関との面談で話した内容は、この画面には出ません",
 
@@ -938,6 +939,16 @@ export const INVITE = {
   jobs: ["技術職", "営業職", "事務職", "管理職"],
   leaveStart: "休職の開始日",
   leaveEnd: "休職期間の満了日",
+  leaveEndInvalid: "休職期間の満了日は、開始日より後の日にしてください",
+  // 登録したあとで直す（スタッフも直せる。直したことは経緯に残す）
+  regTitle: "登録内容",
+  regEdit: "登録内容を直す",
+  regSave: "直す",
+  regCancel: "やめておく",
+  regNote: "直したことは、いつ何を変えたかが経緯に残ります",
+  regField: { name: "氏名", dept: "部署", leaveStart: "休職の開始日", leaveEnd: "休職期間の満了日", email: "本人の個人のメールアドレス" },
+  regChange: (label: string, from: string, to: string) => `${label} ${from || "（なし）"} → ${to}`,
+  regEvent: (changes: string[]) => `登録内容を直した：${changes.join("、")}`,
   // 会社から見た、復職に向けた課題。会社の復職判断と、産業医との面談で参考にする。
   // オンラインのリワークを使う場合は、この見立てがプログラムに渡り、取り組みの土台になる
   issues: "復職に向けた課題（会社の見立て）",
