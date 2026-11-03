@@ -21,7 +21,7 @@ export function SelfReportCard({ state, dispatch }: { state: State; dispatch: Di
   const filled = report.condition !== "" && report.reason !== "" && report.measures !== "";
 
   return (
-    <div className="self-report">
+    <div className="self-report" id="self-report">
       <p className="path-group">{L.title}</p>
       <p className="muted">{L.note}</p>
       {last && !open && <p className="done-note">{L.sent(shortDate(last.date))}</p>}

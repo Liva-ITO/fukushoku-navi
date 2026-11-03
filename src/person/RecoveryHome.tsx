@@ -15,6 +15,8 @@ const japaneseDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice
 
 export default function RecoveryHome({ state, dispatch }: Props) {
   const path = state.prepPath;
+  // 会社がレポートを準備期に進む条件にしているときは、送るまで会社との面談を申し込めない
+  const needReport = state.prepConds.selfReport && state.selfReports.length === 0;
   const nextItems =
     path === null ? RECOVERY.next.none : path === "self" ? RECOVERY.next.self : RECOVERY.next.rework;
   const noteKey = path === null ? "none" : path === "self" ? "self" : "rework";
@@ -161,6 +163,14 @@ export default function RecoveryHome({ state, dispatch }: Props) {
                     ? RECOVERY.meetCompanyScheduled(japaneseDate(state.companyMeeting.date))
                     : RECOVERY.meetCompanyApplied}
               </p>
+            ) : needReport ? (
+              // 会社がレポートを条件にしているときは、送ってからでないと申し込めない
+              <>
+                <p className="muted">{RECOVERY.report.needFirst}</p>
+                <button className="btn-outline" onClick={() => document.getElementById("self-report")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+                  {RECOVERY.report.goReport}
+                </button>
+              </>
             ) : (
               <>
                 <p className="muted">{RECOVERY.meetCompanyNote}</p>

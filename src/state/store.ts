@@ -289,6 +289,8 @@ function reducer(state: State, action: Action): State {
     case "setPrepPath":
       return { ...state, prepPath: action.path };
     case "applyCompanyMeeting":
+      // 自分で準備する人は、会社がレポートを条件にしているなら、送るまで申し込めない（画面だけでなくここでも止める）
+      if (state.prepPath === "self" && state.prepConds.selfReport && state.selfReports.length === 0) return state;
       return { ...state, companyMeeting: { status: "applied" } };
     case "scheduleCompanyMeeting":
       return { ...state, companyMeeting: { status: "scheduled", date: action.date } };
