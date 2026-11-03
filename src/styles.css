@@ -664,3 +664,22 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 /* アカウント */
 .accounts-table { margin: 10px 0; }
 .accounts-table select { min-height: 36px; }
+
+/* データ分析：年度ごとの推移・定義 */
+.an-trends { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+.an-trend { margin: 0; }
+.an-trend figcaption { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.an-trend svg { width: 100%; height: auto; display: block; }
+.an-axis { stroke: var(--line); stroke-width: 1; }
+.an-trend-bar { fill: var(--accent); }
+.an-trend-line { fill: none; stroke: var(--accent); stroke-width: 2; }
+.an-trend-dot { fill: var(--accent); stroke: #fff; stroke-width: 2; }
+.an-partial { opacity: 0.45; }
+.an-trend-val { font-size: 12px; font-weight: 600; fill: var(--text); }
+.an-trend-year { font-size: 10px; fill: var(--muted); }
+.an-trend-note { font-size: 12px; margin: 8px 0 0; }
+.an-defs summary { cursor: pointer; font-weight: 600; min-height: 32px; display: flex; align-items: center; }
+.an-defs dl { margin: 8px 0 0; display: grid; gap: 8px; font-size: 13px; }
+.an-defs dt { font-weight: 600; }
+.an-defs dd { margin: 0; }
+@media (max-width: 760px) { .an-trends { grid-template-columns: 1fr; } }

@@ -142,11 +142,6 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
             ＋ {INVITE.open}
           </button>
         </div>
-        <aside className="notify">
-          <p className="notify-title">{HR.notifyTitle}</p>
-          <p className="notify-body">{HR.notifyBody}</p>
-          <p className="muted">{HR.notifyNote}</p>
-        </aside>
       </div>
 
       <div className="tiles">

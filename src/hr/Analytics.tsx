@@ -5,8 +5,9 @@ import {
   BY_DEPT,
   BY_JOB,
   BY_PATH,
+  BY_YEAR,
+  ENDED,
   PERFORMANCE,
-  PERIOD_PEOPLE,
   RELAPSED_1Y,
   RETURNED,
   THIS_YEAR,
@@ -27,11 +28,53 @@ export default function Analytics() {
       </div>
 
       <div className="an-tiles">
-        <Tile label={ANALYTICS.returnRate} value={percent(RETURNED, PERIOD_PEOPLE)} unit="%" note={ANALYTICS.returnRateNote(PERIOD_PEOPLE)} />
+        <Tile label={ANALYTICS.returnRate} value={percent(RETURNED, ENDED)} unit="%" note={ANALYTICS.returnRateNote(ENDED)} />
         <Tile label={ANALYTICS.relapse} value={percent(RELAPSED_1Y, RETURNED)} unit="%" note={ANALYTICS.relapseNote(RETURNED)} />
         <Tile label={ANALYTICS.avgDays} value={AVG_LEAVE_DAYS} unit="日" note={ANALYTICS.avgDaysNote} />
         <Tile label={ANALYTICS.thisYear} value={THIS_YEAR} unit="人" note={ANALYTICS.thisYearNote} />
       </div>
+
+      <section className="hr-card">
+        <h2>{ANALYTICS.trendTitle}</h2>
+        <p className="muted">{ANALYTICS.trendNote}</p>
+        <div className="an-row-3 an-trends">
+          <Trend
+            title={ANALYTICS.trendStarted}
+            unit="人"
+            points={BY_YEAR.map((y) => ({ year: y.year, value: y.started, partial: y.partial }))}
+            bars
+          />
+          <Trend
+            title={ANALYTICS.trendReturn}
+            unit="%"
+            max={100}
+            points={BY_YEAR.map((y) => ({ year: y.year, value: percent(y.returned, y.ended), detail: `${y.returned}/${y.ended}人`, partial: y.partial }))}
+          />
+          <Trend
+            title={ANALYTICS.trendRelapse}
+            unit="%"
+            max={50}
+            points={BY_YEAR.map((y) => ({
+              year: y.year,
+              value: y.relapsed === null ? null : percent(y.relapsed, y.returned),
+              detail: y.relapsed === null ? undefined : `${y.relapsed}/${y.returned}人`,
+            }))}
+          />
+        </div>
+        <p className="muted an-trend-note">{ANALYTICS.trendPendingNote}</p>
+      </section>
+
+      <details className="hr-card an-defs">
+        <summary>{ANALYTICS.defTitle}</summary>
+        <dl>
+          {ANALYTICS.defs.map((d) => (
+            <div key={d.term}>
+              <dt>{d.term}</dt>
+              <dd>{d.body}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
 
       <div className="an-row">
         <section className="hr-card an-rework">
@@ -42,10 +85,11 @@ export default function Analytics() {
             <Bar
               key={p.key}
               label={ANALYTICS.paths[p.key]}
-              value={percent(p.returned, p.people)}
+              // 復職率の分母は、休職が終わった人（まだ休職中の人は入れない）
+              value={percent(p.returned, p.returned + p.left)}
               max={100}
               unit="%"
-              detail={`${p.returned}/${p.people}人`}
+              detail={`${p.returned}/${p.returned + p.left}人`}
             />
           ))}
           <h3>{ANALYTICS.relapse}</h3>
@@ -90,6 +134,65 @@ export default function Analytics() {
         ))}
       </ul>
     </>
+  );
+}
+
+// 年度ごとの推移。人数は棒、割合は線。値は文字でも出す（色だけに頼らない）。途中の年度・集計中は区別する
+type TrendPoint = { year: number; value: number | null; detail?: string; partial?: boolean };
+function Trend({ title, unit, points, max, bars = false }: { title: string; unit: string; points: TrendPoint[]; max?: number; bars?: boolean }) {
+  const W = 300;
+  const H = 150;
+  const top = 22;
+  const bottom = 24;
+  const top_ = Math.max(...points.map((p) => p.value ?? 0));
+  const scaleMax = max ?? Math.ceil((top_ * 1.2) / 5) * 5;
+  const step = W / points.length;
+  const x = (i: number) => step * i + step / 2;
+  const y = (v: number) => H - bottom - (v / scaleMax) * (H - top - bottom);
+  const line = points
+    .map((p, i) => (p.value === null ? null : `${x(i)},${y(p.value)}`))
+    .filter(Boolean)
+    .join(" ");
+  return (
+    <figure className="an-trend">
+      <figcaption>{title}</figcaption>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}：${points.map((p) => `${p.year}年度 ${p.value ?? ANALYTICS.trendPending}`).join("、")}`}>
+        <line x1={0} x2={W} y1={H - bottom} y2={H - bottom} className="an-axis" />
+        {bars
+          ? points.map((p, i) =>
+              p.value === null ? null : (
+                <rect
+                  key={p.year}
+                  x={x(i) - 14}
+                  y={y(p.value)}
+                  width={28}
+                  height={H - bottom - y(p.value)}
+                  rx={4}
+                  className={p.partial ? "an-trend-bar an-partial" : "an-trend-bar"}
+                >
+                  <title>{`${p.year}年度：${p.value}${unit}`}</title>
+                </rect>
+              ),
+            )
+          : <polyline points={line} className="an-trend-line" />}
+        {points.map((p, i) => (
+          <g key={p.year}>
+            {!bars && p.value !== null && (
+              <circle cx={x(i)} cy={y(p.value)} r={4.5} className={p.partial ? "an-trend-dot an-partial" : "an-trend-dot"}>
+                <title>{`${p.year}年度：${p.value}${unit}${p.detail ? `（${p.detail}）` : ""}`}</title>
+              </circle>
+            )}
+            <text x={x(i)} y={p.value === null ? H - bottom - 8 : y(p.value) - 8} textAnchor="middle" className="an-trend-val">
+              {p.value === null ? ANALYTICS.trendPending : p.value}
+            </text>
+            <text x={x(i)} y={H - 8} textAnchor="middle" className="an-trend-year">
+              {p.year}
+              {p.partial ? `（${ANALYTICS.trendPartial}）` : ""}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </figure>
   );
 }
 
