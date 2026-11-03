@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { JOURNEY, STAGE_LABELS, type Stage } from "../constants/labels";
 
 type Props = { stage: Stage; onClose: () => void };
@@ -21,48 +22,61 @@ const BANDS: Record<Stage, { from: number; to: number; dot: [number, number] }> 
 const W = 340;
 const H = 170;
 
+const HEAD = 24; // 図の上の、段階の名前の行
+
+// 上に段階のタブ、図では選んだ段階の列を囲み、下にその段階の説明を出す（月経管理アプリなどで見慣れた形）
 export default function JourneySheet({ stage, onClose }: Props) {
+  const [picked, setPicked] = useState<Stage>(stage);
   const here = BANDS[stage];
+  const sel = BANDS[picked];
+  const info = JOURNEY.stages.find((s) => s.stage === picked);
 
   return (
     <div className="sheet" role="dialog" aria-modal="true" aria-label={JOURNEY.title}>
       <div className="sheet-body">
         <h1 className="page-title">{JOURNEY.title}</h1>
-        <p className="journey-lead">{JOURNEY.lead}</p>
 
-        <svg className="journey-chart" viewBox={`0 0 ${W} ${H + 22}`} role="img" aria-label={JOURNEY.title}>
+        <div className="journey-tabs" role="tablist">
           {(Object.keys(BANDS) as Stage[]).map((s) => (
-            <g key={s}>
-              <rect
-                x={BANDS[s].from}
-                y={0}
-                width={BANDS[s].to - BANDS[s].from}
-                height={H}
-                className={s === stage ? "band band-now" : "band"}
-              />
-              <text x={(BANDS[s].from + BANDS[s].to) / 2} y={H + 16} className="band-label" textAnchor="middle">
-                {STAGE_LABELS[s].replace("（見守りモード）", "")}
+            <button key={s} role="tab" aria-selected={picked === s} onClick={() => setPicked(s)}>
+              {JOURNEY.short[s]}
+            </button>
+          ))}
+        </div>
+
+        <svg className="journey-chart" viewBox={`0 0 ${W} ${H + HEAD}`} role="img" aria-label={JOURNEY.title}>
+          {(Object.keys(BANDS) as Stage[]).map((s) => (
+            <g key={s} onClick={() => setPicked(s)} className="band-group">
+              <rect x={BANDS[s].from} y={0} width={BANDS[s].to - BANDS[s].from} height={H + HEAD} className="band" />
+              <text x={(BANDS[s].from + BANDS[s].to) / 2} y={16} className="band-label" textAnchor="middle">
+                {JOURNEY.short[s]}
               </text>
             </g>
           ))}
-          <polyline points={CURVE.map(([x, y]) => `${x},${y}`).join(" ")} className="curve" />
-          <circle cx={here.dot[0]} cy={here.dot[1]} r={6} className="now-dot" />
-          <text x={here.dot[0]} y={here.dot[1] - 12} className="now-label" textAnchor="middle">
-            {JOURNEY.now}
+          <line x1={0} y1={HEAD} x2={W} y2={HEAD} className="band-head-line" />
+          {/* 選んだ段階の列を、色で囲む */}
+          <rect x={sel.from + 1} y={1} width={sel.to - sel.from - 2} height={H + HEAD - 2} className="band-picked" />
+          <rect x={sel.from + 1} y={1} width={sel.to - sel.from - 2} height={HEAD - 1} className="band-picked-head" />
+          <text x={(sel.from + sel.to) / 2} y={16} className="band-label band-label-picked" textAnchor="middle">
+            {JOURNEY.short[picked]}
           </text>
+          <g transform={`translate(0 ${HEAD})`}>
+            <polyline points={CURVE.map(([x, y]) => `${x},${y}`).join(" ")} className="curve" />
+            <circle cx={here.dot[0]} cy={here.dot[1]} r={6} className="now-dot" />
+            <text x={here.dot[0]} y={here.dot[1] - 12} className="now-label" textAnchor="middle">
+              {JOURNEY.now}
+            </text>
+          </g>
         </svg>
 
-        <ol className="journey-list">
-          {JOURNEY.stages.map((s) => (
-            <li key={s.stage} className={s.stage === stage ? "journey-item journey-item-now" : "journey-item"}>
-              <p className="journey-name">
-                {STAGE_LABELS[s.stage]}
-                {s.stage === stage && <span className="tag-soft">{JOURNEY.now}</span>}
-              </p>
-              <p className="journey-body">{s.body}</p>
-            </li>
-          ))}
-        </ol>
+        <div className="journey-info">
+          <p className="journey-name">
+            {STAGE_LABELS[picked]}
+            {picked === stage && <span className="tag-soft">{JOURNEY.nowTag}</span>}
+          </p>
+          <p className="journey-body">{info?.body}</p>
+        </div>
+        <p className="muted">{JOURNEY.lead}</p>
         <p className="muted">{JOURNEY.paceNote}</p>
 
         <button className="btn-outline btn-wide" onClick={onClose}>

@@ -60,6 +60,12 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         ) : (
           <>
             <p className="muted">{RECOVERY.pathNote}</p>
+            <details className="rework-about">
+              <summary>{RECOVERY.reworkAboutTitle}</summary>
+              {RECOVERY.reworkAbout.map((l) => (
+                <p key={l}>{l}</p>
+              ))}
+            </details>
             <button className="path-option" aria-expanded={reworkOpen} onClick={() => setReworkOpen(!reworkOpen)}>
               <span className="path-name">
                 {RECOVERY.pathRework}
@@ -85,6 +91,16 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       {path === "self" && (
         <section className="card">
           <h2>{RECOVERY.selfTitle}</h2>
+          <p className="path-group">{RECOVERY.selfStepsTitle}</p>
+          <ol className="self-steps">
+            {RECOVERY.selfSteps.map((s) => (
+              <li key={s.name}>
+                <span className="self-step-name">{s.name}</span>
+                <span className="muted">{s.body}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="muted">{RECOVERY.selfStepsNote}</p>
           <p className="path-group">{RECOVERY.booksTitle}</p>
           <ul className="list-plain">
             {RECOVERY.books.map((b, i) =>

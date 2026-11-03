@@ -554,3 +554,27 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .about-seen { padding: 10px 12px; background: var(--accent-soft); border-radius: 10px; }
 .about-seen p { margin: 0 0 4px; }
 .diary-entry { gap: 12px; text-align: left; }
+
+/* 復職までの流れ：段階のタブ・選んだ列を囲む */
+.journey-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); margin: 8px 0 12px; }
+.journey-tabs button { border: 0; background: none; padding: 10px 0; min-height: 44px; color: var(--muted); font-size: 15px; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.journey-tabs button[aria-selected="true"] { color: #b9772f; font-weight: 700; border-bottom-color: #d9925b; }
+.band-group { cursor: pointer; }
+.band { fill: #faf8f4; stroke: var(--line); stroke-width: 1; }
+.band-head-line { stroke: var(--line); }
+.band-picked { fill: none; stroke: #d9925b; stroke-width: 2; }
+.band-picked-head { fill: #e9a96d; }
+.band-label { font-size: 11px; fill: var(--muted); font-weight: 600; }
+.band-label-picked { fill: #fff; }
+.journey-info { padding: 12px 14px; background: #fff; border-radius: 10px; margin-bottom: 10px; }
+.journey-info .journey-body { font-size: 15px; }
+/* リワークとは・自分で準備する道すじ */
+.rework-about { margin: 4px 0 10px; font-size: 14px; }
+.rework-about summary { color: var(--accent); cursor: pointer; min-height: 36px; display: flex; align-items: center; gap: 6px; list-style: none; }
+.rework-about summary::-webkit-details-marker { display: none; }
+.rework-about summary::after { content: "▼"; font-size: 10px; }
+.rework-about[open] summary::after { content: "▲"; }
+.rework-about p { margin: 0 0 6px; }
+.self-steps { margin: 4px 0 6px; padding-left: 1.4em; display: grid; gap: 6px; }
+.self-steps li { display: grid; }
+.self-step-name { font-weight: 600; }
