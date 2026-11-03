@@ -201,6 +201,7 @@ export const RECOVERY = {
   meetCompanyApplied: "申し込みました。会社から日程の連絡が届きます",
   meetCompanyScheduled: (d: string) => `会社との面談は、${d}に決まりました`,
   meetCompanyDone: "会社との面談が済みました",
+  meetCompanyTop: (d: string) => `会社との面談は、${d}です`,
   confirmYes: "申し込む",
   confirmNo: "やめておく",
 };
@@ -810,10 +811,15 @@ export const HR = {
     { title: "復職の診断書のお願い", text: "復職に向けて、主治医に復職についての診断書を書いてもらい、送ってください。", noReply: false },
   ],
   // 産業医との面談の日を決めたら、その場で本人に知らせる
+  companyNotifyTemplate: (d: string) => ({
+    title: "準備期に進むための面談の日程",
+    text: `準備期に進むための面談を、${d}に行います。時間と場所は、あらためてお知らせします。`,
+    noReply: true,
+  }),
   occNotify: "本人に日程を知らせる",
   occNotifyConfirm: (name: string, title: string, text: string) => `${name}さんに、次の内容を送ります。\n件名：${title}\n${text}`,
   occNotifyYes: "送る",
-  occNotified: "本人に日程を知らせました",
+  occNotified: "本人に日程を知らせました（本人の「連絡」に届いています）",
   subject: "件名",
   bodyLabel: "本文",
   noReply: "「返信は不要です」をつける",

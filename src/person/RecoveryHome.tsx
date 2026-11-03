@@ -48,6 +48,11 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       {/* 回復期のホームは長いので、相談の新しいお知らせは上にも出す */}
       <NewNoticeLink state={state} dispatch={dispatch} />
 
+      {/* 会社との面談の日が決まったら、上にも出す（たたんだ目安の中だけだと見落とすため） */}
+      {state.companyMeeting?.status === "scheduled" && state.companyMeeting.date && (
+        <p className="done-note">{RECOVERY.meetCompanyTop(japaneseDate(state.companyMeeting.date))}</p>
+      )}
+
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
       <section className="card">

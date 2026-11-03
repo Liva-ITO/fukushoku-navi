@@ -439,6 +439,9 @@ function Meetings({ state, dispatch }: Props) {
           </button>
         </div>
       )}
+      {c?.status === "scheduled" && c.date && state.live && (
+        <OccNotify name={state.live.name} date={c.date} state={state} dispatch={dispatch} company />
+      )}
       {c?.status === "scheduled" && (
         <div className="meeting-action">
           <button className="btn-outline btn-small" onClick={() => dispatch({ type: "finishCompanyMeeting" })}>
@@ -1029,8 +1032,9 @@ function OccMaterial({ state, dispatch }: Props) {
 }
 
 // 産業医との面談の日を、本人に知らせる（例文を確かめてから送る）。本人の「連絡」タブに届く
-function OccNotify({ name, date, state, dispatch }: { name: string; date: string } & Props) {
-  const t = HR.templatesPreReturn(jpDate(date))[0];
+function OccNotify({ name, date, state, dispatch, company = false }: { name: string; date: string; company?: boolean } & Props) {
+  // 会社との面談（準備期に進むための面談）も、同じ形で知らせる
+  const t = company ? HR.companyNotifyTemplate(jpDate(date)) : HR.templatesPreReturn(jpDate(date))[0];
   const done = state.hrMessages.some((m) => m.title === t.title && m.body === t.text);
   if (done) return <p className="done-note">{HR.occNotified}</p>;
   return (
