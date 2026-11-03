@@ -137,15 +137,11 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
               <li key={todo.key}>
                 <span className="todo-name">{row.name}</span>
                 <TodoText todo={todo} />
+                {/* 中身を確かめてから対応するので、一覧では開くだけ。対応済みは詳しい画面で */}
                 <span className="todo-actions">
-                  <button className="btn-quiet" onClick={() => open(row)}>
+                  <button className="btn-outline btn-small" onClick={() => open(row)}>
                     {HR.open}
                   </button>
-                  {todo.key === REQUEST_KEY ? (
-                    <RefillButton label={HR.refillTodo} dispatch={dispatch} />
-                  ) : (
-                    <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
-                  )}
                 </span>
               </li>
             ))}
