@@ -388,7 +388,6 @@ export const HR = {
   psychNone: "心理の専門家との面談：まだ申し込みはありません",
   psychApplied: "心理の専門家との面談：申し込みがありました",
   psychDone: "心理の専門家との面談：済みました",
-  psychDoneButton: "面談が済んだことを記録する",
   nextLockedAcute: "心理の専門家との面談が済むと、回復期に進められます",
   confirmNext: (name: string, from: string, to: string) =>
     `${name}さんの段階を「${from}」から「${to}」に進めます。本人の画面も、${to}の内容に変わります。`,

@@ -564,10 +564,14 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
           <p>
             {state.psychMeetingDone ? HR.psychDone : state.rivaMeetingApplied ? HR.psychApplied : HR.psychNone}
           </p>
+          {/* 面談が済んだかを知っているのは支援機関。人事が記録するのではなく、実施の報告が届く */}
           {state.rivaMeetingApplied && !state.psychMeetingDone && (
-            <button className="btn-quiet" onClick={() => dispatch({ type: "markPsychDone" })}>
-              {HR.psychDoneButton}
-            </button>
+            <div className="meeting-action demo-report">
+              <span className="muted">{HR.demoReport}</span>
+              <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "markPsychDone" })}>
+                {HR.reportDone}
+              </button>
+            </div>
           )}
         </div>
       )}
