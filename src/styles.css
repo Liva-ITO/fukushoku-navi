@@ -2,7 +2,7 @@
   --bg: #f4f1ec;
   --surface: #fffdf9;
   --text: #3b3a36;
-  --muted: #7d7a72;
+  --muted: #6b6860;
   --line: #e4dfd6;
   --accent: #5e8c7d;
   --accent-soft: #e6efeb;
@@ -81,7 +81,7 @@ button { font: inherit; cursor: pointer; }
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
   padding: 14px 16px; margin-bottom: 14px;
 }
-.card h2 { font-size: 14px; margin: 0 0 6px; color: var(--muted); font-weight: 600; }
+.card h2 { font-size: 14px; margin: 0 0 6px; color: var(--text); font-weight: 600; }
 .card p { margin: 0; }
 .card-quiet { background: transparent; }
 .card-quiet summary { font-size: 14px; color: var(--muted); cursor: pointer; }
@@ -92,25 +92,36 @@ button { font: inherit; cursor: pointer; }
   display: inline-block; margin-top: 8px; padding: 1px 10px;
   border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px;
 }
+/* 押すと別の画面に移るカード：実線の枠と、右端の「›」 */
 .link-soft {
-  display: block; width: 100%; margin: 0 0 14px; padding: 12px;
-  border: 1px dashed var(--line); border-radius: var(--radius);
-  background: none; color: var(--accent); text-align: left;
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; min-height: 48px; margin: 0 0 14px; padding: 12px 16px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: #fff; color: var(--accent); text-align: left;
 }
+.link-soft::after { content: "›"; font-size: 20px; line-height: 1; color: var(--accent); }
 .check { display: flex; gap: 10px; align-items: center; }
 .next-step { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .next-step p { margin: 0 0 10px; }
-.done-note { color: var(--accent); }
+.done-note { color: var(--text); }
 .btn-primary {
   border: 0; border-radius: 999px; padding: 10px 22px;
   background: var(--accent); color: #fff;
 }
 .card-fold summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* 押すと開くもの：右端に「▼」、開いたら「▲」 */
+.card-fold summary, .card-quiet summary { list-style: none; position: relative; padding-right: 22px; min-height: 28px; }
+.card-fold summary::-webkit-details-marker, .card-quiet summary::-webkit-details-marker { display: none; }
+.card-fold summary::after, .card-quiet summary::after {
+  content: "▼"; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: var(--accent);
+}
+details[open] > summary::after { content: "▲"; }
 .card-fold summary .tag-soft { margin-top: 0; }
 .fold-body { margin-top: 10px !important; padding-top: 10px; border-top: 1px solid var(--line); }
 .confirm p { margin: 0 0 10px; }
 .confirm-actions { display: flex; gap: 10px; align-items: center; }
-.btn-quiet { border: 0; background: none; color: var(--muted); padding: 10px 12px; }
+.btn-quiet { border: 0; background: none; color: var(--muted); padding: 10px 12px; min-height: 44px; }
 .confirm-entry .muted { margin: 6px 0 0; }
 .btn-outline {
   border: 1px solid var(--accent); border-radius: 999px; padding: 9px 20px;
@@ -169,6 +180,7 @@ button { font: inherit; cursor: pointer; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .chips-sub { margin-top: 8px; }
 .chip {
+  min-height: 44px;
   border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px;
   background: #fff; color: var(--text); font-size: 14px;
 }
@@ -179,7 +191,7 @@ button { font: inherit; cursor: pointer; }
   border: 2px solid transparent; background: none; filter: grayscale(.6); opacity: .7;
 }
 .face[aria-pressed="true"] { border-color: var(--accent); filter: none; opacity: 1; }
-.btn-voice { padding: 6px 0; font-size: 13px; }
+.btn-voice { padding: 6px 0; font-size: 13px; min-height: 44px; }
 .thanks { color: var(--accent); margin: 0 0 10px !important; }
 .diary-summary { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
 .face-big { font-size: 30px; }
@@ -198,7 +210,7 @@ button { font: inherit; cursor: pointer; }
 /* 復職までの流れ */
 .phone { position: relative; }
 .phone-header { display: flex; justify-content: space-between; align-items: center; }
-.link-small { border: 0; background: none; color: var(--accent); font-size: 13px; padding: 4px 0; }
+.link-small { border: 0; background: none; color: var(--accent); font-size: 13px; padding: 4px 0; min-height: 44px; }
 .sheet { position: absolute; inset: 0; z-index: 5; background: var(--surface); overflow-y: auto; }
 .sheet-body { padding: 16px 20px 24px; }
 .journey-lead { margin: 4px 0 12px; }
@@ -433,3 +445,6 @@ button { font: inherit; cursor: pointer; }
 .th-sort:hover { color: var(--text); }
 .sort-mark { font-size: 10px; opacity: 0.7; }
 th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color: var(--accent); }
+
+/* 電話番号やリンクは、ブラウザの青ではなく緑。番号は1行に収める */
+.phone-body a { color: var(--accent); font-weight: 600; text-decoration: none; white-space: nowrap; }

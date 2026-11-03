@@ -55,6 +55,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
               <p className="done-note">{ACUTE.checkApplied}</p>
             ) : (
               <ConfirmButton
+                quiet
                 label={ACUTE.checkButton}
                 confirm={ACUTE.checkConfirm}
                 yes={ACUTE.checkConfirmYes}
