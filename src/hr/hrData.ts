@@ -59,18 +59,33 @@ const byDate = (events: HrEvent[]) =>
 
 function eventsOf(state: State): HrEvent[] {
   const today = DEMO_TODAY;
-  // 面談は1件を1行にし、状態の印を変えていく
-  const meetings: HrEvent[] = meetingsOf(state).map((m) => ({
-    date: today,
+  // 進んでいる面談は1件を1行にし、状態の印を変えていく。済んだ面談は、面談の日付で1行ずつ残す（やり直しても消えない）
+  const st = HR.meetingStatus;
+  const finished = new Set(["done", "declined"].map((k) => st[k as "done" | "declined"]));
+  const meetings: HrEvent[] = meetingsOf(state)
+    .filter((m) => !finished.has(m.status))
+    .map((m) => ({
+      date: today,
+      kind: "meeting",
+      body: m.name,
+      status: m.status,
+      byHr: m.key === "occ",
+    }));
+  const logged: HrEvent[] = state.meetingLog.map((l) => ({
+    date: l.date,
     kind: "meeting",
-    body: m.name,
-    status: m.status,
-    byHr: m.key === "occ",
+    body:
+      l.key === "coordinator"
+        ? HR.meetingName.coordinator(CONSULT.who[l.who ?? "coord"])
+        : HR.meetingName[l.key],
+    status: st[l.status],
+    byHr: l.key === "occ" || l.key === "company",
   }));
 
   return byDate([
     ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.title, noReply: m.noReplyNeeded })),
     ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body })),
+    ...logged,
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
     ...state.reworkReports.map((r) => ({ date: r.date, kind: "submit" as const, body: HR.reportBody(r.month, r.days, r.rate) })),

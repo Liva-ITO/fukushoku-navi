@@ -44,6 +44,8 @@ export type Who = "coord" | "psych";
 export const whoNow = (s: { stage: Stage; restMode: boolean }): Who => (s.stage === "acute" || s.restMode ? "psych" : "coord");
 
 export type ReturnOrder = "occFirst" | "doctorFirst";
+// 済んだ面談の記録（経緯に、面談の日付で1行ずつ残す。やり直しても前の面談は消えない）
+export type MeetingLog = { date: string; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
 export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
 
 export type State = {
@@ -95,6 +97,7 @@ export type State = {
   occMeeting: { status: "scheduled" | "done"; date: string; opinion?: OccOpinion } | null;
   // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
   occOpinions: (OccOpinion & { date: string })[];
+  meetingLog: MeetingLog[];
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
   returnDecision: "ok" | null;
@@ -157,6 +160,7 @@ export const initialState: State = {
   reworkReports: [],
   occMeeting: null,
   occOpinions: [],
+  meetingLog: [],
   doctorNote: false,
   returnDecision: null,
   returnDecisionLog: [],
@@ -224,6 +228,14 @@ export type Action =
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
 
+// 日程の候補（「11月9日（月）11:00」）から日付を取り出す。取れなければ今日
+function slotDate(slot: string | null | undefined): string {
+  const m = slot?.match(/(\d+)月(\d+)日/);
+  if (!m) return DEMO_TODAY;
+  return `${DEMO_TODAY.slice(0, 4)}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+}
+const logMeeting = (state: State, entry: MeetingLog): State => ({ ...state, meetingLog: [...state.meetingLog, entry] });
+
 function withMessage(state: State, from: MeetingKind, body: string, options?: string[]): State {
   const id = `c${state.coordInbox.length + 1}`;
   // 回復期に進む前の面談（psych）は、いつも復職コーディネーター
@@ -268,7 +280,11 @@ function reducer(state: State, action: Action): State {
       return { ...state, rivaMeetingApplied: true };
     case "markPsychDone":
       // 面談が済んだら、コーディネーターから次にすることのお知らせが届く
-      return withMessage({ ...state, psychMeetingDone: true }, "psych", CONSULT.msgGateDone);
+      return withMessage(
+        logMeeting({ ...state, psychMeetingDone: true }, { date: slotDate(state.psychSchedule?.chosen), key: "psych", status: "done" }),
+        "psych",
+        CONSULT.msgGateDone,
+      );
     case "sendWish": {
       const body = ACUTE.wishBody(ACUTE.wishOptions[action.wish]);
       return {
@@ -299,10 +315,18 @@ function reducer(state: State, action: Action): State {
     case "scheduleCompanyMeeting":
       return { ...state, companyMeeting: { status: "scheduled", date: action.date } };
     case "finishCompanyMeeting":
-      return state.companyMeeting ? { ...state, companyMeeting: { ...state.companyMeeting, status: "done" } } : state;
+      return state.companyMeeting
+        ? logMeeting(
+            { ...state, companyMeeting: { ...state.companyMeeting, status: "done" } },
+            { date: state.companyMeeting.date ?? DEMO_TODAY, key: "company", status: "done" },
+          )
+        : state;
     case "coordinatorReport": {
       // 難しいという連絡は、本人の相談タブにお知らせとして届く
-      const s = { ...state, coordinatorReport: action.report };
+      const s = logMeeting(
+        { ...state, coordinatorReport: action.report },
+        { date: action.report === "done" ? slotDate(state.coordSchedule?.chosen) : DEMO_TODAY, key: "coordinator", who: state.coordWho, status: action.report },
+      );
       return action.report === "declined" ? withMessage(s, "coordinator", CONSULT.msgDeclined) : s;
     }
     case "offerSlots": {
@@ -363,7 +387,8 @@ function reducer(state: State, action: Action): State {
         ? {
             ...state,
             occMeeting: { ...state.occMeeting, status: "done", opinion: action.opinion },
-            occOpinions: [...state.occOpinions, { ...action.opinion, date: DEMO_TODAY }],
+            occOpinions: [...state.occOpinions, { ...action.opinion, date: state.occMeeting.date }],
+            meetingLog: [...state.meetingLog, { date: state.occMeeting.date, key: "occ", status: "done" }],
           }
         : state;
     case "receiveDoctorNote":
@@ -381,12 +406,16 @@ function reducer(state: State, action: Action): State {
             ...state,
             occMeeting: { status: "scheduled", date: state.occMeeting.date },
             occOpinions: state.occOpinions.slice(0, -1),
+            // 押しまちがいなので、残した面談の記録も消す
+            meetingLog: state.meetingLog.filter((_, i, a) => !(a[i].key === "occ" && i === a.map((x) => x.key).lastIndexOf("occ"))),
             returnDecision: null,
           }
         : state;
     case "decideReturn": {
       if (state.occMeeting?.status !== "done") return state;
-      const log = [...state.returnDecisionLog, { date: DEMO_TODAY, result: action.result }];
+      // 判断は面談のあと。デモで面談の日が先の日付なら、判断もその日にする（経緯の順番がくずれないように）
+      const when = state.occMeeting.date > DEMO_TODAY ? state.occMeeting.date : DEMO_TODAY;
+      const log = [...state.returnDecisionLog, { date: when, result: action.result }];
       // もう少し準備が必要なら、準備期のまま産業医との面談をもう一度にする（段階は戻さない）
       return action.result === "ok"
         ? { ...state, returnDecision: "ok", returnDecisionLog: log }
@@ -492,7 +521,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v31";
+const STORAGE_KEY = "fukushoku-navi-demo-v32";
 
 function load(): State {
   try {
