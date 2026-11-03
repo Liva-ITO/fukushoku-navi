@@ -17,7 +17,7 @@ export default function ConsultTab({ state, dispatch }: Props) {
   return (
     <div>
       <h1 className="page-title">{CONSULT.title}</h1>
-      {/* 急性期の、心理の専門家との面談の日程も、ここでそのまま選べる */}
+      {/* 急性期の、回復期に進む前の、復職コーディネーターとの面談の日程も、ここでそのまま選べる */}
       {state.psychSchedule?.offerId && (
         <section className="card">
           <h2>{CONSULT.psychTitle}</h2>
@@ -39,7 +39,7 @@ export default function ConsultTab({ state, dispatch }: Props) {
               .map(({ m, isNew }) => (
                 <li key={m.id} className={isNew ? "inbox-new" : undefined}>
                   <p className="inbox-head">
-                    {CONSULT.from[m.from]}
+                    {CONSULT.who[m.who ?? "coord"]}
                     {isNew && <span className="new-tag">{CONSULT.newTag}</span>}
                   </p>
                   <p>{m.body}</p>

@@ -11,7 +11,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
   const allChecked = state.acuteChecks.every(Boolean);
   // 次の段階への道すじの、いまの位置（チェック → 専門家との面談 → 希望を伝える）
   const stepNow = !allChecked ? 0 : !state.psychMeetingDone ? 1 : 2;
-  // 急性期は、面談は1つずつ。コーディネーターとの面談が済むまでは、心理の専門家の面談を申し込めない
+  // 急性期は、面談は1つずつ。心理の専門家との面談（チケット）が済むまでは、回復期に進む前のコーディネーターとの面談を申し込めない
   const coordBusy = state.coordinatorMeeting !== null && state.coordinatorReport === null;
 
   return (
@@ -26,7 +26,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
       <ReadingsCard />
 
       {/* 大きく体調を崩している時期なので、休息モードと同じく、チケットがなければ公的な窓口を出す */}
-      <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} publicWhenEmpty />
+      <CoordinatorCard state={state} dispatch={dispatch} title={REST.hardTitle} note={REST.hardNote} publicWhenEmpty />
 
       <section className="card">
         <h2>{ACUTE.todoTitle}</h2>
@@ -44,6 +44,9 @@ export default function AcuteHome({ state, dispatch }: Props) {
             <li key={s} className={i === stepNow ? "step-now" : i < stepNow ? "step-done" : undefined}>
               {s}
               {i === stepNow && <span className="tag-soft">{ACUTE.checkHere}</span>}
+              {i === 1 && stepNow === 1 && state.psychSchedule?.chosen && (
+                <span className="step-sub">{ACUTE.checkStepDate(state.psychSchedule.chosen)}</span>
+              )}
             </li>
           ))}
         </ol>
@@ -86,7 +89,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
   );
 }
 
-// 心理の専門家との面談のあと、これからの希望を会社に伝える。選ぶだけ（急性期に書かせない）。選ぶ → 届く文を見る → 送る
+// 復職コーディネーターとの面談のあと、これからの希望を会社に伝える。選ぶだけ（急性期に書かせない）。選ぶ → 届く文を見る → 送る
 function WishCard({ state, dispatch }: Props) {
   const [picked, setPicked] = useState<"go" | "rest" | null>(null);
   const [changing, setChanging] = useState(false);

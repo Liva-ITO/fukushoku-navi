@@ -66,6 +66,13 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
         </div>
       )}
 
+      {/* デモ：回復期に進む前の面談の日が来て、済んだことにする（本番では支援機関から報告が届く） */}
+      {state.view === "person" && state.stage === "acute" && state.psychSchedule?.chosen && !state.psychMeetingDone && (
+        <button className="demo-step" onClick={() => dispatch({ type: "markPsychDone" })}>
+          {DEMO_BAR.gateDone}
+        </button>
+      )}
+
       {/* 本番では人事の画面で管理する。デモでは相談の入口がある画面のときだけ切り替えられる */}
       {state.view === "person" &&
         (state.tab === "consult" || (state.tab === "home" && (state.restMode || state.stage === "acute"))) && (

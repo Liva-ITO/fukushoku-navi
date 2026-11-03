@@ -846,7 +846,7 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
   const next = STAGES[i + 1];
   const prev = i > 0 ? STAGES[i - 1] : undefined;
   const nextLabel = HR.nextLabel[state.stage];
-  // 急性期→回復期は、心理の専門家との面談が済むまで進められない
+  // 急性期→回復期は、復職コーディネーターとの面談（回復期に進む前の面談）が済むまで進められない
   // 回復期→準備期は、会社の設定で選んだ条件がそろうまで進められない
   const conds = state.stage === "recovery" ? prepConditions(state) : null;
   const locked = (state.stage === "acute" && !state.psychMeetingDone) || (conds !== null && !conds.ok);

@@ -1,15 +1,15 @@
 import { useState, type Dispatch, type ReactNode } from "react";
 import { ACUTE, COMMON, CONSULT, CONTACT, HOME, RECORD } from "../constants/labels";
 import { DEMO_TODAY, type HrMessage } from "../data/demo";
-import type { Action, MeetingKind, State } from "../state/store";
+import { whoNow, type Action, type MeetingKind, type State } from "../state/store";
 
-// 復職コーディネーターへの相談。チケットが残っていれば申し込み、なければリクエスト。
+// チケットで申し込む相談（急性期と休息モードは心理の専門家、それ以外は復職コーディネーター）。チケットが残っていれば申し込み、なければリクエスト。
 // 休息モードでは、チケットがないときはリクエストの代わりに公的な相談窓口を出す
 export function CoordinatorCard({
   state,
   dispatch,
-  title = CONSULT.coordinatorTitle,
-  note = CONSULT.coordinatorNote,
+  title: titleIn,
+  note: noteIn,
   publicWhenEmpty = false,
   showNewLink = true,
   pickHere = false,
@@ -24,11 +24,17 @@ export function CoordinatorCard({
 }) {
   const hasTickets = state.ticketsLeft > 0;
   const report = state.coordinatorReport;
+  // 申し込み中はそのときの相手、これから申し込むならいまの段階の相手
+  const pending = state.coordinatorMeeting !== null && report !== "done" && report !== "declined";
+  const who = pending ? state.coordWho : whoNow(state);
+  const name = CONSULT.who[who];
+  const title = titleIn ?? CONSULT.title_[who];
+  const note = noteIn ?? CONSULT.note_[who];
   const cs = state.coordSchedule;
   // 面談が済んだ・今回は難しいと連絡があったときは、また申し込める
   const open = state.coordinatorMeeting === null || report === "done" || report === "declined";
   const newLink = showNewLink && !cs?.offerId && <NewNoticeLink state={state} dispatch={dispatch} />;
-  // 急性期は、面談は1つずつ。心理の専門家との面談を申し込んでいるあいだは、こちらは申し込めない
+  // 急性期は、面談は1つずつ。回復期に進む前の、コーディネーターとの面談を申し込んでいるあいだは、こちらは申し込めない
   const psychBusy = state.stage === "acute" && state.rivaMeetingApplied && !state.psychMeetingDone;
   if (publicWhenEmpty && !hasTickets && open) {
     return (
@@ -55,11 +61,11 @@ export function CoordinatorCard({
             {CONSULT.offerGo}
           </button>
         ))}
-      {!open && !cs?.chosen && !cs?.offerId && state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
+      {!open && !cs?.chosen && !cs?.offerId && state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied(name)}</p>}
       {!open && !cs && state.coordinatorMeeting === "requested" && (
         <div className="confirm">
           <p className="done-note">{CONSULT.requestedTitle}</p>
-          {CONSULT.requestedLines.map((l) => (
+          {CONSULT.requestedLines(name).map((l) => (
             <p key={l} className="muted">
               {l}
             </p>
@@ -75,7 +81,7 @@ export function CoordinatorCard({
               quiet
               modal
               label={hasTickets ? CONSULT.apply : CONSULT.request}
-              confirm={hasTickets ? CONSULT.applyConfirm : CONSULT.requestConfirm}
+              confirm={hasTickets ? CONSULT.applyConfirm(name) : CONSULT.requestConfirm(name)}
               yes={hasTickets ? CONSULT.applyYes : CONSULT.requestYes}
               no={CONSULT.no}
               onConfirm={() => dispatch({ type: "askCoordinator" })}

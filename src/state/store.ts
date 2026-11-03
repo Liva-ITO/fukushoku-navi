@@ -30,12 +30,16 @@ export type CoordMessage = {
   id: string;
   date: string;
   from: "coordinator" | "psych";
+  who: Who; // 本人に見せる相手の名前（復職コーディネーター／心理の専門家）
   body: string;
   options?: string[]; // 日程の候補（本人が選ぶ）
 };
 // 面談の日程：支援機関が候補を送り、本人が選ぶ。offerId は、いま選べる候補のお知らせ
 export type Schedule = { offerId: string | null; chosen: string | null; round: number };
 export type MeetingKind = CoordMessage["from"];
+// 相談の相手。急性期と休息モード（しんどいとき）は心理の専門家、それ以外は復職コーディネーター
+export type Who = "coord" | "psych";
+export const whoNow = (s: { stage: Stage; restMode: boolean }): Who => (s.stage === "acute" || s.restMode ? "psych" : "coord");
 
 export type ReturnOrder = "occFirst" | "doctorFirst";
 
@@ -53,7 +57,7 @@ export type State = {
   acuteChecks: boolean[];
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
-  // 急性期→回復期に必須の、心理の専門家との面談が済んだか（人事が記録する）
+  // 急性期→回復期に必須の、復職コーディネーターとの面談（回復期に進む前）が済んだか（人事が記録する）
   psychMeetingDone: boolean;
   psychSchedule: Schedule | null;
   // 面談のあと、本人が会社に伝えた希望（回復期に進みたい／もう少し休みたい）
@@ -66,6 +70,7 @@ export type State = {
   // 面談チケットの残り（会社全体）。人事が管理し、本人には数を見せない
   ticketsLeft: number;
   coordinatorMeeting: "applied" | "requested" | null;
+  coordWho: Who; // チケットの面談を申し込んだときの相手
   // 支援機関から会社に届く報告。伝えるのは、実施したか・日程を連絡したかだけ（話した内容は届かない）
   coordinatorReport: "done" | "declined" | null;
   coordSchedule: Schedule | null;
@@ -130,6 +135,7 @@ export const initialState: State = {
   companyMeeting: null,
   ticketsLeft: DEMO_TICKETS,
   coordinatorMeeting: null,
+  coordWho: "coord",
   coordinatorReport: null,
   coordSchedule: null,
   coordInbox: [],
@@ -209,7 +215,9 @@ export type Action =
 
 function withMessage(state: State, from: MeetingKind, body: string, options?: string[]): State {
   const id = `c${state.coordInbox.length + 1}`;
-  return { ...state, coordInbox: [...state.coordInbox, { id, date: DEMO_TODAY, from, body, options }] };
+  // 回復期に進む前の面談（psych）は、いつも復職コーディネーター
+  const who: Who = from === "psych" ? "coord" : state.coordWho;
+  return { ...state, coordInbox: [...state.coordInbox, { id, date: DEMO_TODAY, from, who, body, options }] };
 }
 
 const toggleAt = (list: boolean[], index: number) => list.map((v, i) => (i === index ? !v : v));
@@ -248,7 +256,8 @@ function reducer(state: State, action: Action): State {
       if (state.coordinatorMeeting !== null && state.coordinatorReport === null) return state;
       return { ...state, rivaMeetingApplied: true };
     case "markPsychDone":
-      return { ...state, psychMeetingDone: true };
+      // 面談が済んだら、コーディネーターから次にすることのお知らせが届く
+      return withMessage({ ...state, psychMeetingDone: true }, "psych", CONSULT.msgGateDone);
     case "sendWish": {
       const body = ACUTE.wishBody(ACUTE.wishOptions[action.wish]);
       return {
@@ -330,8 +339,8 @@ function reducer(state: State, action: Action): State {
       // 急性期は、面談は1つずつ（画面のボタンを消すだけでなく、ここでも止める）
       if (state.stage === "acute" && state.rivaMeetingApplied && !state.psychMeetingDone) return state;
       return state.ticketsLeft > 0
-        ? { ...state, coordinatorMeeting: "applied", coordinatorReport: null, coordSchedule: null, ticketsLeft: state.ticketsLeft - 1 }
-        : { ...state, coordinatorMeeting: "requested", coordinatorReport: null, coordSchedule: null };
+        ? { ...state, coordWho: whoNow(state), coordinatorMeeting: "applied", coordinatorReport: null, coordSchedule: null, ticketsLeft: state.ticketsLeft - 1 }
+        : { ...state, coordWho: whoNow(state), coordinatorMeeting: "requested", coordinatorReport: null, coordSchedule: null };
     case "setReturnOrder":
       return { ...state, returnOrder: action.order };
     case "scheduleOccMeeting":
@@ -453,7 +462,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v27";
+const STORAGE_KEY = "fukushoku-navi-demo-v28";
 
 function load(): State {
   try {

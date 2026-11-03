@@ -1,4 +1,4 @@
-import { HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
+import { CONSULT, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import { DEMO_TODAY, OTHER_PEOPLE, PERSON, daysSince, type HrEvent, type HrTodo } from "../data/demo";
 import type { Schedule, State } from "../state/store";
 
@@ -38,7 +38,7 @@ function todosOf(state: State): HrTodo[] {
   else if (state.stage === "acute" && state.rivaMeetingApplied) at("a-psych", HR.todoA.psychMeeting);
   if (state.companyMeeting?.status === "applied") at("a-company", HR.todoA.companyMeeting);
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
-  if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested);
+  if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested(CONSULT.who[state.coordWho]));
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
   if (state.sentToHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length));
   return t;
@@ -117,13 +117,13 @@ export function meetingsOf(state: State): Meeting[] {
   if (state.coordinatorMeeting === "applied")
     m.push({
       key: "coordinator",
-      name: HR.meetingName.coordinator,
+      name: HR.meetingName.coordinator(CONSULT.who[state.coordWho]),
       status: state.coordinatorReport === "done" ? st.done : scheduleStatus(state.coordSchedule) ?? st.applied,
     });
   if (state.coordinatorMeeting === "requested")
     m.push({
       key: "coordinator",
-      name: HR.meetingName.coordinatorRequest,
+      name: HR.meetingName.coordinatorRequest(CONSULT.who[state.coordWho]),
       status:
         state.coordinatorReport === "done"
           ? st.done

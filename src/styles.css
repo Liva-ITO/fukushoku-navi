@@ -29,7 +29,7 @@ button { font: inherit; cursor: pointer; }
 .demo-bar-title { font-weight: 700; opacity: .8; }
 .seg { display: inline-flex; align-items: center; gap: 2px; }
 .seg-label { margin-right: 6px; }
-.seg button, .demo-reset, .demo-field select {
+.seg button, .demo-reset, .demo-step, .demo-field select {
   border: 1px solid #5d6b67; background: transparent; color: var(--bar-text);
   padding: 3px 10px; border-radius: 6px; font-size: 13px;
 }
@@ -606,3 +606,6 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 
 /* 急性期の「次の段階へ」は見落とされないよう、見出しは本文の色に */
 .home-acute .card-quiet > summary { color: var(--text); font-weight: 600; font-size: 15px; }
+
+/* 次の段階へ：日程が決まったときの一文 */
+.next-steps .step-sub { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }

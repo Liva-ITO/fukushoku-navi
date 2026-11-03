@@ -26,7 +26,7 @@ export default function RestHome({ state, dispatch }: Props) {
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
-      <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} publicWhenEmpty />
+      <CoordinatorCard state={state} dispatch={dispatch} title={REST.hardTitle} note={REST.hardNote} publicWhenEmpty />
 
       <button className="btn-quiet btn-back" onClick={() => dispatch({ type: "setRestMode", on: false })}>
         {REST.back}
