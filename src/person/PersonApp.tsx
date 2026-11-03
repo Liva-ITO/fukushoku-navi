@@ -11,6 +11,8 @@ import ConsultTab from "./ConsultTab";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
+const REPLY_DELAY = 3000;
+
 const TAB_ORDER: Tab[] = ["home", "record", "contact", "contents", "consult"];
 
 // 2026-11-10 → 11月10日
@@ -44,6 +46,21 @@ export default function PersonApp({ state, dispatch }: Props) {
       dispatch({ type: "markRecoveryJourneySeen" });
     }
   }, [state.stage, state.recoveryJourneySeen, dispatch]);
+
+  // デモ：申し込んだら、数秒後に支援機関から日程のお知らせが届く（本番では支援機関が送る）
+  // リクエストは、人事がチケットを補充するかどうかで結果が変わるので、人事の操作から届く
+  const coordWaiting = state.coordinatorMeeting === "applied" && state.coordinatorReport === null;
+  const psychWaiting = state.rivaMeetingApplied && !state.psychScheduled && !state.psychMeetingDone;
+  useEffect(() => {
+    if (!coordWaiting) return;
+    const t = setTimeout(() => dispatch({ type: "coordinatorReport", report: "notified" }), REPLY_DELAY);
+    return () => clearTimeout(t);
+  }, [coordWaiting, dispatch]);
+  useEffect(() => {
+    if (!psychWaiting) return;
+    const t = setTimeout(() => dispatch({ type: "markPsychScheduled" }), REPLY_DELAY);
+    return () => clearTimeout(t);
+  }, [psychWaiting, dispatch]);
 
   return (
     <div className={state.restMode ? "phone phone-rest" : "phone"}>
