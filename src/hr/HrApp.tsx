@@ -359,7 +359,10 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
             ) : row.live ? (
               <StageControl row={row} state={state} dispatch={dispatch} />
             ) : (
-              <p className="muted">{row.pending ? INVITE.pendingNote : HR.stageDemoOnly}</p>
+              <>
+                <p className="muted">{row.pending ? INVITE.pendingNote : HR.stageDemoOnly}</p>
+                {row.invite && <InviteResend key={row.id} id={row.id} invite={row.invite} dispatch={dispatch} />}
+              </>
             )}
           </section>
 
@@ -818,6 +821,49 @@ function CompanySettings({ state, dispatch }: Props) {
 const setCompany = (patch: Extract<Action, { type: "setCompany" }>["patch"]): Action => ({ type: "setCompany", patch });
 
 // 登録のときに入力した、復職に向けた課題（会社の見立て）
+// まだ始めていない人：いつ・どこへ案内を送ったかを出し、送り直せるようにする
+function InviteResend({ id, invite, dispatch }: { id: string; invite: NonNullable<HrRow["invite"]>; dispatch: Dispatch<Action> }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState(invite.email);
+  const md = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
+  const last = invite.resends[invite.resends.length - 1] ?? { date: invite.date, email: invite.email };
+  return (
+    <div className="invite-resend">
+      <p>{INVITE.sentTo(md(last.date), last.email)}</p>
+      {open ? (
+        <div className="issues-add">
+          <label className="hr-field">
+            {INVITE.email}
+            <input className="hr-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </label>
+          <div className="confirm-actions">
+            <button
+              className="btn-primary btn-small"
+              disabled={!/.+@.+\..+/.test(email.trim())}
+              onClick={() => {
+                dispatch({ type: "resendInvite", id, email: email.trim() });
+                setOpen(false);
+              }}
+            >
+              {INVITE.resendSave}
+            </button>
+            <button className="btn-quiet btn-small" onClick={() => setOpen(false)}>
+              {INVITE.resendCancel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="muted">{INVITE.resendNote}</p>
+          <button className="btn-outline btn-small" onClick={() => setOpen(true)}>
+            {INVITE.resend}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function IssuesCard({ row, dispatch }: { row: HrRow; dispatch: Dispatch<Action> }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");

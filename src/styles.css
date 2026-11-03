@@ -651,3 +651,8 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .issues-list { display: grid; gap: 8px; margin: 4px 0 8px; }
 .issues-head { margin: 0; font-size: 12px; color: var(--muted); }
 .issues-add { display: grid; gap: 6px; margin-top: 6px; }
+
+/* 登録：メールアドレスは横いっぱい／まだ始めていない人の案内 */
+.invite-wide { grid-column: 1 / -1; }
+.invite-resend { margin-top: 8px; display: grid; gap: 6px; }
+.invite-resend p { margin: 0; }

@@ -25,7 +25,9 @@ export type Invited = {
   leaveStart: string;
   leaveEnd: string;
   issues: string; // 復職に向けた課題（会社の見立て）
+  email: string; // 本人の個人のメールアドレス（案内の送り先）
   date: string;
+  resends: { date: string; email: string }[]; // 案内を送り直した記録
 };
 // 支援機関から本人に届くお知らせ（相談タブ）。会社には見えない
 export type CoordMessage = {
@@ -227,7 +229,8 @@ export type Action =
   | { type: "addIssueNote"; personId: string; text: string }
   | { type: "sendSelfReport"; report: SelfReport }
   | { type: "demoSelfReport" }
-  | { type: "invite"; person: Omit<Invited, "id" | "date"> }
+  | { type: "invite"; person: Omit<Invited, "id" | "date" | "resends"> }
+  | { type: "resendInvite"; id: string; email: string }
   | { type: "startPerson" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
@@ -516,7 +519,14 @@ function reducer(state: State, action: Action): State {
     case "invite":
       return {
         ...state,
-        invited: [...state.invited, { ...action.person, id: `inv${state.invited.length + 1}`, date: DEMO_TODAY }],
+        invited: [...state.invited, { ...action.person, id: `inv${state.invited.length + 1}`, date: DEMO_TODAY, resends: [] }],
+      };
+    case "resendInvite":
+      return {
+        ...state,
+        invited: state.invited.map((p) =>
+          p.id === action.id ? { ...p, email: action.email, resends: [...p.resends, { date: DEMO_TODAY, email: action.email }] } : p,
+        ),
       };
     case "startPerson":
       return { ...state, personStarted: true };
@@ -533,7 +543,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v33";
+const STORAGE_KEY = "fukushoku-navi-demo-v34";
 
 function load(): State {
   try {

@@ -21,6 +21,7 @@ export type HrRow = {
   pending?: boolean; // 招待を送ったが、本人がまだ始めていない
   issues?: string; // 招待のときに入力した、復職に向けた課題（会社の見立て）
   issueNotes: { date: string; text: string }[]; // あとから書き足した見立て
+  invite?: { date: string; email: string; resends: { date: string; email: string }[] }; // まだ始めていない人の案内
   sharedWithProgram?: boolean; // オンラインのリワークを使っている（見立てがプログラムに渡る）
 };
 
@@ -221,7 +222,11 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     seen: 0,
     newFrom: 0,
     todos: [],
-    events: [{ date: p.date, kind: "done", body: INVITE.event, byHr: true }],
+    events: [
+      { date: p.date, kind: "done" as const, body: INVITE.event, byHr: true },
+      ...p.resends.map((r) => ({ date: r.date, kind: "done" as const, body: INVITE.resendEvent(r.email), byHr: true })),
+    ],
+    invite: { date: p.date, email: p.email, resends: p.resends },
     live: false,
     pending: true,
     issues: p.issues,
