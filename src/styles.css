@@ -646,3 +646,8 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .confirm > p:first-child { white-space: pre-line; }
 .modal > p:first-child { white-space: pre-line; }
 .field input[type="file"] { max-width: 100%; font-size: 14px; }
+
+/* 会社の見立て：登録時と追記 */
+.issues-list { display: grid; gap: 8px; margin: 4px 0 8px; }
+.issues-head { margin: 0; font-size: 12px; color: var(--muted); }
+.issues-add { display: grid; gap: 6px; margin-top: 6px; }

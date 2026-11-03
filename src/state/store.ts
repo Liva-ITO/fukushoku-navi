@@ -98,6 +98,8 @@ export type State = {
   // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
   occOpinions: (OccOpinion & { date: string })[];
   meetingLog: MeetingLog[];
+  // 会社の見立ての追記（人ごと・日付つき）。本人には見せない
+  issueNotes: Record<string, { date: string; text: string }[]>;
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
   returnDecision: "ok" | null;
@@ -161,6 +163,7 @@ export const initialState: State = {
   occMeeting: null,
   occOpinions: [],
   meetingLog: [],
+  issueNotes: {},
   doctorNote: false,
   returnDecision: null,
   returnDecisionLog: [],
@@ -221,6 +224,7 @@ export type Action =
   | { type: "hrPage"; page: "list" | "analytics" | "invite" | "settings" }
   | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
   | { type: "reworkReport" }
+  | { type: "addIssueNote"; personId: string; text: string }
   | { type: "sendSelfReport"; report: SelfReport }
   | { type: "demoSelfReport" }
   | { type: "invite"; person: Omit<Invited, "id" | "date"> }
@@ -492,6 +496,14 @@ function reducer(state: State, action: Action): State {
     case "demoSelfReport":
       // デモ：人事の画面で、本人からレポートが届いたことにする（準備期の本人画面はスタッフが作る）
       return { ...state, selfReports: [...state.selfReports, { ...SAMPLE_SELF_REPORT, date: DEMO_TODAY }] };
+    case "addIssueNote":
+      return {
+        ...state,
+        issueNotes: {
+          ...state.issueNotes,
+          [action.personId]: [...(state.issueNotes[action.personId] ?? []), { date: DEMO_TODAY, text: action.text }],
+        },
+      };
     case "reworkReport": {
       // デモ：月次レポートが届く（見本の数字）
       const n = state.reworkReports.length;
@@ -521,7 +533,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v32";
+const STORAGE_KEY = "fukushoku-navi-demo-v33";
 
 function load(): State {
   try {

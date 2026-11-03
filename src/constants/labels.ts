@@ -805,7 +805,16 @@ export const INVITE = {
   event: "登録して案内を送った",
   issuesTitle: "復職に向けた課題（会社の見立て）",
   issuesNone: "登録のときに入力されていません",
-  issuesRef: "登録のときに入力した課題を見る",
+  issuesRef: "会社の見立てを見る（登録時と追記）",
+  // 見立ては途中で変わるので、日付つきで書き足していく。登録時の文は消さない（会社の記録として残す）
+  issuesAdd: "書き足す",
+  issuesAddLabel: "追記",
+  issuesAddExample: "例：上司との面談で、業務量の偏りがあったと分かった",
+  issuesAddSave: "追記する",
+  issuesAddCancel: "やめておく",
+  issuesAddNote: "登録のときの文は残したまま、日付つきで下に足されます。本人には見えません",
+  issuesFirst: "登録時",
+  issuesNoteHead: (d: string) => `${d} 追記`,
   issuesSharedRework: "オンラインのリワークを使っているので、この見立てはプログラムのスタッフにも渡り、取り組みの土台になっています",
 };
 

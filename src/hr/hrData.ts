@@ -20,6 +20,7 @@ export type HrRow = {
   live: boolean; // 本人画面と連動しているか
   pending?: boolean; // 招待を送ったが、本人がまだ始めていない
   issues?: string; // 招待のときに入力した、復職に向けた課題（会社の見立て）
+  issueNotes: { date: string; text: string }[]; // あとから書き足した見立て
   sharedWithProgram?: boolean; // オンラインのリワークを使っている（見立てがプログラムに渡る）
 };
 
@@ -177,6 +178,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     events: eventsOf(state),
     live: true,
     issues: PERSON.issues,
+    issueNotes: state.issueNotes[PERSON.id] ?? [],
     sharedWithProgram: state.prepPath === "rivabiz",
   };
   const others: HrRow[] = OTHER_PEOPLE.map((p) => ({
@@ -192,6 +194,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     seen: state.hrSeen[p.id] ?? p.seen,
     newFrom: state.hrNewFrom[p.id] ?? p.seen,
     todos: open(p.todo ? [p.todo] : []),
+    issueNotes: state.issueNotes[p.id] ?? [],
     events: byDate([
       ...p.events,
       ...(state.hrMessagesOthers[p.id] ?? []).map((m) => ({
@@ -222,6 +225,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     live: false,
     pending: true,
     issues: p.issues,
+    issueNotes: state.issueNotes[p.id] ?? [],
   }));
   // 満了日の60日前から、「対応が必要なこと」に自動で出す（日数は本来は会社の設定。いまは見本として固定）
   const withEnd = (r: HrRow): HrRow => {

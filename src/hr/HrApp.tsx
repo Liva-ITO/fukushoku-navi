@@ -364,7 +364,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
           </section>
 
           {row.live && row.stage !== "afterReturn" && <Meetings state={state} dispatch={dispatch} />}
-          <IssuesCard row={row} />
+          <IssuesCard row={row} dispatch={dispatch} />
           {!row.pending && row.stage !== "afterReturn" && (
             <SendMessage
               key={row.id}
@@ -818,13 +818,69 @@ function CompanySettings({ state, dispatch }: Props) {
 const setCompany = (patch: Extract<Action, { type: "setCompany" }>["patch"]): Action => ({ type: "setCompany", patch });
 
 // 登録のときに入力した、復職に向けた課題（会社の見立て）
-function IssuesCard({ row }: { row: HrRow }) {
+function IssuesCard({ row, dispatch }: { row: HrRow; dispatch: Dispatch<Action> }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
   return (
     <section className="hr-card">
       <h2>{INVITE.issuesTitle}</h2>
-      <p className="issues-body">{row.issues || INVITE.issuesNone}</p>
+      <IssuesBody row={row} />
       {row.sharedWithProgram && <p className="muted issues-shared">{INVITE.issuesSharedRework}</p>}
+      {row.stage !== "afterReturn" &&
+        (open ? (
+          <div className="issues-add">
+            <label className="hr-field">
+              {INVITE.issuesAddLabel}
+              <textarea
+                className="hr-textarea"
+                rows={2}
+                placeholder={INVITE.issuesAddExample}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+            </label>
+            <p className="muted">{INVITE.issuesAddNote}</p>
+            <div className="confirm-actions">
+              <button
+                className="btn-primary btn-small"
+                disabled={!text.trim()}
+                onClick={() => {
+                  dispatch({ type: "addIssueNote", personId: row.id, text: text.trim() });
+                  setText("");
+                  setOpen(false);
+                }}
+              >
+                {INVITE.issuesAddSave}
+              </button>
+              <button className="btn-quiet btn-small" onClick={() => setOpen(false)}>
+                {INVITE.issuesAddCancel}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button className="btn-outline btn-small" onClick={() => setOpen(true)}>
+            {INVITE.issuesAdd}
+          </button>
+        ))}
     </section>
+  );
+}
+
+// 登録時の見立てと、あとからの追記を、日付順に並べる
+function IssuesBody({ row }: { row: HrRow }) {
+  return (
+    <div className="issues-list">
+      <div>
+        <p className="issues-head">{INVITE.issuesFirst}</p>
+        <p className="issues-body">{row.issues || INVITE.issuesNone}</p>
+      </div>
+      {row.issueNotes.map((n, i) => (
+        <div key={i}>
+          <p className="issues-head">{INVITE.issuesNoteHead(n.date.slice(5).replace("-", "/"))}</p>
+          <p className="issues-body">{n.text}</p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -938,11 +994,11 @@ function OccDone({ dispatch }: { dispatch: Dispatch<Action> }) {
 }
 
 function IssuesRef({ row }: { row: HrRow }) {
-  if (!row.issues) return null;
+  if (!row.issues && row.issueNotes.length === 0) return null;
   return (
     <details className="issues-ref">
       <summary>{INVITE.issuesRef}</summary>
-      <p className="issues-body">{row.issues}</p>
+      <IssuesBody row={row} />
     </details>
   );
 }
