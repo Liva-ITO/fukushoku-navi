@@ -47,19 +47,12 @@ export const emptyEntry = (): DiaryEntry => ({
 
 export type StageChange = { date: string; stage: Stage };
 
-export const PERSON = {
-  id: "a",
-  name: "社員A",
-  dept: "営業部",
-  leaveStart: "2026-10-06",
-  leaveEnd: "2027-04-05",
-  // 招待のときに人事が入力した、復職に向けた課題（会社の見立て）。架空
-  issues: "・業務が重なると、ひとりで抱え込み、相談が遅れがち\n・休職前の3か月ほど、朝の起床が不安定で遅刻が続いていた\n・繁忙期の残業が多かった",
-};
+// デモの本人。名前などは、人事が最初に登録したときに入れたものを使う（state.live）。ここでは id だけを決めておく
+export const PERSON = { id: "a" };
 
-export const INITIAL_STAGE_HISTORY: StageChange[] = [{ date: PERSON.leaveStart, stage: "acute" }];
+export const INITIAL_STAGE_HISTORY: StageChange[] = [];
 
-// 人事画面に並ぶ、ほかの休職者（すべて架空）。社員Aだけが本人画面と連動する
+// 人事画面に並ぶ、ほかの休職者（すべて架空）。最初に登録した人（デモの本人）だけが本人画面と連動する
 // status は面談のいまの状態、noReply は人事の連絡に「返信は不要です」をつけたか
 export type HrEvent = {
   date: string;
@@ -180,7 +173,7 @@ export const INITIAL_HR_MESSAGES: HrMessage[] = [
   },
 ];
 
-// 社員Aのこれまでの記録（書けなかった日もある）
+// デモの本人のこれまでの記録（見本）（書けなかった日もある）
 export const INITIAL_DIARY: Record<string, DiaryEntry> = {
   "2026-10-23": { wake: "10:30", sleep: "01:30", sleepQuality: "poor", meals: ["noon", "night"], activity: false, activityMinutes: null, activeHours: 2, mood: 1, note: "" },
   "2026-10-24": { wake: "10:00", sleep: "01:30", sleepQuality: "poor", meals: ["noon", "night"], activity: false, activityMinutes: null, activeHours: 2, mood: 1, note: "" },

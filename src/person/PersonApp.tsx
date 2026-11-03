@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ABOUT, APP_NAME, COMMON, JOURNEY, TABS, type Tab } from "../constants/labels";
+import { ABOUT, APP_NAME, COMMON, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
 import JourneySheet from "./JourneySheet";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
@@ -101,9 +101,17 @@ export default function PersonApp({ state, dispatch }: Props) {
         </div>
       )}
 
-      {!state.personStarted ? (
+      {!state.live ? (
         <div className="phone-body">
-          <Welcome dispatch={dispatch} />
+          <div className="home welcome">
+            <p className="lead">{WELCOME.notYetTitle}</p>
+            <p>{WELCOME.notYetBody}</p>
+            <p className="muted welcome-demo">{WELCOME.notYetDemo}</p>
+          </div>
+        </div>
+      ) : !state.personStarted ? (
+        <div className="phone-body">
+          <Welcome name={state.live.name} dispatch={dispatch} />
         </div>
       ) : (
       <>

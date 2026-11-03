@@ -1,6 +1,5 @@
 import type { Dispatch } from "react";
 import { ACUTE, REST, greeting } from "../constants/labels";
-import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard, WishCard } from "./parts";
 
@@ -16,7 +15,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
 
   return (
     <div className="home home-acute">
-      <p className="greeting">{greeting(PERSON.name, new Date().getHours())}</p>
+      <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
       <p className="lead">{ACUTE.message}</p>
 
       <DiaryEntryCard state={state} dispatch={dispatch} />

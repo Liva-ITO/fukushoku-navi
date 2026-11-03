@@ -479,7 +479,7 @@ export const HR = {
   reworkSelf: "自分で準備",
 
 
-  // 社員A（本人画面と連動）の「対応が必要なこと」
+  // デモの本人（本人画面と連動）の「対応が必要なこと」
   todoA: {
     // 人事にできるのは、チケットを補充するかどうかを決めることだけ
     coordinatorRequested: (name: string) => `${name}との面談のリクエストがありました。チケットを補充すると受け付けられ、日程の調整に進みます`,
@@ -697,7 +697,7 @@ export const HR = {
   endLeft: (n: number) => `あと${n}日`,
   afterReturnDate: (d: string) => `復職日：${d}`,
   afterReturnAccommodation: (t: string) => `就業上の配慮：${t}`,
-  stageDemoOnly: "デモでは、社員Aだけ操作できます",
+  stageDemoOnly: "デモでは、最初に登録した人だけ操作できます",
 
   // 送り先の取り違えを防ぐため、見出しと確認に名前を出す
   sendTitle: (name: string) => `${name}さんに連絡する`,
@@ -793,6 +793,11 @@ export const ANALYTICS = {
 export const COMPANY_NAME = "サンプル株式会社";
 
 export const WELCOME = {
+  // 人事がまだ登録していないとき（デモの最初）
+  notYetTitle: "まだ案内は届いていません",
+  notYetBody: "会社の人事から登録されると、ここに案内が届きます。",
+  notYetDemo: "デモ：人事の画面で「休職者を登録する」を押すと、ここに案内が届きます。ウィンドウを2つ並べると、その場で届くのが見られます",
+  hello: (name: string) => `${name}さん`,
   lead: (company: string) => `${company}の人事から、ご案内が届いています`,
   about: "休んでいるあいだの過ごし方と、会社との連絡を、ひとつにまとめておく場所です。",
   account: "ご自分のアカウントで始めてください。会社のアカウントは使いません。復職したあとも、会社からは見えない形で使い続けられます。",

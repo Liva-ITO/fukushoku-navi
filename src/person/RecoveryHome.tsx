@@ -1,6 +1,5 @@
 import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
-import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import { SelfReportCard } from "./SelfReportCard";
@@ -26,7 +25,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
 
   return (
     <div className="home">
-      <p className="greeting">{greeting(PERSON.name, new Date().getHours())}</p>
+      <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
       <p className="stage-chip">{STAGE_LABELS.recovery}</p>
       <p className="lead lead-small">{RECOVERY.stageNote}</p>
       <p className="rest-link">

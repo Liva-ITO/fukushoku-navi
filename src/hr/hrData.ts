@@ -1,8 +1,8 @@
 import { CONSULT, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import { DEMO_TODAY, OTHER_PEOPLE, PERSON, daysSince, type HrEvent, type HrTodo } from "../data/demo";
-import type { Schedule, State } from "../state/store";
+import type { Invited, Schedule, State } from "../state/store";
 
-// 人事画面で使う形にそろえる。社員Aは本人画面の状態から作り、ほかの人は架空データをそのまま使う
+// 人事画面で使う形にそろえる。デモの本人は本人画面の状態から作り、ほかの人は架空データをそのまま使う
 export type HrRow = {
   id: string;
   name: string;
@@ -31,7 +31,7 @@ function reworkOf(state: State): string {
   return RECOVERY.pathOptions[state.prepPath].name;
 }
 
-// 社員Aの「対応が必要なこと」。申し込みはデモの「今日」に届いたものとして扱う
+// デモの本人の「対応が必要なこと」。申し込みはデモの「今日」に届いたものとして扱う
 function todosOf(state: State): HrTodo[] {
   const t: HrTodo[] = [];
   const at = (key: string, text: string) => t.push({ key, text, date: DEMO_TODAY });
@@ -110,7 +110,7 @@ function eventsOf(state: State): HrEvent[] {
   ]);
 }
 
-// 社員Aの面談と、いまの状態
+// デモの本人の面談と、いまの状態
 export type Meeting = { key: "psych" | "company" | "coordinator" | "occ"; name: string; status: string };
 const monthDay = (d: string) => d.slice(5).replace("-", "/");
 
@@ -163,13 +163,43 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
   const done = new Set(state.hrDone.map((d) => d.key));
   const open = (todos: HrTodo[]) => todos.filter((t) => !done.has(t.key));
 
-  const a: HrRow = {
+  // 登録して、本人がまだ始めていない人
+  const pendingRow = (p: Invited): HrRow => ({
+    id: p.id,
+    name: p.name,
+    dept: p.dept,
+    stage: "acute",
+    leaveStart: p.leaveStart,
+    leaveEnd: p.leaveEnd,
+    rework: HR.reworkNone,
+    news: 0,
+    incoming: 0,
+    seen: 0,
+    newFrom: 0,
+    todos: [],
+    events: [
+      { date: p.date, kind: "done" as const, body: INVITE.event, byHr: true },
+      ...p.resends.map((r) => ({ date: r.date, kind: "done" as const, body: INVITE.resendEvent(r.email), byHr: true })),
+    ],
+    invite: { date: p.date, email: p.email, resends: p.resends },
+    live: false,
+    pending: true,
+    issues: p.issues,
+    issueNotes: state.issueNotes[p.id] ?? [],
+  });
+  const live = state.live;
+  // デモの本人：登録前は一覧に出さない。登録して本人が始める前は「まだ始めていません」
+  const a: HrRow | null = !live
+    ? null
+    : !state.personStarted
+      ? pendingRow(live)
+      : {
     id: PERSON.id,
-    name: PERSON.name,
-    dept: PERSON.dept,
+    name: live.name,
+    dept: live.dept,
     stage: state.stage,
-    leaveStart: PERSON.leaveStart,
-    leaveEnd: PERSON.leaveEnd,
+    leaveStart: live.leaveStart,
+    leaveEnd: live.leaveEnd,
     rework: reworkOf(state),
     news: 0,
     incoming: 0,
@@ -178,7 +208,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     todos: open(todosOf(state)),
     events: eventsOf(state),
     live: true,
-    issues: PERSON.issues,
+    issues: live.issues,
     issueNotes: state.issueNotes[PERSON.id] ?? [],
     sharedWithProgram: state.prepPath === "rivabiz",
   };
@@ -208,30 +238,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     ]),
     live: false,
   }));
-  // 新着＝本人から届いたもののうち、人事がまだ見ていないもの
-  const invited: HrRow[] = state.invited.map((p) => ({
-    id: p.id,
-    name: p.name,
-    dept: p.dept,
-    stage: "acute",
-    leaveStart: p.leaveStart,
-    leaveEnd: p.leaveEnd,
-    rework: HR.reworkNone,
-    news: 0,
-    incoming: 0,
-    seen: 0,
-    newFrom: 0,
-    todos: [],
-    events: [
-      { date: p.date, kind: "done" as const, body: INVITE.event, byHr: true },
-      ...p.resends.map((r) => ({ date: r.date, kind: "done" as const, body: INVITE.resendEvent(r.email), byHr: true })),
-    ],
-    invite: { date: p.date, email: p.email, resends: p.resends },
-    live: false,
-    pending: true,
-    issues: p.issues,
-    issueNotes: state.issueNotes[p.id] ?? [],
-  }));
+  const invited: HrRow[] = state.invited.map(pendingRow);
   // 満了日の60日前から、「対応が必要なこと」に自動で出す（日数は本来は会社の設定。いまは見本として固定）
   const withEnd = (r: HrRow): HrRow => {
     const left = daysUntil(r.leaveEnd);
@@ -240,7 +247,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     return { ...r, todos: [...r.todos, ...open([t])] };
   };
   // 復職を確定した人は、休職者の一覧に出さない
-  const people = [...(a.stage === "afterReturn" && !includeReturned ? others : [a, ...others]), ...invited];
+  const people = [...(!a || (a.stage === "afterReturn" && !includeReturned) ? others : [a, ...others]), ...invited];
   return people.map(withEnd).map((r) => {
     const incoming = r.events.filter(isIncoming).length;
     return { ...r, incoming, news: Math.max(0, incoming - r.seen) };

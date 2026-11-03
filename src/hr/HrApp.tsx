@@ -225,14 +225,14 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
         <p className="muted table-note">{HR.newsNote}</p>
       </section>
 
-      {state.stage === "afterReturn" && (
+      {state.stage === "afterReturn" && state.live && (
         <section className="hr-card">
           <h2>{HR.returnedTitle}</h2>
           <p className="muted">{HR.returnedNote}</p>
           <ul className="returned-list">
             <li className="returned-row" onClick={() => dispatch({ type: "hrSelect", id: PERSON.id })}>
-              <button className="link-row">{PERSON.name}</button>
-              <span className="muted">{PERSON.dept}</span>
+              <button className="link-row">{state.live.name}</button>
+              <span className="muted">{state.live.dept}</span>
               {state.returnPlan && <span>{HR.afterReturnDate(shortDate(state.returnPlan.date))}</span>}
               {state.returnPlan?.accommodation && <span>{HR.afterReturnAccommodation(state.returnPlan.accommodation)}</span>}
             </li>

@@ -4,7 +4,6 @@ import { ACUTE, CONSULT, type PrepPath, type Stage, type Tab } from "../constant
 import {
   DEMO_TODAY,
   INITIAL_DIARY,
-  INITIAL_HR_MESSAGES,
   INITIAL_STAGE_HISTORY,
   PERSON,
   SAMPLE_SELF_REPORT,
@@ -61,7 +60,7 @@ export type State = {
   introSeen: boolean;
   hrMessages: HrMessage[];
   contactOpen: string | null; // 連絡タブで開いている人事からの連絡
-  // 社員A以外への連絡（デモでは人事の経緯に残るだけ）
+  // デモの本人以外への連絡（デモでは人事の経緯に残るだけ）
   hrMessagesOthers: Record<string, HrMessage[]>;
   acuteChecks: boolean[];
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
@@ -121,6 +120,8 @@ export type State = {
   hrAccounts: HrAccount[];
   // 人事が招待した人（デモでは一覧に増えるだけ。本人はまだ始めていない）
   invited: Invited[];
+  // デモの主人公：人事が最初に登録した人が、そのまま本人の画面の人になる（id は "a"）
+  live: Invited | null;
   // 本人が招待から始めたか（デモでは、最初の画面で個人アカウントのボタンを押したら始まる）
   personStarted: boolean;
   // 人事が対応済みにしたこと（経緯にも残す）
@@ -140,7 +141,7 @@ export const initialState: State = {
   restMode: false,
   tab: "home",
   introSeen: false,
-  hrMessages: INITIAL_HR_MESSAGES,
+  hrMessages: [],
   contactOpen: null,
   hrMessagesOthers: {},
   acuteChecks: ACUTE.checkItems.map(() => false),
@@ -189,6 +190,7 @@ export const initialState: State = {
     { id: "u4", name: "担当D", position: "保健師", role: "staff" },
   ],
   invited: [],
+  live: null,
   personStarted: false,
   hrDone: [],
   hrSeen: {},
@@ -249,6 +251,7 @@ export type Action =
   | { type: "demoSelfReport" }
   | { type: "invite"; person: Omit<Invited, "id" | "date" | "resends"> }
   | { type: "resendInvite"; id: string; email: string }
+  | { type: "sync"; state: State }
   | { type: "startPerson" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
@@ -536,11 +539,23 @@ function reducer(state: State, action: Action): State {
       return { ...state, reworkReports: [...state.reworkReports, { ...sample, date: DEMO_TODAY }] };
     }
     case "invite":
+      // 最初に登録した人が、デモの本人になる。段階は休職の開始日から急性期
+      if (!state.live)
+        return {
+          ...state,
+          live: { ...action.person, id: PERSON.id, date: DEMO_TODAY, resends: [] },
+          stageHistory: [{ date: action.person.leaveStart, stage: "acute" }],
+        };
       return {
         ...state,
         invited: [...state.invited, { ...action.person, id: `inv${state.invited.length + 1}`, date: DEMO_TODAY, resends: [] }],
       };
     case "resendInvite":
+      if (action.id === PERSON.id && state.live)
+        return {
+          ...state,
+          live: { ...state.live, email: action.email, resends: [...state.live.resends, { date: DEMO_TODAY, email: action.email }] },
+        };
       return {
         ...state,
         invited: state.invited.map((p) =>
@@ -578,13 +593,16 @@ function reducer(state: State, action: Action): State {
         ...state,
         hrDone: [...state.hrDone, { key: action.key, personId: action.personId, text: action.text, date: DEMO_TODAY }],
       };
+    case "sync":
+      // ほかのウィンドウで変わった中身を取りこむ。見ている画面（本人か人事か、どのタブか）は、このウィンドウのまま
+      return { ...action.state, ...pick(state, LOCAL_KEYS) };
     case "reset":
       return { ...initialState, introSeen: true, view: state.view };
   }
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v36";
+const STORAGE_KEY = "fukushoku-navi-demo-v37";
 
 function load(): State {
   try {
@@ -596,14 +614,37 @@ function load(): State {
   return initialState;
 }
 
+// ウィンドウごとに持つもの（見ている画面）。ほかのウィンドウとは合わせない
+const LOCAL_KEYS = ["view", "tab", "hrPage", "hrSelected", "contactOpen", "hrRole", "introSeen"] as const;
+function pick<T extends object, K extends keyof T>(o: T, keys: readonly K[]): Pick<T, K> {
+  const r = {} as Pick<T, K>;
+  for (const k of keys) r[k] = o[k];
+  return r;
+}
+
 export function useDemoStore() {
   const [state, dispatch] = useReducer(reducer, undefined, load);
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const json = JSON.stringify(state);
+      // 同じ中身なら書かない（ほかのウィンドウとの行ったり来たりを止める）
+      if (localStorage.getItem(STORAGE_KEY) !== json) localStorage.setItem(STORAGE_KEY, json);
     } catch {
       // 保存できなくても動作は続ける
     }
   }, [state]);
+  // 人事と本人を2つのウィンドウで並べたとき、片方の操作をもう片方にその場で映す
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return;
+      try {
+        dispatch({ type: "sync", state: { ...initialState, ...JSON.parse(e.newValue) } });
+      } catch {
+        // 読めない内容は無視する
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
   return [state, dispatch] as const;
 }
