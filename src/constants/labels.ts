@@ -77,12 +77,14 @@ export const RECOVERY = {
   pathTitle: "準備の進め方",
   pathNote: "復職に向けた準備は、2つの道から選べます。どちらを選んでも大丈夫です。途中で変えることもできます",
   pathRework: "リワークを使う",
-  pathReworkNote: "専門のプログラムで、仲間と一緒に準備する",
+  // 通所でもオンラインでも、スタッフと一緒に、仲間とのグループワークで取り組む（違いは、通うか自宅からか）
+  pathReworkNote: "スタッフと一緒に、仲間とのグループワークで復職を目指す",
   pathReworkPick: "どちらで参加しますか",
   pathOptions: {
-    rivatore: { name: "通うリワーク", note: "通いながら、仲間と一緒にトレーニングする" },
-    rivabiz: { name: "オンラインのリワーク", note: "自宅からオンラインで参加できる" },
-    self: { name: "自分のペースで準備する", note: "このアプリの記録やガイドを使って、自分で準備を進める" },
+    rivatore: { name: "通うリワーク", note: "会場に通って、仲間と一緒にグループで取り組む" },
+    rivabiz: { name: "オンラインのリワーク", note: "自宅からオンラインで、仲間と一緒にグループで取り組む" },
+    // リワークを使っても基本は自分のペースなので「自分のペース」とは言わない
+    self: { name: "自分で準備する", note: "このアプリの記録やガイドを使って、自分で準備を進める" },
   } satisfies Record<PrepPath, { name: string; note: string }>,
   pathChosen: (name: string) => `いまの進め方：${name}`,
   pathChange: "変える",
@@ -125,8 +127,8 @@ export const RECOVERY = {
 
   restButton: "今日はしんどい",
 
-  // 自分のペースで準備する人向け。ひとりで抱え込まないよう、本と復職コーディネーターへの相談の入口を置く
-  selfTitle: "自分のペースで準備するときに",
+  // 自分で準備する人向け。ひとりで抱え込まないよう、本と復職コーディネーターへの相談の入口を置く
+  selfTitle: "自分で準備するときに",
   booksTitle: "おすすめの本",
   books: [
     { title: "メンタル不調者のための 脱うつ 書くだけ30日ワーク", note: "書き込みながら、復職の準備を進めるワーク" },
@@ -368,7 +370,7 @@ export const HR = {
   newTag: "新着",
   newTitle: "新しく届いたもの",
   reworkNone: "未定",
-  reworkSelf: "自分のペース",
+  reworkSelf: "自分で準備",
 
   notifyTitle: "こんな通知が届きます",
   notifyBody: "【復職ナビポータル】対応が必要なことが1件あります",
@@ -547,7 +549,7 @@ export const ANALYTICS = {
   // 「リワークの有無」ではなく、本人が選べる過ごし方ごとに並べる。会社が自社の数字で確かめるための画面
   pathTitle: "回復期の過ごし方と復職",
   pathNote: "自社の休職者の数字で、過ごし方ごとの違いを確かめられます（過去3年）",
-  paths: { office: "通うリワーク", online: "オンラインのリワーク", self: "自分のペース" },
+  paths: { office: "通うリワーク", online: "オンラインのリワーク", self: "自分で準備" },
   peopleCount: (n: number) => `${n}人`,
   perfTitle: "復職後のパフォーマンス",
   perfNote: (n: number) => `復職6か月後の上司アンケート・回復期の過ごし方別（回答${n}人）`,

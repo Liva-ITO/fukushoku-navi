@@ -18,7 +18,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
     path === null ? RECOVERY.next.none : path === "self" ? RECOVERY.next.self : RECOVERY.next.rework;
   const noteKey = path === null ? "none" : path === "self" ? "self" : "rework";
   const allChecked = nextItems.every((i) => state.recoveryChecks.includes(i));
-  // 準備の進め方は2段階：まず「リワークを使う／自分のペース」の2つ。リワークを押したら、通う／オンラインを開く
+  // 準備の進め方は2段階：まず「リワークを使う／自分で準備する」の2つ。リワークを押したら、通う／オンラインを開く
   const [reworkOpen, setReworkOpen] = useState(false);
 
   return (
@@ -109,7 +109,9 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         </section>
       )}
 
-      {/* 急性期と同じく、たたんでおき、自分でチェックできる。会社との面談を申し込んだあとは、状態が見えるよう開いておく */}
+      {/* 目安は「自分で準備する」人だけ。リワークはスタッフと一緒に確かめていくので出さない。
+          急性期と同じく、たたんでおき、自分でチェックできる。会社との面談を申し込んだあとは、状態が見えるよう開いておく */}
+      {path === "self" && (
       <details className="card card-quiet" open={state.companyMeeting !== null || undefined}>
         <summary>{RECOVERY.nextTitle}</summary>
         <ul className="list-plain">
@@ -129,7 +131,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         {allChecked && RECOVERY.nextAllDone[noteKey] && <p className="next-note">{RECOVERY.nextAllDone[noteKey]}</p>}
         <p className="muted next-note">{RECOVERY.nextNote[noteKey]}</p>
 
-        {/* 自分のペースで準備する人だけ、ここから会社との面談を申し込む。リワークはプログラムの中で確かめる */}
+        {/* 自分で準備する人は、ここから会社との面談を申し込む */}
         {path === "self" && (
           <div className="next-step">
             {state.companyMeeting ? (
@@ -156,6 +158,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
           </div>
         )}
       </details>
+      )}
 
       {/* 相談は段階に関係なく、相談したいときに選ぶ（急性期・休息モードと同じ枠） */}
       <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} showNewLink={false} />
