@@ -5,6 +5,7 @@ import {
   INITIAL_DIARY,
   INITIAL_HR_MESSAGES,
   INITIAL_STAGE_HISTORY,
+  PERSON,
   type DiaryEntry,
   type HrMessage,
   type SentItem,
@@ -47,6 +48,8 @@ export type State = {
   introSeen: boolean;
   hrMessages: HrMessage[];
   contactOpen: string | null; // 連絡タブで開いている人事からの連絡
+  // 社員A以外への連絡（デモでは人事の経緯に残るだけ）
+  hrMessagesOthers: Record<string, HrMessage[]>;
   acuteChecks: boolean[];
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
@@ -108,6 +111,7 @@ export const initialState: State = {
   introSeen: false,
   hrMessages: INITIAL_HR_MESSAGES,
   contactOpen: null,
+  hrMessagesOthers: {},
   acuteChecks: ACUTE.checkItems.map(() => false),
   recoveryChecks: [],
   rivaMeetingApplied: false,
@@ -182,7 +186,7 @@ export type Action =
   | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
-  | { type: "sendHrMessage"; title: string; body: string; noReplyNeeded: boolean }
+  | { type: "sendHrMessage"; personId: string; title: string; body: string; noReplyNeeded: boolean }
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
   | { type: "hrPage"; page: "list" | "analytics" | "invite" | "settings" }
@@ -359,7 +363,18 @@ function reducer(state: State, action: Action): State {
           { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: action.kind, body: action.body },
         ],
       };
-    case "sendHrMessage":
+    case "sendHrMessage": {
+      if (action.personId !== PERSON.id) {
+        const list = state.hrMessagesOthers[action.personId] ?? [];
+        const m: HrMessage = {
+          id: `${action.personId}-m${list.length + 1}`,
+          date: DEMO_TODAY,
+          title: action.title,
+          body: action.body,
+          noReplyNeeded: action.noReplyNeeded,
+        };
+        return { ...state, hrMessagesOthers: { ...state.hrMessagesOthers, [action.personId]: [...list, m] } };
+      }
       return {
         ...state,
         hrMessages: [
@@ -373,6 +388,7 @@ function reducer(state: State, action: Action): State {
           },
         ],
       };
+    }
     case "openHrMessage":
       return { ...state, contactOpen: action.id, ...(action.goContact ? { tab: "contact" as const } : {}) };
     case "hrSelect":
@@ -405,7 +421,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v23";
+const STORAGE_KEY = "fukushoku-navi-demo-v24";
 
 function load(): State {
   try {

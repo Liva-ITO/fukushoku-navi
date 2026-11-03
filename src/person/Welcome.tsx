@@ -9,6 +9,7 @@ export default function Welcome({ dispatch }: { dispatch: Dispatch<Action> }) {
       <p className="lead">{WELCOME.lead(COMPANY_NAME)}</p>
       <p>{WELCOME.about}</p>
       <p className="muted">{WELCOME.account}</p>
+      <p className="muted">{WELCOME.records}</p>
       <div className="stack">
         {WELCOME.providers.map((p) => (
           <button key={p} className="btn-outline btn-wide" onClick={() => dispatch({ type: "startPerson" })}>

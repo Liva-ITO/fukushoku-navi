@@ -16,7 +16,8 @@ const shortDate = (d: string) => d.replace(/-/g, "/");
 // 会社（人事・産業保健）の画面。本人が提出したもの・やり取り・申し込みがあったことだけを表示する
 export default function HrApp({ state, dispatch }: Props) {
   const rows = hrRows(state);
-  const selected = rows.find((r) => r.id === state.hrSelected);
+  // 復職済みの人も、休職期間中の記録を開いて見られる
+  const selected = hrRows(state, true).find((r) => r.id === state.hrSelected);
 
   // 一覧と詳しい画面を切り替えたら、いちばん上から見せる
   useEffect(() => {
@@ -109,7 +110,10 @@ function StageTag({ stage }: { stage: Stage }) {
 function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) {
   // 見出しを押すと並び替え。もう一度押すと逆順
   const [sort, setSort] = useState<{ col: SortCol; asc: boolean } | null>(null);
-  const rows = sort ? sortRows(unsorted, sort.col, sort.asc) : unsorted;
+  // 並び替えていないときは、対応が必要な人を上に
+  const rows = sort
+    ? sortRows(unsorted, sort.col, sort.asc)
+    : unsorted.map((r, i) => ({ r, i })).sort((a, b) => b.r.todos.length - a.r.todos.length || a.i - b.i).map((x) => x.r);
   const th = (col: SortCol) => {
     const on = sort?.col === col;
     return (
@@ -144,10 +148,6 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
         <div className="tile">
           <p className="tile-label">{HR.people}</p>
           <p className="tile-value">{HR.peopleUnit(rows.length)}</p>
-        </div>
-        <div className="tile">
-          <p className="tile-label">{HR.todoCount}</p>
-          <p className="tile-value">{HR.todoUnit(todos.length)}</p>
         </div>
         <div className="tile tile-wide">
           <p className="tile-label">{HR.tickets}</p>
@@ -201,6 +201,7 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
               <tr key={r.id} onClick={() => open(r)}>
                 <td>
                   <button className="link-row">{r.name}</button>
+                  {r.todos.length > 0 && <span className="todo-mark">{HR.todoMark(r.todos.length)}</span>}
                 </td>
                 <td>{r.dept}</td>
                 <td>{r.pending ? <span className="stage-tag stage-pending">{INVITE.pendingTag}</span> : <StageTag stage={r.stage} />}</td>
@@ -222,8 +223,8 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
           <h2>{HR.returnedTitle}</h2>
           <p className="muted">{HR.returnedNote}</p>
           <ul className="returned-list">
-            <li>
-              <span className="todo-name">{PERSON.name}</span>
+            <li className="returned-row" onClick={() => dispatch({ type: "hrSelect", id: PERSON.id })}>
+              <button className="link-row">{PERSON.name}</button>
               <span className="muted">{PERSON.dept}</span>
               {state.returnPlan && <span>{HR.afterReturnDate(shortDate(state.returnPlan.date))}</span>}
               {state.returnPlan?.accommodation && <span>{HR.afterReturnAccommodation(state.returnPlan.accommodation)}</span>}
@@ -344,16 +345,20 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
               {HR.stageTitle}　<StageTag stage={row.stage} />
             </h2>
             <p className="muted stage-guide">{HR.stageGuide[row.stage]}</p>
-            {row.live ? (
+            {row.live && row.stage === "afterReturn" ? (
+              <p className="muted">{HR.returnedReadOnly}</p>
+            ) : row.live ? (
               <StageControl row={row} state={state} dispatch={dispatch} />
             ) : (
               <p className="muted">{row.pending ? INVITE.pendingNote : HR.stageDemoOnly}</p>
             )}
           </section>
 
-          {row.live && <Meetings state={state} dispatch={dispatch} />}
+          {row.live && row.stage !== "afterReturn" && <Meetings state={state} dispatch={dispatch} />}
           <IssuesCard row={row} />
-          {row.live && <SendMessage name={row.name} stage={row.stage} dispatch={dispatch} />}
+          {!row.pending && row.stage !== "afterReturn" && (
+            <SendMessage key={row.id} personId={row.id} name={row.name} stage={row.stage} dispatch={dispatch} />
+          )}
         </div>
       </div>
 
@@ -839,7 +844,7 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
 }
 
 // 送る前に、宛先と本文をもう一度見せる
-function SendMessage({ name, stage, dispatch }: { name: string; stage: Stage; dispatch: Dispatch<Action> }) {
+function SendMessage({ personId, name, stage, dispatch }: { personId: string; name: string; stage: Stage; dispatch: Dispatch<Action> }) {
   const templates = stage === "acute" ? HR.templates : [...HR.templates, ...HR.templatesFromRecovery];
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
@@ -869,7 +874,7 @@ function SendMessage({ name, stage, dispatch }: { name: string; stage: Stage; di
             <button
               className="btn-primary"
               onClick={() => {
-                dispatch({ type: "sendHrMessage", title: title.trim(), body: text.trim(), noReplyNeeded: noReply });
+                dispatch({ type: "sendHrMessage", personId, title: title.trim(), body: text.trim(), noReplyNeeded: noReply });
                 setTitle("");
                 setText("");
                 setNoReply(false);

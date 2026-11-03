@@ -132,7 +132,8 @@ export function meetingsOf(state: State): Meeting[] {
   return m;
 }
 
-export function hrRows(state: State): HrRow[] {
+// includeReturned：復職済みの人も含める（詳しい画面で、休職期間中の記録を見るため）
+export function hrRows(state: State, includeReturned = false): HrRow[] {
   const done = new Set(state.hrDone.map((d) => d.key));
   const open = (todos: HrTodo[]) => todos.filter((t) => !done.has(t.key));
 
@@ -167,7 +168,16 @@ export function hrRows(state: State): HrRow[] {
     seen: state.hrSeen[p.id] ?? p.seen,
     newFrom: state.hrNewFrom[p.id] ?? p.seen,
     todos: open(p.todo ? [p.todo] : []),
-    events: byDate([...p.events, ...doneEvents(state, p.id)]),
+    events: byDate([
+      ...p.events,
+      ...(state.hrMessagesOthers[p.id] ?? []).map((m) => ({
+        date: m.date,
+        kind: "fromHr" as const,
+        body: m.title,
+        noReply: m.noReplyNeeded,
+      })),
+      ...doneEvents(state, p.id),
+    ]),
     live: false,
   }));
   // 新着＝本人から届いたもののうち、人事がまだ見ていないもの
@@ -190,7 +200,7 @@ export function hrRows(state: State): HrRow[] {
     issues: p.issues,
   }));
   // 復職を確定した人は、休職者の一覧に出さない
-  const people = [...(a.stage === "afterReturn" ? others : [a, ...others]), ...invited];
+  const people = [...(a.stage === "afterReturn" && !includeReturned ? others : [a, ...others]), ...invited];
   return people.map((r) => {
     const incoming = r.events.filter(isIncoming).length;
     return { ...r, incoming, news: Math.max(0, incoming - r.seen) };

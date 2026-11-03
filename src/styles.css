@@ -246,7 +246,7 @@ details[open] > summary::after { content: "▲"; }
 .notify p { margin: 0; }
 .notify-title { font-size: 12px; color: var(--muted); }
 .notify-body { font-weight: 600; margin: 2px 0 4px !important; }
-.tiles { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 12px; margin-bottom: 16px; }
+.tiles { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 16px; }
 .tile { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; }
 .tile p { margin: 0; }
 .tile-label { font-size: 12px; color: var(--muted); }
@@ -530,3 +530,8 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .setting-row { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
 .setting-days { width: 80px; }
 .setting .muted { margin: 0; }
+
+/* 一覧：対応が必要な人の印 */
+.todo-mark { display: inline-block; margin-left: 8px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); font-size: 12px; font-weight: 600; }
+.returned-row { cursor: pointer; }
+.returned-row:hover { background: var(--accent-soft); }
