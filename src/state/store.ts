@@ -76,6 +76,10 @@ export type State = {
   sickLeave: boolean;
   sickLeaveDays: number;
   rehab: boolean;
+  // 準備期に進める条件（会社が選ぶ）
+  prepConds: { attendance: boolean; attendanceRate: number; selfCheck: boolean; companyMeeting: boolean };
+  // リワークの施設から会社に届く月次レポート（出席の事実だけ）
+  reworkReports: { month: string; days: number; rate: number; date: string }[];
   occMeeting: { status: "scheduled" | "done"; date: string } | null;
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
@@ -132,6 +136,8 @@ export const initialState: State = {
   sickLeave: true,
   sickLeaveDays: 30,
   rehab: true,
+  prepConds: { attendance: true, attendanceRate: 80, selfCheck: true, companyMeeting: true },
+  reworkReports: [],
   occMeeting: null,
   doctorNote: false,
   returnDecision: null,
@@ -190,7 +196,8 @@ export type Action =
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
   | { type: "hrPage"; page: "list" | "analytics" | "invite" | "settings" }
-  | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "sickLeave" | "sickLeaveDays" | "rehab">> }
+  | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
+  | { type: "reworkReport" }
   | { type: "invite"; person: Omit<Invited, "id" | "date"> }
   | { type: "startPerson" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
@@ -401,6 +408,15 @@ function reducer(state: State, action: Action): State {
       };
     case "setCompany":
       return { ...state, ...action.patch };
+    case "reworkReport": {
+      // デモ：月次レポートが届く（見本の数字）
+      const n = state.reworkReports.length;
+      const sample = [
+        { month: "10月", days: 14, rate: 74 },
+        { month: "11月", days: 17, rate: 88 },
+      ][Math.min(n, 1)];
+      return { ...state, reworkReports: [...state.reworkReports, { ...sample, date: DEMO_TODAY }] };
+    }
     case "invite":
       return {
         ...state,
@@ -421,7 +437,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v24";
+const STORAGE_KEY = "fukushoku-navi-demo-v25";
 
 function load(): State {
   try {

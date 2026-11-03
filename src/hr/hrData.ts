@@ -72,6 +72,7 @@ function eventsOf(state: State): HrEvent[] {
     ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body })),
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
+    ...state.reworkReports.map((r) => ({ date: r.date, kind: "submit" as const, body: HR.reportBody(r.month, r.days, r.rate) })),
     ...state.returnDecisionLog.map((d) => ({
       date: d.date,
       kind: "decision" as const,

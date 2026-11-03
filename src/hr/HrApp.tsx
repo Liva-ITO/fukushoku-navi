@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ANALYTICS, HR, INVITE, STAGE_LABELS, type Stage } from "../constants/labels";
+import { ANALYTICS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import InviteForm from "./InviteForm";
 import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
@@ -715,6 +715,49 @@ function CompanySettings({ state, dispatch }: Props) {
       </fieldset>
 
       <fieldset className="setting">
+        <legend>{HR.prepCondTitle}</legend>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={state.prepConds.attendance}
+            onChange={(e) => set({ prepConds: { ...state.prepConds, attendance: e.target.checked } })}
+          />
+          {HR.prepCond.attendance(state.prepConds.attendanceRate)}
+        </label>
+        {state.prepConds.attendance && (
+          <label className="check setting-indent">
+            {HR.prepCondRate}
+            <input
+              className="hr-input setting-days"
+              type="number"
+              min={1}
+              max={100}
+              value={state.prepConds.attendanceRate}
+              onChange={(e) => set({ prepConds: { ...state.prepConds, attendanceRate: Number(e.target.value) } })}
+            />
+            %
+          </label>
+        )}
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={state.prepConds.selfCheck}
+            onChange={(e) => set({ prepConds: { ...state.prepConds, selfCheck: e.target.checked } })}
+          />
+          {HR.prepCond.selfCheck}
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={state.prepConds.companyMeeting}
+            onChange={(e) => set({ prepConds: { ...state.prepConds, companyMeeting: e.target.checked } })}
+          />
+          {HR.prepCond.companyMeeting}
+        </label>
+        <p className="muted">{HR.prepCondNote}</p>
+      </fieldset>
+
+      <fieldset className="setting">
         <legend>{HR.rehabLabel}</legend>
         <div className="setting-row">
           <label className="check">
@@ -778,13 +821,35 @@ function BackButton({ dispatch, bottom }: { dispatch: Dispatch<Action>; bottom?:
 }
 
 // 段階は「次へ進める」操作で変える。戻すのは例外なので、小さく置く
+// 準備期に進める条件：本人の準備の進め方に当てはまる条件だけを出す
+function prepConditions(state: State): { ok: boolean; message?: string; items: { label: string; ok: boolean }[] } {
+  const c = state.prepConds;
+  if (state.prepPath === null) return { ok: false, message: HR.condNoPath, items: [] };
+  const items: { label: string; ok: boolean }[] = [];
+  if (state.prepPath === "self") {
+    if (c.selfCheck)
+      items.push({
+        label: HR.prepCond.selfCheck,
+        ok: RECOVERY.next.self.every((i) => state.recoveryChecks.includes(i)),
+      });
+    if (c.companyMeeting) items.push({ label: HR.prepCond.companyMeeting, ok: state.companyMeeting?.status === "done" });
+  } else if (c.attendance) {
+    const last = state.reworkReports[state.reworkReports.length - 1];
+    items.push({ label: HR.prepCond.attendance(c.attendanceRate), ok: !!last && last.rate >= c.attendanceRate });
+  }
+  if (items.length === 0) return { ok: true, message: HR.condNone, items };
+  return { ok: items.every((i) => i.ok), items };
+}
+
 function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
   const i = STAGES.indexOf(state.stage);
   const next = STAGES[i + 1];
   const prev = i > 0 ? STAGES[i - 1] : undefined;
   const nextLabel = HR.nextLabel[state.stage];
   // 急性期→回復期は、心理の専門家との面談が済むまで進められない
-  const locked = state.stage === "acute" && !state.psychMeetingDone;
+  // 回復期→準備期は、会社の設定で選んだ条件がそろうまで進められない
+  const conds = state.stage === "recovery" ? prepConditions(state) : null;
+  const locked = (state.stage === "acute" && !state.psychMeetingDone) || (conds !== null && !conds.ok);
 
   return (
     <div className="stage-control">
@@ -813,13 +878,40 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
         </div>
       )}
 
+      {conds && (
+        <div className="conds">
+          <p className="conds-title">{HR.condTitle}</p>
+          {conds.message ? (
+            <p className="muted">{conds.message}</p>
+          ) : (
+            <ul className="conds-list">
+              {conds.items.map((c) => (
+                <li key={c.label}>
+                  <span className={`status-tag${c.ok ? " status-done" : ""}`}>{c.ok ? HR.condMet : HR.condNotYet}</span>
+                  {c.label}
+                </li>
+              ))}
+            </ul>
+          )}
+          {/* デモ：リワークの施設から、出席の事実だけの月次レポートが届く */}
+          {state.prepPath !== null && state.prepPath !== "self" && (
+            <div className="meeting-action demo-report">
+              <span className="muted">{HR.demoReport}</span>
+              <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "reworkReport" })}>
+                {HR.reportArrive}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {nextLabel && next &&
         (locked ? (
           <>
             <button className="btn-primary" disabled>
               {nextLabel}
             </button>
-            <p className="muted">{HR.nextLockedAcute}</p>
+            <p className="muted">{state.stage === "acute" ? HR.nextLockedAcute : HR.condLocked}</p>
           </>
         ) : (
           <ConfirmButton
