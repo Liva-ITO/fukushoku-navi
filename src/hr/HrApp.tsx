@@ -758,7 +758,6 @@ function SendMessage({ name, stage, dispatch }: { name: string; stage: Stage; di
           <p>{HR.sendCheck(name)}</p>
           <blockquote className="send-preview">
             <strong>{HR.sendCheckSubject(title.trim())}</strong>
-            {"\n\n"}
             {text.trim()}
           </blockquote>
           {noReply && <p className="muted">{HR.sendCheckNoReply}</p>}
