@@ -91,7 +91,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveStart: "2026-06-22",
     leaveEnd: "2026-12-21",
     rework: "通うリワーク",
-    todo: { key: "b-end", text: "休職期間の満了日が近づいています", date: "2026-11-04", due: "2026-12-21" },
+    todo: null, // 満了日が近いことは、満了日から自動で出す
     seen: 2,
     events: [
       { date: "2026-06-22", kind: "stage", body: "急性期" },

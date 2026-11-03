@@ -578,3 +578,5 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .self-steps { margin: 4px 0 6px; padding-left: 1.4em; display: grid; gap: 6px; }
 .self-steps li { display: grid; }
 .self-step-name { font-weight: 600; }
+.end-left { margin-left: 8px; font-size: 12px; color: var(--muted); }
+.end-near { color: #b4632a; font-weight: 600; }

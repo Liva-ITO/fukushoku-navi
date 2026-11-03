@@ -542,6 +542,9 @@ export const HR = {
   returnedNote: "復職を確定した人は、休職者の一覧から外れます。休職期間中の連絡・提出物・経緯は会社の記録として残り、ここから開いて見られます（再休職のときの参考に）。復職後の本人の画面は、会社には見えません",
   returnedReadOnly: "復職済みです。ここに出ているのは休職期間中の記録で、見るだけです。復職後の本人の画面は、会社には見えません",
   todoMark: (n: number) => `対応 ${n}件`,
+  // 満了日が近いことは、満了日から自動で知らせる（見落とすと、退職扱いなどにつながる）
+  todoEndNear: "休職期間の満了日が近づいています。延長が要るか、主治医・産業医の意見を早めに確かめましょう",
+  endLeft: (n: number) => `あと${n}日`,
   afterReturnDate: (d: string) => `復職日：${d}`,
   afterReturnAccommodation: (t: string) => `就業上の配慮：${t}`,
   stageDemoOnly: "デモでは、社員Aだけ操作できます",

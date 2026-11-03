@@ -5,7 +5,7 @@ import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
-import { daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
+import { END_NOTICE_DAYS, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
 import { DEMO_TODAY, PERSON, type HrEvent, type HrTodo } from "../data/demo";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -206,7 +206,14 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
                 <td>{r.dept}</td>
                 <td>{r.pending ? <span className="stage-tag stage-pending">{INVITE.pendingTag}</span> : <StageTag stage={r.stage} />}</td>
                 <td>{HR.days(daysSince(r.leaveStart))}</td>
-                <td>{shortDate(r.leaveEnd)}</td>
+                <td>
+                  {shortDate(r.leaveEnd)}
+                  {daysUntil(r.leaveEnd) >= 0 && (
+                    <span className={`end-left${daysUntil(r.leaveEnd) <= END_NOTICE_DAYS ? " end-near" : ""}`}>
+                      {HR.endLeft(daysUntil(r.leaveEnd))}
+                    </span>
+                  )}
+                </td>
                 <td>{r.rework}</td>
                 <td>{r.news > 0 ? <span className="news">{HR.newsCount(r.news)}</span> : ""}</td>
               </tr>

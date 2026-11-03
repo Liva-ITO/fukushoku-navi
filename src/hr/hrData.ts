@@ -199,9 +199,16 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     pending: true,
     issues: p.issues,
   }));
+  // 満了日の60日前から、「対応が必要なこと」に自動で出す（日数は本来は会社の設定。いまは見本として固定）
+  const withEnd = (r: HrRow): HrRow => {
+    const left = daysUntil(r.leaveEnd);
+    if (r.stage === "afterReturn" || left < 0 || left > END_NOTICE_DAYS) return r;
+    const t: HrTodo = { key: `${r.id}-end-${r.leaveEnd}`, text: HR.todoEndNear, date: DEMO_TODAY, due: r.leaveEnd };
+    return { ...r, todos: [...r.todos, ...open([t])] };
+  };
   // 復職を確定した人は、休職者の一覧に出さない
   const people = [...(a.stage === "afterReturn" && !includeReturned ? others : [a, ...others]), ...invited];
-  return people.map((r) => {
+  return people.map(withEnd).map((r) => {
     const incoming = r.events.filter(isIncoming).length;
     return { ...r, incoming, news: Math.max(0, incoming - r.seen) };
   });
@@ -224,3 +231,4 @@ export function sortTodos<T extends { todo: HrTodo }>(items: T[]): T[] {
 
 // 期限までの日数
 export const daysUntil = (due: string) => -daysSince(due);
+export const END_NOTICE_DAYS = 60;
