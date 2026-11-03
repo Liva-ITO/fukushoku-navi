@@ -245,6 +245,7 @@ function reducer(state: State, action: Action): State {
     case "toggleAcuteCheck":
       return { ...state, acuteChecks: toggleAt(state.acuteChecks, action.index) };
     case "applyRivaMeeting":
+      if (state.coordinatorMeeting !== null && state.coordinatorReport === null) return state;
       return { ...state, rivaMeetingApplied: true };
     case "markPsychDone":
       return { ...state, psychMeetingDone: true };
@@ -326,6 +327,8 @@ function reducer(state: State, action: Action): State {
         : { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS };
     }
     case "askCoordinator":
+      // 急性期は、面談は1つずつ（画面のボタンを消すだけでなく、ここでも止める）
+      if (state.stage === "acute" && state.rivaMeetingApplied && !state.psychMeetingDone) return state;
       return state.ticketsLeft > 0
         ? { ...state, coordinatorMeeting: "applied", coordinatorReport: null, coordSchedule: null, ticketsLeft: state.ticketsLeft - 1 }
         : { ...state, coordinatorMeeting: "requested", coordinatorReport: null, coordSchedule: null };
@@ -450,7 +453,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v26";
+const STORAGE_KEY = "fukushoku-navi-demo-v27";
 
 function load(): State {
   try {

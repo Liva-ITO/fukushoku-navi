@@ -129,7 +129,7 @@ export function SlotPicker({ kind, state, dispatch }: { kind: MeetingKind; state
           {o}
         </button>
       ))}
-      <button className="btn-quiet slot-none" onClick={() => setNone(true)}>
+      <button className="btn-outline slot slot-none" onClick={() => setNone(true)}>
         {CONSULT.noneFit}
       </button>
     </div>
