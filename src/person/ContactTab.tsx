@@ -20,6 +20,11 @@ export default function ContactTab({ state, dispatch }: Props) {
   const messages = [...state.hrMessages].reverse();
   // 開く前に見ていた件数。新しいお知らせがあれば、その枠を上に出す
   const [seenBefore] = useState(state.coordSeen);
+  // 連絡タブを開いたら、新しいお知らせは見たことにする（人事からのも、支援機関からのも）
+  const total = state.coordInbox.length + state.hrMessages.length;
+  useEffect(() => {
+    dispatch({ type: "markCoordSeen" });
+  }, [total, dispatch]);
   const hasNew = state.coordInbox.length > seenBefore;
   const support = <SupportInbox state={state} dispatch={dispatch} seenBefore={seenBefore} />;
   if (state.stage === "afterReturn")
@@ -96,9 +101,6 @@ export default function ContactTab({ state, dispatch }: Props) {
 // 回復期に進む前の面談が済んだお知らせの下では、これからの希望を会社に送れる
 function SupportInbox({ state, dispatch, seenBefore }: { state: State; dispatch: Dispatch<Action>; seenBefore: number }) {
   const count = state.coordInbox.length;
-  useEffect(() => {
-    dispatch({ type: "markCoordSeen" });
-  }, [count, dispatch]);
   if (count === 0) return null;
   const lastGate = state.coordInbox.map((m) => m.from).lastIndexOf("psych");
   const showWish = state.stage === "acute" && state.psychMeetingDone;

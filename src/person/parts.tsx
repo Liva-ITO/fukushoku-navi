@@ -157,7 +157,8 @@ export function DiaryEntryCard({ state, dispatch }: { state: State; dispatch: Di
 
 // 支援機関からの新しいお知らせ。見逃さないよう、ホームからも相談タブに行けるようにする
 export function NewNoticeLink({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
-  const unread = state.coordInbox.length - state.coordSeen;
+  // 人事からも、コーディネーター・専門家からも、新しいお知らせは「連絡」に届く
+  const unread = state.coordInbox.length - state.coordSeen + (state.hrMessages.length - state.personHrSeen);
   if (unread <= 0) return null;
   return (
     <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "contact" })}>

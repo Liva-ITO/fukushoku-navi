@@ -37,7 +37,7 @@ export default function PersonApp({ state, dispatch }: Props) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [state.tab, state.stage, state.restMode, state.personStarted]);
-  const unread = state.coordInbox.length - state.coordSeen;
+  const unread = state.coordInbox.length - state.coordSeen + (state.hrMessages.length - state.personHrSeen);
 
   // 回復期に入ったときに一度だけ、復職までの流れを見せる（急性期の人には自動では出さない）
   useEffect(() => {

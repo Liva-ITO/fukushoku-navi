@@ -50,7 +50,15 @@ export default function RecoveryHome({ state, dispatch }: Props) {
 
       {/* 会社との面談の日が決まったら、上にも出す（たたんだ目安の中だけだと見落とすため） */}
       {state.companyMeeting?.status === "scheduled" && state.companyMeeting.date && (
-        <p className="done-note">{RECOVERY.meetCompanyTop(japaneseDate(state.companyMeeting.date))}</p>
+        <button
+          className="new-link"
+          onClick={() => {
+            const m = [...state.hrMessages].reverse().find((x) => x.body.includes(japaneseDate(state.companyMeeting?.date ?? "")));
+            dispatch({ type: "openHrMessage", id: m?.id ?? null, goContact: true });
+          }}
+        >
+          {RECOVERY.meetCompanyTop(japaneseDate(state.companyMeeting.date))} ›
+        </button>
       )}
 
       <DiaryEntryCard state={state} dispatch={dispatch} />

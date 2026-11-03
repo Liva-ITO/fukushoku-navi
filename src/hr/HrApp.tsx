@@ -1032,23 +1032,11 @@ function OccMaterial({ state, dispatch }: Props) {
 }
 
 // 産業医との面談の日を、本人に知らせる（例文を確かめてから送る）。本人の「連絡」タブに届く
-function OccNotify({ name, date, state, dispatch, company = false }: { name: string; date: string; company?: boolean } & Props) {
-  // 会社との面談（準備期に進むための面談）も、同じ形で知らせる
+function OccNotify({ date, state, company = false }: { name: string; date: string; company?: boolean } & Props) {
+  // 日を決めると、本人の「連絡」に日程のお知らせが自動で届く。ここでは届いたことだけを出す
   const t = company ? HR.companyNotifyTemplate(jpDate(date)) : HR.templatesPreReturn(jpDate(date))[0];
   const done = state.hrMessages.some((m) => m.title === t.title && m.body === t.text);
-  if (done) return <p className="done-note">{HR.occNotified}</p>;
-  return (
-    <div className="meeting-action">
-      <ConfirmButton
-        quiet
-        label={HR.occNotify}
-        confirm={HR.occNotifyConfirm(name, t.title, t.text)}
-        yes={HR.occNotifyYes}
-        no={HR.confirmNo}
-        onConfirm={() => dispatch({ type: "sendHrMessage", personId: PERSON.id, title: t.title, body: t.text, noReplyNeeded: t.noReply })}
-      />
-    </div>
-  );
+  return done ? <p className="done-note">{HR.occNotified}</p> : null;
 }
 
 // 産業医との面談を実施済みにする。そのとき、産業医の意見を短く残す

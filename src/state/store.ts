@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 import type { SelfReport } from "./selfReport";
-import { ACUTE, CONSULT, type PrepPath, type Stage, type Tab } from "../constants/labels";
+import { ACUTE, CONSULT, HR, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
   INITIAL_DIARY,
@@ -84,7 +84,8 @@ export type State = {
   coordinatorReport: "done" | "declined" | null;
   coordSchedule: Schedule | null;
   coordInbox: CoordMessage[];
-  coordSeen: number; // 本人が相談タブで見た件数（①の印を消すため）
+  coordSeen: number; // 本人が連絡タブで見た件数（①の印を消すため）
+  personHrSeen: number; // 本人が連絡タブで見た、人事からのお知らせの件数
   // 復職までの手順。順番は会社の設定（産業医との面談を先にするか、主治医の診断書を先にするか）
   returnOrder: ReturnOrder;
   // 会社の設定（見本）。いまは手順の順番だけが画面に反映される
@@ -165,6 +166,7 @@ export const initialState: State = {
   coordSchedule: null,
   coordInbox: [],
   coordSeen: 0,
+  personHrSeen: 0,
   returnOrder: "occFirst",
   maxLeave: "1年6か月",
   depts: ["営業部", "開発部", "製造部", "総務部", "企画部"],
@@ -270,6 +272,17 @@ function slotDate(slot: string | null | undefined): string {
   if (!m) return DEMO_TODAY;
   return `${DEMO_TODAY.slice(0, 4)}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
 }
+// 人事から本人へのお知らせを足す（面談の日程を決めたときなどに、自動で届く）
+const jpDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
+function withHrMessage(state: State, t: { title: string; text: string; noReply: boolean }): State {
+  return {
+    ...state,
+    hrMessages: [
+      ...state.hrMessages,
+      { id: `m${state.hrMessages.length + 1}`, date: DEMO_TODAY, title: t.title, body: t.text, noReplyNeeded: t.noReply },
+    ],
+  };
+}
 const logMeeting = (state: State, entry: MeetingLog): State => ({ ...state, meetingLog: [...state.meetingLog, entry] });
 
 function withMessage(state: State, from: MeetingKind, body: string, options?: string[]): State {
@@ -330,7 +343,7 @@ function reducer(state: State, action: Action): State {
       };
     }
     case "markCoordSeen":
-      return { ...state, coordSeen: state.coordInbox.length };
+      return { ...state, coordSeen: state.coordInbox.length, personHrSeen: state.hrMessages.length };
     case "toggleRecoveryCheck":
       return {
         ...state,
@@ -349,7 +362,8 @@ function reducer(state: State, action: Action): State {
       if (state.prepPath === "self" && state.prepConds.selfReport && state.selfReports.length === 0) return state;
       return { ...state, companyMeeting: { status: "applied" } };
     case "scheduleCompanyMeeting":
-      return { ...state, companyMeeting: { status: "scheduled", date: action.date } };
+      // 日を決めたら、本人の「連絡」に日程のお知らせが届く
+      return withHrMessage({ ...state, companyMeeting: { status: "scheduled", date: action.date } }, HR.companyNotifyTemplate(jpDate(action.date)));
     case "finishCompanyMeeting":
       return state.companyMeeting
         ? logMeeting(
@@ -417,7 +431,7 @@ function reducer(state: State, action: Action): State {
     case "setReturnOrder":
       return { ...state, returnOrder: action.order };
     case "scheduleOccMeeting":
-      return { ...state, occMeeting: { status: "scheduled", date: action.date } };
+      return withHrMessage({ ...state, occMeeting: { status: "scheduled", date: action.date } }, HR.templatesPreReturn(jpDate(action.date))[0]);
     case "finishOccMeeting":
       return state.occMeeting
         ? {
@@ -617,7 +631,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v39";
+const STORAGE_KEY = "fukushoku-navi-demo-v40";
 const LOCAL_STORAGE_KEY = `${STORAGE_KEY}-window`;
 
 // ウィンドウごとに持つもの（見ている画面）。ほかのウィンドウとは合わせず、このウィンドウの中だけに保存する。
