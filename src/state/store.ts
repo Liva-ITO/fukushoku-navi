@@ -630,8 +630,11 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-// 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v40";
+// 保存の名前は固定する。項目を足しても、読みこむときに最初の状態で足りない項目が補われるので、
+// ページを更新しても途中から続けられる（番号を上げると、それまでの進み具合が消えてしまう）。
+// 形が合わなくなる変更のときだけ、名前を変える
+const STORAGE_KEY = "fukushoku-navi-demo";
+const PREVIOUS_KEY = "fukushoku-navi-demo-v40"; // 名前を固定する前の保存。あれば引きつぐ
 const LOCAL_STORAGE_KEY = `${STORAGE_KEY}-window`;
 
 // ウィンドウごとに持つもの（見ている画面）。ほかのウィンドウとは合わせず、このウィンドウの中だけに保存する。
@@ -652,9 +655,9 @@ function shared(state: State): Omit<State, LocalKey> {
 function load(): State {
   let s = initialState;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(PREVIOUS_KEY);
     if (raw) s = { ...s, ...JSON.parse(raw) };
-    const local = sessionStorage.getItem(LOCAL_STORAGE_KEY);
+    const local = sessionStorage.getItem(LOCAL_STORAGE_KEY) ?? sessionStorage.getItem(`${PREVIOUS_KEY}-window`);
     if (local) s = { ...s, ...JSON.parse(local) };
   } catch {
     // 保存できない環境でも、最初の状態で動かす
