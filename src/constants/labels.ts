@@ -549,7 +549,7 @@ export const HR = {
   todoA: {
     // 人事にできるのは、チケットを補充するかどうかを決めることだけ
     coordinatorRequested: (name: string) => `${name}との面談のリクエストがありました。チケットを補充すると受け付けられ、日程の調整に進みます`,
-    companyMeeting: "会社との面談の申し込みがありました",
+    companyMeeting: "準備期に進むための面談の申し込みがありました。日程を決めて、本人に知らせてください",
     psychMeeting: "復職コーディネーターとの面談の申し込みがありました（回復期への切り替えの確認）",
     psychDone: "復職コーディネーターとの面談が済みました。本人の希望が届いたら、回復期に進めるか決めてください",
     wishArrived: "本人から、これからの希望が届きました。回復期に進めるか決めてください",
@@ -560,19 +560,19 @@ export const HR = {
 
   // 面談は1件を1行にし、状態を印で出す
   meetingTitle: "面談",
-  meetingNote: "面談で話した内容は、会社には届きません。届くのは、申し込みと実施の事実だけです",
+  meetingNote: "支援機関との面談で話した内容は、この画面には出ません（本人と支援機関とのあいだのこと）。出るのは、申し込みと実施の事実だけです",
   meetingName: {
-    psych: "回復期に進む前の面談（復職コーディネーター）",
-    company: "会社との面談",
+    psych: "回復期に進むための面談（復職コーディネーター）",
+    company: "準備期に進むための面談（会社）",
     coordinator: (name: string) => `${name}との面談`,
     coordinatorRequest: (name: string) => `${name}との面談のリクエスト`,
     occ: "産業医との面談",
   },
   meetingStatus: {
-    applied: "申し込み",
+    applied: "申し込み済み",
     scheduled: (d: string) => `日程決定 ${d}`,
     done: "実施済み",
-    requested: "リクエスト",
+    requested: "リクエスト済み",
     notified: "日程を連絡済み",
     adjusting: "日程を調整中",
     decided: "日程決定",
@@ -601,7 +601,7 @@ export const HR = {
     done: "対応済み",
     decision: "会社の判断",
   },
-  hidden: "日記の中身・気分・休息モードかどうか・面談で話した内容は、会社には表示されません",
+  hidden: "本人の日記の中身・気分・休息モードかどうか・支援機関との面談で話した内容は、この画面には出ません",
 
   stageTitle: "段階",
   // 段階ごとに、人事がすることを一言で出す
