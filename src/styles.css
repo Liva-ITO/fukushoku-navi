@@ -363,9 +363,13 @@ button { font: inherit; cursor: pointer; }
 .other-places h2 { font-size: 15px; color: var(--muted); font-weight: 600; margin: 0 0 6px; }
 
 /* 人事画面の上のタブ */
-.hr-nav { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
-.hr-nav button { border: 0; background: none; padding: 8px 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.hr-nav button[aria-current="page"] { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+/* 見落とされないよう、ボタンとして見える形にする */
+.hr-nav { display: flex; gap: 8px; margin-bottom: 20px; }
+.hr-nav button {
+  border: 1px solid var(--accent); background: #fff; color: var(--accent);
+  padding: 8px 20px; border-radius: 999px; font-size: 15px; font-weight: 600;
+}
+.hr-nav button[aria-current="page"] { background: var(--accent); color: #fff; }
 
 /* データ分析（見本の数字） */
 .an-sample { margin: 2px 0 0; }
