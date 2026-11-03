@@ -47,18 +47,24 @@ export default function PersonApp({ state, dispatch }: Props) {
     }
   }, [state.stage, state.recoveryJourneySeen, dispatch]);
 
-  // デモ：申し込んだら、数秒後に支援機関から日程のお知らせが届く（本番では支援機関が送る）
-  // リクエストは、人事がチケットを補充するかどうかで結果が変わるので、人事の操作から届く
-  const coordWaiting = state.coordinatorMeeting === "applied" && state.coordinatorReport === null;
-  const psychWaiting = state.rivaMeetingApplied && !state.psychScheduled && !state.psychMeetingDone;
+  // デモ：申し込んだら、数秒後に支援機関から日程の候補が届く（本番では支援機関が送る）
+  // 「どれも難しい」を選んだときも、数秒後に別の候補が届く
+  // リクエストの最初の候補は、人事がチケットを補充するかどうかで変わるので、人事の操作から届く
+  const cs = state.coordSchedule;
+  const coordWaiting =
+    state.coordinatorReport === null &&
+    ((state.coordinatorMeeting === "applied" && cs === null) ||
+      (state.coordinatorMeeting !== null && cs !== null && !cs.offerId && !cs.chosen));
+  const ps = state.psychSchedule;
+  const psychWaiting = state.rivaMeetingApplied && !state.psychMeetingDone && (ps === null || (!ps.offerId && !ps.chosen));
   useEffect(() => {
     if (!coordWaiting) return;
-    const t = setTimeout(() => dispatch({ type: "coordinatorReport", report: "notified" }), REPLY_DELAY);
+    const t = setTimeout(() => dispatch({ type: "offerSlots", kind: "coordinator" }), REPLY_DELAY);
     return () => clearTimeout(t);
   }, [coordWaiting, dispatch]);
   useEffect(() => {
     if (!psychWaiting) return;
-    const t = setTimeout(() => dispatch({ type: "markPsychScheduled" }), REPLY_DELAY);
+    const t = setTimeout(() => dispatch({ type: "offerSlots", kind: "psych" }), REPLY_DELAY);
     return () => clearTimeout(t);
   }, [psychWaiting, dispatch]);
 

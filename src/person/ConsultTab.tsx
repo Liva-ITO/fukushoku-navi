@@ -1,9 +1,43 @@
 import { useEffect, useState, type Dispatch } from "react";
+import type { CoordMessage } from "../state/store";
 import { CONSULT } from "../constants/labels";
 import type { Action, State } from "../state/store";
 import { CoordinatorCard, PublicLines } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
+
+// 日程の候補から選ぶ。選べるのは、いちばん新しい候補だけ
+function SlotPicker({ m, state, dispatch }: { m: CoordMessage } & Props) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const schedule = m.from === "psych" ? state.psychSchedule : state.coordSchedule;
+  if (schedule?.offerId !== m.id) return null;
+  if (picked)
+    return (
+      <div className="confirm slot-confirm">
+        <p>{CONSULT.pickConfirm(picked)}</p>
+        <div className="confirm-actions">
+          <button className="btn-primary" onClick={() => dispatch({ type: "chooseSlot", kind: m.from, slot: picked })}>
+            {CONSULT.pickYes}
+          </button>
+          <button className="btn-quiet" onClick={() => setPicked(null)}>
+            {CONSULT.no}
+          </button>
+        </div>
+      </div>
+    );
+  return (
+    <div className="slots">
+      {m.options?.map((o) => (
+        <button key={o} className="btn-outline slot" onClick={() => setPicked(o)}>
+          {o}
+        </button>
+      ))}
+      <button className="btn-quiet slot-none" onClick={() => dispatch({ type: "noneFit", kind: m.from })}>
+        {CONSULT.noneFit}
+      </button>
+    </div>
+  );
+}
 
 // 相談：復職コーディネーターとの面談は、段階に関係なく、相談したいときに本人が選ぶ
 export default function ConsultTab({ state, dispatch }: Props) {
@@ -35,6 +69,7 @@ export default function ConsultTab({ state, dispatch }: Props) {
                     {isNew && <span className="new-tag">{CONSULT.newTag}</span>}
                   </p>
                   <p>{m.body}</p>
+                  {m.options && <SlotPicker m={m} state={state} dispatch={dispatch} />}
                 </li>
               ))}
           </ul>

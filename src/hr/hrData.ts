@@ -1,6 +1,6 @@
 import { HR, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import { DEMO_TODAY, OTHER_PEOPLE, PERSON, daysSince, type HrEvent, type HrTodo } from "../data/demo";
-import type { State } from "../state/store";
+import type { Schedule, State } from "../state/store";
 
 // 人事画面で使う形にそろえる。社員Aは本人画面の状態から作り、ほかの人は架空データをそのまま使う
 export type HrRow = {
@@ -34,7 +34,7 @@ function todosOf(state: State): HrTodo[] {
   else if (state.stage === "acute" && state.rivaMeetingApplied) at("a-psych", HR.todoA.psychMeeting);
   if (state.companyMeeting?.status === "applied") at("a-company", HR.todoA.companyMeeting);
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
-  if (state.coordinatorMeeting === "requested" && !state.coordinatorReport) at("a-coord-req", HR.todoA.coordinatorRequested);
+  if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested);
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
   if (state.sentToHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length));
   return t;
@@ -85,6 +85,12 @@ function eventsOf(state: State): HrEvent[] {
 export type Meeting = { key: "psych" | "company" | "coordinator" | "occ"; name: string; status: string };
 const monthDay = (d: string) => d.slice(5).replace("-", "/");
 
+// 会社に伝えるのは、日程を調整中か・決まったかの事実だけ（日にちは出さない）
+function scheduleStatus(s: Schedule | null): string | null {
+  if (!s) return null;
+  return s.chosen ? HR.meetingStatus.decided : HR.meetingStatus.adjusting;
+}
+
 export function meetingsOf(state: State): Meeting[] {
   const m: Meeting[] = [];
   const st = HR.meetingStatus;
@@ -92,7 +98,7 @@ export function meetingsOf(state: State): Meeting[] {
     m.push({
       key: "psych",
       name: HR.meetingName.psych,
-      status: state.psychMeetingDone ? st.done : state.psychScheduled ? st.notified : st.applied,
+      status: state.psychMeetingDone ? st.done : scheduleStatus(state.psychSchedule) ?? st.applied,
     });
   const c = state.companyMeeting;
   if (c)
@@ -107,7 +113,7 @@ export function meetingsOf(state: State): Meeting[] {
     m.push({
       key: "coordinator",
       name: HR.meetingName.coordinator,
-      status: state.coordinatorReport === "done" ? st.done : state.coordinatorReport === "notified" ? st.notified : st.applied,
+      status: state.coordinatorReport === "done" ? st.done : scheduleStatus(state.coordSchedule) ?? st.applied,
     });
   if (state.coordinatorMeeting === "requested")
     m.push({
@@ -116,11 +122,9 @@ export function meetingsOf(state: State): Meeting[] {
       status:
         state.coordinatorReport === "done"
           ? st.done
-          : state.coordinatorReport === "notified"
-            ? st.notified
-            : state.coordinatorReport === "declined"
-              ? st.declined
-              : st.requested,
+          : state.coordinatorReport === "declined"
+            ? st.declined
+            : scheduleStatus(state.coordSchedule) ?? st.requested,
     });
   return m;
 }

@@ -22,6 +22,7 @@ export function CoordinatorCard({
 }) {
   const hasTickets = state.ticketsLeft > 0;
   const report = state.coordinatorReport;
+  const cs = state.coordSchedule;
   // 面談が済んだ・今回は難しいと連絡があったときは、また申し込める
   const open = state.coordinatorMeeting === null || report === "done" || report === "declined";
   const unread = state.coordInbox.length - state.coordSeen;
@@ -45,9 +46,10 @@ export function CoordinatorCard({
     <section className="card">
       <h2>{title}</h2>
       {newLink}
-      {!open && report === "notified" && <p className="done-note">{showNewLink ? CONSULT.notifiedNote : CONSULT.notifiedNoteHere}</p>}
-      {!open && report === null && state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
-      {!open && report === null && state.coordinatorMeeting === "requested" && (
+      {!open && cs?.chosen && <p className="done-note">{CONSULT.decidedNote(cs.chosen)}</p>}
+      {!open && cs?.offerId && <p className="done-note">{showNewLink ? CONSULT.offeredNote : CONSULT.offeredNoteHere}</p>}
+      {!open && !cs?.chosen && !cs?.offerId && state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
+      {!open && !cs && state.coordinatorMeeting === "requested" && (
         <div className="confirm">
           <p className="done-note">{CONSULT.requestedTitle}</p>
           {CONSULT.requestedLines.map((l) => (

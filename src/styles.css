@@ -416,3 +416,9 @@ button { font: inherit; cursor: pointer; }
 .inbox li p { margin: 0; }
 .inbox-head { font-size: 13px; color: var(--muted); }
 .inbox-new .inbox-head { color: var(--accent); font-weight: 600; }
+
+/* 日程の候補から選ぶ */
+.slots { display: grid; gap: 8px; margin-top: 10px; }
+.slot { width: 100%; text-align: left; border-radius: 10px; }
+.slot-none { justify-self: start; padding-left: 0; }
+.slot-confirm { margin-top: 10px; }
