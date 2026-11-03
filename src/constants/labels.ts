@@ -339,6 +339,7 @@ export const HR = {
     rework: "リワーク",
     news: "新着",
   },
+  sortHint: "見出しを押すと並び替えられます",
   days: (n: number) => `${n}日`,
   newsCount: (n: number) => `${n}件`,
   newsNote: "新着：本人から届いた連絡・提出物・申し込みのうち、まだ開いて見ていないもの",

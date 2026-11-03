@@ -93,7 +93,21 @@ function StageTag({ stage }: { stage: Stage }) {
   return <span className={`stage-tag stage-${stage}`}>{STAGE_LABELS[stage]}</span>;
 }
 
-function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
+function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) {
+  // 見出しを押すと並び替え。もう一度押すと逆順
+  const [sort, setSort] = useState<{ col: SortCol; asc: boolean } | null>(null);
+  const rows = sort ? sortRows(unsorted, sort.col, sort.asc) : unsorted;
+  const th = (col: SortCol) => {
+    const on = sort?.col === col;
+    return (
+      <th aria-sort={on ? (sort.asc ? "ascending" : "descending") : "none"}>
+        <button className="th-sort" onClick={() => setSort({ col, asc: on ? !sort.asc : true })}>
+          {HR.cols[col]}
+          <span className="sort-mark">{on ? (sort.asc ? "▲" : "▼") : "↕"}</span>
+        </button>
+      </th>
+    );
+  };
   const todos = sortTodos(rows.flatMap((r) => r.todos.map((todo) => ({ row: r, todo }))));
   const open = (r: HrRow) => dispatch({ type: "hrSelect", id: r.id, incoming: r.incoming, prevSeen: r.seen });
 
@@ -155,13 +169,13 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
         <table className="hr-table">
           <thead>
             <tr>
-              <th>{HR.cols.name}</th>
-              <th>{HR.cols.dept}</th>
-              <th>{HR.cols.stage}</th>
-              <th>{HR.cols.days}</th>
-              <th>{HR.cols.end}</th>
-              <th>{HR.cols.rework}</th>
-              <th>{HR.cols.news}</th>
+              {th("name")}
+              {th("dept")}
+              {th("stage")}
+              {th("days")}
+              {th("end")}
+              {th("rework")}
+              {th("news")}
             </tr>
           </thead>
           <tbody>
@@ -183,6 +197,7 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
           </tbody>
         </table>
         </div>
+        <p className="muted table-note">{HR.sortHint}</p>
         <p className="muted table-note">{HR.newsNote}</p>
       </section>
 
@@ -204,6 +219,36 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
       <CompanySettings state={state} dispatch={dispatch} />
     </>
   );
+}
+
+type SortCol = keyof typeof HR.cols;
+
+// 段階は流れの順（急性期→復職）、日数と新着は数で比べる
+function sortRows(rows: HrRow[], col: SortCol, asc: boolean): HrRow[] {
+  const key = (r: HrRow): string | number => {
+    switch (col) {
+      case "name":
+        return r.name;
+      case "dept":
+        return r.dept;
+      case "stage":
+        return STAGES.indexOf(r.stage);
+      case "days":
+        return daysSince(r.leaveStart);
+      case "end":
+        return r.leaveEnd;
+      case "rework":
+        return r.rework;
+      case "news":
+        return r.news;
+    }
+  };
+  return [...rows].sort((a, b) => {
+    const x = key(a);
+    const y = key(b);
+    const c = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y), "ja");
+    return asc ? c : -c;
+  });
 }
 
 function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
