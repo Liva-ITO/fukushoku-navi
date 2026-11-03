@@ -107,10 +107,11 @@ function Tile({ label, value, unit, note }: { label: string; value: number; unit
 }
 
 // 横棒1本。数字は棒の外に文字で出す（色だけに頼らない）
+// 割合には人数を添える（10人中9人か、2人中2人かで、説明の重みが違うため）
 function Bar({ label, value, max, unit, detail }: { label: string; value: number; max: number; unit: string; detail?: string }) {
   const tip = `${label}：${value}${unit}${detail ? `（${detail}）` : ""}`;
   return (
-    <div className="an-bar" title={tip}>
+    <div className={`an-bar${detail ? " an-bar-detail" : ""}`} title={tip}>
       <span className="an-bar-label">{label}</span>
       <span className="an-track">
         <span className="an-fill" style={{ width: `${(value / max) * 100}%` }} />
@@ -118,6 +119,7 @@ function Bar({ label, value, max, unit, detail }: { label: string; value: number
       <span className="an-bar-value">
         {value}
         {unit}
+        {detail && <span className="an-bar-count">（{detail}）</span>}
       </span>
     </div>
   );
