@@ -428,6 +428,9 @@ details[open] > summary::after { content: "▲"; }
 }
 .new-link { display: flex; align-items: center; gap: 6px; border: 0; background: var(--accent-soft); color: var(--text); border-radius: 10px; padding: 8px 12px; margin: 4px 0 10px; width: 100%; text-align: left; }
 .new-link .tab-badge { margin-left: 0; }
+.new-link { min-height: 44px; }
+.new-link::after { content: "›"; margin-left: auto; font-size: 20px; line-height: 1; color: var(--accent); }
+.home > .new-link { margin: 0 0 14px; }
 .inbox { list-style: none; margin: 8px 0 0; padding: 0; }
 .inbox li { padding: 10px 0; border-top: 1px solid var(--line); }
 .inbox li p { margin: 0; }

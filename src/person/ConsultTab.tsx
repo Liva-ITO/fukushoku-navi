@@ -51,7 +51,7 @@ export default function ConsultTab({ state, dispatch }: Props) {
   return (
     <div>
       <h1 className="page-title">{CONSULT.title}</h1>
-      <CoordinatorCard state={state} dispatch={dispatch} showNewLink={false} />
+      <CoordinatorCard state={state} dispatch={dispatch} showNewLink={false} inConsult />
 
       {/* 支援機関からのお知らせ。人事とのやり取り（連絡タブ）とは場所を分ける */}
       {count > 0 && (

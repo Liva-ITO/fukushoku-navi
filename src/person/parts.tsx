@@ -12,6 +12,7 @@ export function CoordinatorCard({
   note = CONSULT.coordinatorNote,
   publicWhenEmpty = false,
   showNewLink = true,
+  inConsult = false,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
@@ -19,20 +20,14 @@ export function CoordinatorCard({
   note?: string;
   publicWhenEmpty?: boolean;
   showNewLink?: boolean;
+  inConsult?: boolean; // 相談タブの中なら「下の『お知らせ』」と案内する
 }) {
   const hasTickets = state.ticketsLeft > 0;
   const report = state.coordinatorReport;
   const cs = state.coordSchedule;
   // 面談が済んだ・今回は難しいと連絡があったときは、また申し込める
   const open = state.coordinatorMeeting === null || report === "done" || report === "declined";
-  const unread = state.coordInbox.length - state.coordSeen;
-  // 見逃さないよう、新しいお知らせはホームからも相談タブに行けるようにする
-  const newLink = showNewLink && unread > 0 && (
-    <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>
-      <span className="tab-badge">{unread}</span>
-      {CONSULT.newLink(unread)}
-    </button>
-  );
+  const newLink = showNewLink && <NewNoticeLink state={state} dispatch={dispatch} />;
   if (publicWhenEmpty && !hasTickets && open) {
     return (
       <section className="card">
@@ -47,7 +42,7 @@ export function CoordinatorCard({
       <h2>{title}</h2>
       {newLink}
       {!open && cs?.chosen && <p className="done-note">{CONSULT.decidedNote(cs.chosen)}</p>}
-      {!open && cs?.offerId && <p className="done-note">{showNewLink ? CONSULT.offeredNote : CONSULT.offeredNoteHere}</p>}
+      {!open && cs?.offerId && <p className="done-note">{inConsult ? CONSULT.offeredNoteHere : CONSULT.offeredNote}</p>}
       {!open && !cs?.chosen && !cs?.offerId && state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
       {!open && !cs && state.coordinatorMeeting === "requested" && (
         <div className="confirm">
@@ -75,6 +70,18 @@ export function CoordinatorCard({
         </>
       )}
     </section>
+  );
+}
+
+// 支援機関からの新しいお知らせ。見逃さないよう、ホームからも相談タブに行けるようにする
+export function NewNoticeLink({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
+  const unread = state.coordInbox.length - state.coordSeen;
+  if (unread <= 0) return null;
+  return (
+    <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>
+      <span className="tab-badge">{unread}</span>
+      {CONSULT.newLink(unread)}
+    </button>
   );
 }
 

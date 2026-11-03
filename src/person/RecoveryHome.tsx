@@ -1,8 +1,8 @@
 import { useState, type Dispatch } from "react";
-import { RECOVERY, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
+import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
-import { ConfirmButton, HrNoticeFold } from "./parts";
+import { ConfirmButton, CoordinatorCard, HrNoticeFold, NewNoticeLink } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -43,6 +43,8 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       )}
 
       <HrNoticeFold messages={state.hrMessages} />
+      {/* 回復期のホームは長いので、新しいお知らせは上にも出す */}
+      <NewNoticeLink state={state} dispatch={dispatch} />
 
       <section className="card">
         <h2>{RECOVERY.pathTitle}</h2>
@@ -142,6 +144,9 @@ export default function RecoveryHome({ state, dispatch }: Props) {
           </div>
         )}
       </section>
+
+      {/* 相談は段階に関係なく、相談したいときに選ぶ（急性期・休息モードと同じ枠） */}
+      <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} showNewLink={false} />
     </div>
   );
 }
