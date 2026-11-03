@@ -11,18 +11,32 @@ export function CoordinatorCard({
   title = CONSULT.coordinatorTitle,
   note = CONSULT.coordinatorNote,
   publicWhenEmpty = false,
+  showNewLink = true,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
   title?: string;
   note?: string;
   publicWhenEmpty?: boolean;
+  showNewLink?: boolean;
 }) {
   const hasTickets = state.ticketsLeft > 0;
-  if (publicWhenEmpty && !hasTickets && state.coordinatorMeeting === null) {
+  const report = state.coordinatorReport;
+  // 面談が済んだ・今回は難しいと連絡があったときは、また申し込める
+  const open = state.coordinatorMeeting === null || report === "done" || report === "declined";
+  const unread = state.coordInbox.length - state.coordSeen;
+  // 見逃さないよう、新しいお知らせはホームからも相談タブに行けるようにする
+  const newLink = showNewLink && unread > 0 && (
+    <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>
+      <span className="tab-badge">{unread}</span>
+      {CONSULT.newLink(unread)}
+    </button>
+  );
+  if (publicWhenEmpty && !hasTickets && open) {
     return (
       <section className="card">
         <h2>{title}</h2>
+        {newLink}
         <PublicLines />
       </section>
     );
@@ -30,8 +44,10 @@ export function CoordinatorCard({
   return (
     <section className="card">
       <h2>{title}</h2>
-      {state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
-      {state.coordinatorMeeting === "requested" && (
+      {newLink}
+      {!open && report === "notified" && <p className="done-note">{showNewLink ? CONSULT.notifiedNote : CONSULT.notifiedNoteHere}</p>}
+      {!open && report === null && state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
+      {!open && report === null && state.coordinatorMeeting === "requested" && (
         <div className="confirm">
           <p className="done-note">{CONSULT.requestedTitle}</p>
           {CONSULT.requestedLines.map((l) => (
@@ -41,7 +57,7 @@ export function CoordinatorCard({
           ))}
         </div>
       )}
-      {state.coordinatorMeeting === null && (
+      {open && (
         <>
           <p className="muted">{note}</p>
           <div className="stack">

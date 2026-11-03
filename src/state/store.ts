@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import { ACUTE, type PrepPath, type Stage, type Tab } from "../constants/labels";
+import { ACUTE, CONSULT, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
   INITIAL_DIARY,
@@ -13,6 +13,8 @@ import {
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
 export type View = "person" | "hr";
+// 支援機関から本人に届くお知らせ（相談タブ）。会社には見えない
+export type CoordMessage = { id: string; date: string; from: "coordinator" | "psych"; body: string };
 
 export type ReturnOrder = "occFirst" | "doctorFirst";
 
@@ -28,6 +30,7 @@ export type State = {
   rivaMeetingApplied: boolean;
   // 急性期→回復期に必須の、心理の専門家との面談が済んだか（人事が記録する）
   psychMeetingDone: boolean;
+  psychScheduled: boolean;
   recoveryIntroSeen: boolean;
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
@@ -38,6 +41,8 @@ export type State = {
   coordinatorMeeting: "applied" | "requested" | null;
   // 支援機関から会社に届く報告。伝えるのは、実施したか・日程を連絡したかだけ（話した内容は届かない）
   coordinatorReport: "done" | "notified" | "declined" | null;
+  coordInbox: CoordMessage[];
+  coordSeen: number; // 本人が相談タブで見た件数（①の印を消すため）
   // 復職までの手順。順番は会社の設定（産業医との面談を先にするか、主治医の診断書を先にするか）
   returnOrder: ReturnOrder;
   occMeeting: { status: "scheduled" | "done"; date: string } | null;
@@ -73,6 +78,7 @@ export const initialState: State = {
   acuteChecks: ACUTE.checkItems.map(() => false),
   rivaMeetingApplied: false,
   psychMeetingDone: false,
+  psychScheduled: false,
   recoveryIntroSeen: false,
   recoveryJourneySeen: false,
   prepPath: null,
@@ -80,6 +86,8 @@ export const initialState: State = {
   ticketsLeft: DEMO_TICKETS,
   coordinatorMeeting: null,
   coordinatorReport: null,
+  coordInbox: [],
+  coordSeen: 0,
   returnOrder: "occFirst",
   occMeeting: null,
   doctorNote: false,
@@ -104,6 +112,8 @@ export type Action =
   | { type: "toggleAcuteCheck"; index: number }
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
+  | { type: "markPsychScheduled" }
+  | { type: "markCoordSeen" }
   | { type: "closeRecoveryIntro" }
   | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
@@ -134,6 +144,11 @@ export type Action =
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
 
+function withMessage(state: State, from: CoordMessage["from"], body: string): State {
+  const id = `c${state.coordInbox.length + 1}`;
+  return { ...state, coordInbox: [...state.coordInbox, { id, date: DEMO_TODAY, from, body }] };
+}
+
 const toggleAt = (list: boolean[], index: number) => list.map((v, i) => (i === index ? !v : v));
 
 function reducer(state: State, action: Action): State {
@@ -151,7 +166,7 @@ function reducer(state: State, action: Action): State {
         restMode: restAllowed && state.restMode,
         tab: "home",
         // 急性期に戻したら、回復期に進むための面談はもう一度
-        ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false } : {}),
+        ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false, psychScheduled: false } : {}),
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
           ? { occMeeting: null, doctorNote: false, returnPlan: null, returnDecision: null }
@@ -170,6 +185,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, rivaMeetingApplied: true };
     case "markPsychDone":
       return { ...state, psychMeetingDone: true };
+    case "markPsychScheduled":
+      return { ...withMessage(state, "psych", CONSULT.msgScheduled), psychScheduled: true };
+    case "markCoordSeen":
+      return { ...state, coordSeen: state.coordInbox.length };
     case "closeRecoveryIntro":
       return { ...state, recoveryIntroSeen: true };
     case "markRecoveryJourneySeen":
@@ -182,8 +201,13 @@ function reducer(state: State, action: Action): State {
       return { ...state, companyMeeting: { status: "scheduled", date: action.date } };
     case "finishCompanyMeeting":
       return state.companyMeeting ? { ...state, companyMeeting: { ...state.companyMeeting, status: "done" } } : state;
-    case "coordinatorReport":
-      return { ...state, coordinatorReport: action.report };
+    case "coordinatorReport": {
+      // 日程の連絡と、難しいという連絡は、本人の相談タブにお知らせとして届く
+      const s = { ...state, coordinatorReport: action.report };
+      if (action.report === "notified") return withMessage(s, "coordinator", CONSULT.msgScheduled);
+      if (action.report === "declined") return withMessage(s, "coordinator", CONSULT.msgDeclined);
+      return s;
+    }
     case "setTicketsLeft":
       return {
         ...state,
@@ -195,7 +219,11 @@ function reducer(state: State, action: Action): State {
       // 待っているリクエストは、補充したら受け付ける（チケットを1枚使う）
       const waiting = state.coordinatorMeeting === "requested" && state.coordinatorReport === null;
       return waiting
-        ? { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS - 1, coordinatorMeeting: "applied" }
+        ? {
+            ...withMessage(state, "coordinator", CONSULT.msgAccepted),
+            ticketsLeft: state.ticketsLeft + REFILL_TICKETS - 1,
+            coordinatorMeeting: "applied",
+          }
         : { ...state, ticketsLeft: state.ticketsLeft + REFILL_TICKETS };
     }
     case "askCoordinator":
@@ -290,7 +318,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v16";
+const STORAGE_KEY = "fukushoku-navi-demo-v17";
 
 function load(): State {
   try {

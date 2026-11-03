@@ -318,7 +318,8 @@ function Meetings({ state, dispatch }: Props) {
   const list = meetingsOf(state);
   if (list.length === 0) return null;
   const c = state.companyMeeting;
-  const coordOpen = state.coordinatorMeeting !== null && state.coordinatorReport === null;
+  // 支援機関の報告：日程を連絡した → 実施した（リクエストは、難しいと連絡することもある）
+  const coordOpen = state.coordinatorMeeting !== null && (state.coordinatorReport === null || state.coordinatorReport === "notified");
 
   return (
     <section className="hr-card">
@@ -363,7 +364,7 @@ function Meetings({ state, dispatch }: Props) {
       {coordOpen && (
         <div className="meeting-action demo-report">
           <span className="muted">{HR.demoReport}</span>
-          {state.coordinatorMeeting === "applied" ? (
+          {state.coordinatorReport === "notified" ? (
             <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "coordinatorReport", report: "done" })}>
               {HR.reportDone}
             </button>
@@ -372,9 +373,11 @@ function Meetings({ state, dispatch }: Props) {
               <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "coordinatorReport", report: "notified" })}>
                 {HR.reportNotified}
               </button>
-              <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "coordinatorReport", report: "declined" })}>
-                {HR.reportDeclined}
-              </button>
+              {state.coordinatorMeeting === "requested" && (
+                <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "coordinatorReport", report: "declined" })}>
+                  {HR.reportDeclined}
+                </button>
+              )}
             </>
           )}
         </div>
@@ -634,9 +637,15 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
           {state.rivaMeetingApplied && !state.psychMeetingDone && (
             <div className="meeting-action demo-report">
               <span className="muted">{HR.demoReport}</span>
-              <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "markPsychDone" })}>
-                {HR.reportDone}
-              </button>
+              {state.psychScheduled ? (
+                <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "markPsychDone" })}>
+                  {HR.reportDone}
+                </button>
+              ) : (
+                <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "markPsychScheduled" })}>
+                  {HR.reportScheduled}
+                </button>
+              )}
             </div>
           )}
         </div>

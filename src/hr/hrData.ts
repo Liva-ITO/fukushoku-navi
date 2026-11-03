@@ -89,7 +89,11 @@ export function meetingsOf(state: State): Meeting[] {
   const m: Meeting[] = [];
   const st = HR.meetingStatus;
   if (state.rivaMeetingApplied)
-    m.push({ key: "psych", name: HR.meetingName.psych, status: state.psychMeetingDone ? st.done : st.applied });
+    m.push({
+      key: "psych",
+      name: HR.meetingName.psych,
+      status: state.psychMeetingDone ? st.done : state.psychScheduled ? st.notified : st.applied,
+    });
   const c = state.companyMeeting;
   if (c)
     m.push({
@@ -100,13 +104,23 @@ export function meetingsOf(state: State): Meeting[] {
   const o = state.occMeeting;
   if (o) m.push({ key: "occ", name: HR.meetingName.occ, status: o.status === "done" ? st.done : st.scheduled(monthDay(o.date)) });
   if (state.coordinatorMeeting === "applied")
-    m.push({ key: "coordinator", name: HR.meetingName.coordinator, status: state.coordinatorReport === "done" ? st.done : st.applied });
+    m.push({
+      key: "coordinator",
+      name: HR.meetingName.coordinator,
+      status: state.coordinatorReport === "done" ? st.done : state.coordinatorReport === "notified" ? st.notified : st.applied,
+    });
   if (state.coordinatorMeeting === "requested")
     m.push({
       key: "coordinator",
       name: HR.meetingName.coordinatorRequest,
       status:
-        state.coordinatorReport === "notified" ? st.notified : state.coordinatorReport === "declined" ? st.declined : st.requested,
+        state.coordinatorReport === "done"
+          ? st.done
+          : state.coordinatorReport === "notified"
+            ? st.notified
+            : state.coordinatorReport === "declined"
+              ? st.declined
+              : st.requested,
     });
   return m;
 }
