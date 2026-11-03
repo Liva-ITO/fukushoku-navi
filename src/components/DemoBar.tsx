@@ -37,6 +37,8 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
         </button>
       </div>
 
+      {/* 人事の画面では、段階は人事の画面の中で進める。デモの段階の切り替えは本人の画面のときだけ */}
+      {state.view === "person" && (
       <label className="demo-field">
         {DEMO_BAR.stage}
         <select
@@ -50,8 +52,9 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
           ))}
         </select>
       </label>
+      )}
 
-      {restAllowed && (
+      {state.view === "person" && restAllowed && (
         <div className="seg" role="group" aria-label={DEMO_BAR.restMode}>
           <span className="seg-label">{DEMO_BAR.restMode}</span>
           <button aria-pressed={state.restMode} onClick={() => dispatch({ type: "setRestMode", on: true })}>
