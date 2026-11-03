@@ -14,6 +14,8 @@ import {
 // 状態はブラウザの中だけに置く（サーバーには送らない）
 export type View = "person" | "hr";
 
+export type ReturnOrder = "occFirst" | "doctorFirst";
+
 export type State = {
   view: View;
   stage: Stage;
@@ -36,6 +38,11 @@ export type State = {
   coordinatorMeeting: "applied" | "requested" | null;
   // 支援機関から会社に届く報告。伝えるのは、実施したか・日程を連絡したかだけ（話した内容は届かない）
   coordinatorReport: "done" | "notified" | "declined" | null;
+  // 復職までの手順。順番は会社の設定（産業医との面談を先にするか、主治医の診断書を先にするか）
+  returnOrder: ReturnOrder;
+  occMeeting: { status: "scheduled" | "done"; date: string } | null;
+  doctorNote: boolean;
+  returnPlan: { date: string; accommodation: string } | null;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
   // 人事画面で開いている人（null なら一覧）
@@ -68,6 +75,10 @@ export const initialState: State = {
   ticketsLeft: DEMO_TICKETS,
   coordinatorMeeting: null,
   coordinatorReport: null,
+  returnOrder: "occFirst",
+  occMeeting: null,
+  doctorNote: false,
+  returnPlan: null,
   diary: INITIAL_DIARY,
   sentToHr: [],
   hrSelected: null,
@@ -95,6 +106,12 @@ export type Action =
   | { type: "setTicketsLeft"; on: boolean }
   | { type: "refillTickets" }
   | { type: "askCoordinator" }
+  | { type: "setReturnOrder"; order: ReturnOrder }
+  | { type: "scheduleOccMeeting"; date: string }
+  | { type: "finishOccMeeting" }
+  | { type: "receiveDoctorNote" }
+  | { type: "setReturnPlan"; date: string; accommodation: string }
+  | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
   | { type: "sendHrMessage"; body: string; noReplyNeeded: boolean }
@@ -120,6 +137,10 @@ function reducer(state: State, action: Action): State {
         tab: "home",
         // 急性期に戻したら、回復期に進むための面談はもう一度
         ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false } : {}),
+        // 準備期より前に戻したら、復職までの手順はやり直し
+        ...(action.stage === "acute" || action.stage === "recovery"
+          ? { occMeeting: null, doctorNote: false, returnPlan: null }
+          : {}),
       };
     }
     case "setRestMode":
@@ -166,6 +187,20 @@ function reducer(state: State, action: Action): State {
       return state.ticketsLeft > 0
         ? { ...state, coordinatorMeeting: "applied", coordinatorReport: null, ticketsLeft: state.ticketsLeft - 1 }
         : { ...state, coordinatorMeeting: "requested", coordinatorReport: null };
+    case "setReturnOrder":
+      return { ...state, returnOrder: action.order };
+    case "scheduleOccMeeting":
+      return { ...state, occMeeting: { status: "scheduled", date: action.date } };
+    case "finishOccMeeting":
+      return state.occMeeting ? { ...state, occMeeting: { ...state.occMeeting, status: "done" } } : state;
+    case "receiveDoctorNote":
+      return { ...state, doctorNote: true };
+    case "setReturnPlan":
+      return { ...state, returnPlan: { date: action.date, accommodation: action.accommodation } };
+    case "confirmReturn":
+      // 3つの手順がそろっているときだけ、復職（見守りモード）に進める
+      if (state.occMeeting?.status !== "done" || !state.doctorNote || !state.returnPlan) return state;
+      return reducer(state, { type: "setStage", stage: "afterReturn" });
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
     case "sendToHr":
@@ -208,7 +243,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v13";
+const STORAGE_KEY = "fukushoku-navi-demo-v14";
 
 function load(): State {
   try {

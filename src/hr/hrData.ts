@@ -56,19 +56,27 @@ const byDate = (events: HrEvent[]) =>
 function eventsOf(state: State): HrEvent[] {
   const today = DEMO_TODAY;
   // 面談は1件を1行にし、状態の印を変えていく
-  const meetings: HrEvent[] = meetingsOf(state).map((m) => ({ date: today, kind: "meeting", body: m.name, status: m.status }));
+  const meetings: HrEvent[] = meetingsOf(state).map((m) => ({
+    date: today,
+    kind: "meeting",
+    body: m.name,
+    status: m.status,
+    byHr: m.key === "occ",
+  }));
 
   return byDate([
-    ...state.stageHistory.map((s) => ({ date: s.date, kind: "stage" as const, body: STAGE_LABELS[s.stage] })),
     ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.body, noReply: m.noReplyNeeded })),
     ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body })),
     ...meetings,
+    ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
+    // 同じ日なら、段階の切り替えは面談や提出のあと
+    ...state.stageHistory.map((s) => ({ date: s.date, kind: "stage" as const, body: STAGE_LABELS[s.stage] })),
     ...doneEvents(state, PERSON.id),
   ]);
 }
 
 // 社員Aの面談と、いまの状態
-export type Meeting = { key: "psych" | "company" | "coordinator"; name: string; status: string };
+export type Meeting = { key: "psych" | "company" | "coordinator" | "occ"; name: string; status: string };
 const monthDay = (d: string) => d.slice(5).replace("-", "/");
 
 export function meetingsOf(state: State): Meeting[] {
@@ -83,6 +91,8 @@ export function meetingsOf(state: State): Meeting[] {
       name: HR.meetingName.company,
       status: c.status === "done" ? st.done : c.status === "scheduled" ? st.scheduled(monthDay(c.date ?? "")) : st.applied,
     });
+  const o = state.occMeeting;
+  if (o) m.push({ key: "occ", name: HR.meetingName.occ, status: o.status === "done" ? st.done : st.scheduled(monthDay(o.date)) });
   if (state.coordinatorMeeting === "applied")
     m.push({ key: "coordinator", name: HR.meetingName.coordinator, status: state.coordinatorReport === "done" ? st.done : st.applied });
   if (state.coordinatorMeeting === "requested")
@@ -139,7 +149,8 @@ export function hrRows(state: State): HrRow[] {
 }
 
 // 期限が近いもの → 新しく届いたもの、の順
-export const isIncoming = (e: HrEvent) => e.kind === "fromPerson" || e.kind === "submit" || e.kind === "meeting";
+export const isIncoming = (e: HrEvent) =>
+  !e.byHr && (e.kind === "fromPerson" || e.kind === "submit" || e.kind === "meeting");
 
 export function sortTodos<T extends { todo: HrTodo }>(items: T[]): T[] {
   return [...items].sort((x, y) => {

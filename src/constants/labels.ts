@@ -32,6 +32,8 @@ export const COMMON = {
   newNotice: "新しいお知らせがあります",
   noReplyNeeded: "返信は不要です",
   comingSoon: "この画面は、これから作ります",
+  // 人事が復職を確定したら、本人の画面に出す
+  returnDay: (d: string) => `復職日は、${d}です`,
 };
 
 export const ACUTE = {
@@ -341,6 +343,7 @@ export const HR = {
     company: "会社との面談",
     coordinator: "復職コーディネーターとの面談",
     coordinatorRequest: "復職コーディネーターとの面談のリクエスト",
+    occ: "産業医との面談",
   },
   meetingStatus: {
     applied: "申し込み",
@@ -395,7 +398,36 @@ export const HR = {
     `${name}さんの段階を「${from}」から「${to}」に戻します。戻す前に、本人と面談して理由を説明してください。`,
   backYes: "戻す",
   confirmNo: "やめておく",
-  preReturnSoon: "復職を確定する操作は、これから作ります",
+  // 準備期：復職までの手順（職場復帰支援の手引き 第2〜第4ステップ）。どの手順からでも押せ、確定だけは全部そろってから
+  returnTitle: "復職までの手順",
+  returnOrderLabel: "会社の設定：手順の順番",
+  returnOrders: {
+    occFirst: "産業医との面談 → 主治医の診断書",
+    doctorFirst: "主治医の診断書 → 産業医との面談",
+  },
+  returnOrderNote: {
+    occFirst: "産業医との面談で、職場で求められることを確かめてから、本人に主治医の診断書をお願いしてもらいます",
+    doctorFirst: "本人から主治医の診断書を受け取ってから、産業医と面談します",
+  },
+  stepOcc: "産業医との面談",
+  stepOccNote: "産業医がいない会社は、会社が決めた担当者との面談",
+  stepDoctor: "主治医の診断書（復職できるという判断）",
+  doctorReceived: "受け取った",
+  stepPlan: "復職日と配慮",
+  returnDate: "復職日",
+  accommodation: "就業上の配慮（書かなくてもかまいません）",
+  accommodationExample: "例：最初の1か月は残業なし",
+  savePlan: "決める",
+  editPlan: "変える",
+  stepDone: "済み",
+  stepNotYet: "まだ",
+  confirmReturnLabel: "復職を確定する",
+  confirmReturnLocked: "3つの手順がそろうと押せます",
+  confirmReturn: (name: string, date: string) =>
+    `${name}さんの復職を確定します。復職日は${date}です。確定すると、段階が「復職（見守りモード）」に変わり、本人の画面に復職日が出ます。`,
+  confirmReturnYes: "確定する",
+  afterReturnDate: (d: string) => `復職日：${d}`,
+  afterReturnAccommodation: (t: string) => `就業上の配慮：${t}`,
   stageDemoOnly: "デモでは、社員Aだけ操作できます",
 
   // 送り先の取り違えを防ぐため、見出しと確認に名前を出す

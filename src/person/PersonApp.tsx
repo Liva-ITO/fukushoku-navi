@@ -13,10 +13,23 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 
 const TAB_ORDER: Tab[] = ["home", "record", "contact", "contents", "consult"];
 
+// 2026-11-10 → 11月10日
+const japaneseDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
+
 function Home({ state, dispatch }: Props) {
   if (state.restMode) return <RestHome state={state} dispatch={dispatch} />;
   if (state.stage === "acute") return <AcuteHome state={state} dispatch={dispatch} />;
   if (state.stage === "recovery") return <RecoveryHome state={state} dispatch={dispatch} />;
+  // 復職後は、人事が確定した復職日だけ先に出す（見守りモードの画面はこれから）
+  if (state.stage === "afterReturn" && state.returnPlan)
+    return (
+      <>
+        <section className="card">
+          <p className="done-note">{COMMON.returnDay(japaneseDate(state.returnPlan.date))}</p>
+        </section>
+        <p className="placeholder">{COMMON.comingSoon}</p>
+      </>
+    );
   return <p className="placeholder">{COMMON.comingSoon}</p>;
 }
 

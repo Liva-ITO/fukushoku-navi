@@ -348,6 +348,154 @@ function Meetings({ state, dispatch }: Props) {
   );
 }
 
+// 準備期：復職までの手順。順番は会社の設定で並べ替えるだけで、どこからでも押せる
+function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
+  const [occDate, setOccDate] = useState("");
+  const [planDate, setPlanDate] = useState(state.returnPlan?.date ?? "");
+  const [accommodation, setAccommodation] = useState(state.returnPlan?.accommodation ?? "");
+  const [editing, setEditing] = useState(!state.returnPlan);
+  const occ = state.occMeeting;
+  const plan = state.returnPlan;
+  const ready = occ?.status === "done" && state.doctorNote && plan !== null;
+
+  const Status = ({ done }: { done: boolean }) => (
+    <span className={`status-tag${done ? " status-done" : ""}`}>{done ? HR.stepDone : HR.stepNotYet}</span>
+  );
+
+  const occStep = (
+    <li key="occ">
+      <p className="step-title">
+        {HR.stepOcc}
+        {occ?.status === "scheduled" ? (
+          <span className="status-tag">{HR.meetingStatus.scheduled(shortDate(occ.date).slice(5))}</span>
+        ) : (
+          <Status done={occ?.status === "done"} />
+        )}
+      </p>
+      <p className="muted">{HR.stepOccNote}</p>
+      {!occ && (
+        <div className="meeting-action">
+          <label className="muted">
+            {HR.companyDate}
+            <input type="date" min={DEMO_TODAY} value={occDate} onChange={(e) => setOccDate(e.target.value)} />
+          </label>
+          <button className="btn-outline btn-small" disabled={!occDate} onClick={() => dispatch({ type: "scheduleOccMeeting", date: occDate })}>
+            {HR.companySchedule}
+          </button>
+        </div>
+      )}
+      {occ?.status === "scheduled" && (
+        <div className="meeting-action">
+          <button className="btn-outline btn-small" onClick={() => dispatch({ type: "finishOccMeeting" })}>
+            {HR.companyDone}
+          </button>
+        </div>
+      )}
+    </li>
+  );
+
+  const doctorStep = (
+    <li key="doctor">
+      <p className="step-title">
+        {HR.stepDoctor}
+        <Status done={state.doctorNote} />
+      </p>
+      {!state.doctorNote && (
+        <div className="meeting-action">
+          <button className="btn-outline btn-small" onClick={() => dispatch({ type: "receiveDoctorNote" })}>
+            {HR.doctorReceived}
+          </button>
+        </div>
+      )}
+    </li>
+  );
+
+  const planStep = (
+    <li key="plan">
+      <p className="step-title">
+        {HR.stepPlan}
+        <Status done={plan !== null && !editing} />
+      </p>
+      {editing ? (
+        <div className="plan-form">
+          <label className="muted">
+            {HR.returnDate}
+            <input type="date" min={DEMO_TODAY} value={planDate} onChange={(e) => setPlanDate(e.target.value)} />
+          </label>
+          <label className="muted">
+            {HR.accommodation}
+            <textarea
+              className="hr-textarea"
+              rows={2}
+              placeholder={HR.accommodationExample}
+              value={accommodation}
+              onChange={(e) => setAccommodation(e.target.value)}
+            />
+          </label>
+          <button
+            className="btn-outline btn-small"
+            disabled={!planDate}
+            onClick={() => {
+              dispatch({ type: "setReturnPlan", date: planDate, accommodation: accommodation.trim() });
+              setEditing(false);
+            }}
+          >
+            {HR.savePlan}
+          </button>
+        </div>
+      ) : (
+        plan && (
+          <div className="return-info">
+            <p>{HR.afterReturnDate(shortDate(plan.date))}</p>
+            {plan.accommodation && <p>{HR.afterReturnAccommodation(plan.accommodation)}</p>}
+            <button className="btn-quiet btn-small" onClick={() => setEditing(true)}>
+              {HR.editPlan}
+            </button>
+          </div>
+        )
+      )}
+    </li>
+  );
+
+  return (
+    <div className="return-steps">
+      <h3>{HR.returnTitle}</h3>
+      <fieldset className="return-order">
+        <legend className="muted">{HR.returnOrderLabel}</legend>
+        {(["occFirst", "doctorFirst"] as const).map((o) => (
+          <label key={o} className="check">
+            <input type="radio" name="return-order" checked={state.returnOrder === o} onChange={() => dispatch({ type: "setReturnOrder", order: o })} />
+            {HR.returnOrders[o]}
+          </label>
+        ))}
+        <p className="muted">{HR.returnOrderNote[state.returnOrder]}</p>
+      </fieldset>
+
+      <ol className="step-list">
+        {state.returnOrder === "occFirst" ? [occStep, doctorStep] : [doctorStep, occStep]}
+        {planStep}
+      </ol>
+
+      {ready && plan ? (
+        <ConfirmButton
+          label={HR.confirmReturnLabel}
+          confirm={HR.confirmReturn(row.name, shortDate(plan.date))}
+          yes={HR.confirmReturnYes}
+          no={HR.confirmNo}
+          onConfirm={() => dispatch({ type: "confirmReturn" })}
+        />
+      ) : (
+        <>
+          <button className="btn-primary" disabled>
+            {HR.confirmReturnLabel}
+          </button>
+          <p className="muted">{HR.confirmReturnLocked}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
 function BackButton({ dispatch, bottom }: { dispatch: Dispatch<Action>; bottom?: boolean }) {
   return (
     <button className={`btn-quiet hr-back${bottom ? " hr-back-bottom" : ""}`} onClick={() => dispatch({ type: "hrSelect", id: null })}>
@@ -398,7 +546,13 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
             onConfirm={() => dispatch({ type: "setStage", stage: next })}
           />
         ))}
-      {state.stage === "preReturn" && <p className="muted">{HR.preReturnSoon}</p>}
+      {state.stage === "preReturn" && <ReturnSteps row={row} state={state} dispatch={dispatch} />}
+      {state.stage === "afterReturn" && state.returnPlan && (
+        <div className="return-info">
+          <p>{HR.afterReturnDate(shortDate(state.returnPlan.date))}</p>
+          {state.returnPlan.accommodation && <p>{HR.afterReturnAccommodation(state.returnPlan.accommodation)}</p>}
+        </div>
+      )}
 
       {prev && state.stage !== "afterReturn" && (
         <div className="stage-back">

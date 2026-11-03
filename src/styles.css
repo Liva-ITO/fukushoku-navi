@@ -341,3 +341,17 @@ button { font: inherit; cursor: pointer; }
 .meeting-action { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
 .meeting-action input { margin-left: 6px; }
 .demo-report { padding: 6px 8px; border: 1px dashed var(--line); border-radius: 8px; }
+
+/* 準備期：復職までの手順 */
+.return-steps h3 { margin: 4px 0 8px; font-size: 15px; }
+.return-order { border: 1px dashed var(--line); border-radius: 8px; padding: 6px 10px; margin: 0 0 10px; display: grid; gap: 4px; }
+.return-order legend { padding: 0 4px; font-size: 12px; }
+.return-order .muted { margin: 2px 0 0; font-size: 12px; }
+.step-list { margin: 0 0 12px; padding-left: 20px; display: grid; gap: 10px; }
+.step-list .muted { margin: 0; font-size: 12px; }
+.step-title { margin: 0; font-weight: 600; }
+.status-done { color: var(--accent); border-color: var(--accent); }
+.plan-form { display: grid; gap: 6px; margin-top: 6px; }
+.plan-form label { display: grid; gap: 2px; }
+.plan-form .btn-small { justify-self: start; }
+.return-info p { margin: 2px 0; }
