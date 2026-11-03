@@ -56,6 +56,8 @@ export type State = {
   // 急性期→回復期に必須の、心理の専門家との面談が済んだか（人事が記録する）
   psychMeetingDone: boolean;
   psychSchedule: Schedule | null;
+  // 面談のあと、本人が会社に伝えた希望（回復期に進みたい／もう少し休みたい）
+  nextWish: "go" | "rest" | null;
   recoveryIntroSeen: boolean;
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
@@ -121,6 +123,7 @@ export const initialState: State = {
   rivaMeetingApplied: false,
   psychMeetingDone: false,
   psychSchedule: null,
+  nextWish: null,
   recoveryIntroSeen: false,
   recoveryJourneySeen: false,
   prepPath: null,
@@ -164,6 +167,7 @@ export type Action =
   | { type: "toggleRecoveryCheck"; item: string }
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
+  | { type: "sendWish"; wish: "go" | "rest" }
   | { type: "markCoordSeen" }
   | { type: "closeRecoveryIntro" }
   | { type: "markRecoveryJourneySeen" }
@@ -225,7 +229,7 @@ function reducer(state: State, action: Action): State {
         restMode: restAllowed && state.restMode,
         tab: "home",
         // 急性期に戻したら、回復期に進むための面談はもう一度
-        ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false, psychSchedule: null } : {}),
+        ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false, psychSchedule: null, nextWish: null } : {}),
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
           ? { occMeeting: null, doctorNote: false, returnPlan: null, returnDecision: null }
@@ -244,6 +248,14 @@ function reducer(state: State, action: Action): State {
       return { ...state, rivaMeetingApplied: true };
     case "markPsychDone":
       return { ...state, psychMeetingDone: true };
+    case "sendWish": {
+      const body = ACUTE.wishBody(ACUTE.wishOptions[action.wish]);
+      return {
+        ...state,
+        nextWish: action.wish,
+        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: "wish", body }],
+      };
+    }
     case "markCoordSeen":
       return { ...state, coordSeen: state.coordInbox.length };
     case "toggleRecoveryCheck":
@@ -437,7 +449,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v25";
+const STORAGE_KEY = "fukushoku-navi-demo-v26";
 
 function load(): State {
   try {

@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ANALYTICS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
+import { ACUTE, ANALYTICS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import InviteForm from "./InviteForm";
 import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
@@ -858,6 +858,15 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
           <p>
             {state.psychMeetingDone ? HR.psychDone : state.rivaMeetingApplied ? HR.psychApplied : HR.psychNone}
           </p>
+          {state.psychMeetingDone && (
+            <div className="wish-box">
+              <p>
+                <span className="wish-label">{HR.wishLabel}</span>
+                {state.nextWish ? <strong>{ACUTE.wishOptions[state.nextWish]}</strong> : <span className="muted">{HR.wishNone}</span>}
+              </p>
+              <p className="muted">{HR.wishDecide}</p>
+            </div>
+          )}
           {/* 面談が済んだかを知っているのは支援機関。人事が記録するのではなく、実施の報告が届く */}
           {state.rivaMeetingApplied && !state.psychMeetingDone && (
             <div className="meeting-action demo-report">

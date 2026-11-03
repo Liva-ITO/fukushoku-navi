@@ -62,6 +62,15 @@ export const ACUTE = {
   checkConfirmYes: "申し込む",
   checkConfirmNo: "やめておく",
   checkApplied: "申し込みました。専門家から日程の連絡が届きます",
+  // 心理の専門家との面談のあと、これからの希望を本人が会社に伝える。面談の中身は伝わらない。判断するのは会社
+  wishTitle: "これからのことを、会社に伝える",
+  wishNote: "専門家との面談、おつかれさまでした。いまの気持ちに近いほうを選んでください。話した内容は、会社には伝わりません",
+  wishOptions: { go: "回復期に進みたい", rest: "もう少し休みたい" },
+  wishPreview: "会社に届く文",
+  wishBody: (w: string) => `心理の専門家との面談が済みました。これからのことについて：${w}`,
+  wishSent: (w: string) => `会社に伝えました：${w}`,
+  wishChange: "気持ちが変わったら、もう一度伝える",
+  wishSend: "会社に送る",
 };
 
 export type PrepPath = "rivatore" | "rivabiz" | "self";
@@ -403,7 +412,8 @@ export const HR = {
     coordinatorRequested: "復職コーディネーターとの面談のリクエストがありました。チケットを補充すると受け付けられ、日程の調整に進みます",
     companyMeeting: "会社との面談の申し込みがありました",
     psychMeeting: "心理の専門家との面談の申し込みがありました（回復期への切り替えの確認）",
-    psychDone: "心理の専門家との面談が済みました。回復期に進めるか確認してください",
+    psychDone: "心理の専門家との面談が済みました。本人の希望が届いたら、回復期に進めるか決めてください",
+    wishArrived: "本人から、これからの希望が届きました。回復期に進めるか決めてください",
     newFromPerson: (n: number) => `本人から連絡が届いています（${n}件）`,
   },
 
@@ -465,6 +475,9 @@ export const HR = {
   psychNone: "心理の専門家との面談：まだ申し込みはありません",
   psychApplied: "心理の専門家との面談：申し込みがありました",
   psychDone: "心理の専門家との面談：済みました",
+  wishLabel: "本人の希望",
+  wishNone: "まだ届いていません（面談のあと、本人が選んで送ります）",
+  wishDecide: "判断するのは会社です。本人の希望と、これまでのやり取りを見て決めてください",
   nextLockedAcute: "心理の専門家との面談が済むと、回復期に進められます",
   confirmNext: (name: string, from: string, to: string) =>
     `${name}さんの段階を「${from}」から「${to}」に進めます。本人の画面も、${to}の内容に変わります。`,

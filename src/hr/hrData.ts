@@ -33,7 +33,8 @@ function reworkOf(state: State): string {
 function todosOf(state: State): HrTodo[] {
   const t: HrTodo[] = [];
   const at = (key: string, text: string) => t.push({ key, text, date: DEMO_TODAY });
-  if (state.stage === "acute" && state.psychMeetingDone) at("a-psych-done", HR.todoA.psychDone);
+  if (state.stage === "acute" && state.psychMeetingDone && state.nextWish) at(`a-wish-${state.sentToHr.length}`, HR.todoA.wishArrived);
+  else if (state.stage === "acute" && state.psychMeetingDone) at("a-psych-done", HR.todoA.psychDone);
   else if (state.stage === "acute" && state.rivaMeetingApplied) at("a-psych", HR.todoA.psychMeeting);
   if (state.companyMeeting?.status === "applied") at("a-company", HR.todoA.companyMeeting);
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
