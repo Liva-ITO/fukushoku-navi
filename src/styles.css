@@ -597,3 +597,12 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .wish-box { margin: 8px 0 0; padding: 10px 12px; background: var(--bg); border-radius: 10px; }
 .wish-box p { margin: 0 0 4px; }
 .wish-label { display: inline-block; margin-right: 10px; font-size: 13px; color: var(--muted); }
+
+/* 急性期：次の段階への道すじ */
+.next-steps { margin: 6px 0 12px; padding-left: 1.4em; display: grid; gap: 4px; font-size: 14px; }
+.next-steps .step-now { font-weight: 700; }
+.next-steps .step-done { color: var(--muted); }
+.next-steps .tag-soft { margin-left: 8px; }
+
+/* 急性期の「次の段階へ」は見落とされないよう、見出しは本文の色に */
+.home-acute .card-quiet > summary { color: var(--text); font-weight: 600; font-size: 15px; }

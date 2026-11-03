@@ -9,6 +9,8 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 // 急性期：やることを求めない、静かなホーム。赤いバッジや数字は出さない
 export default function AcuteHome({ state, dispatch }: Props) {
   const allChecked = state.acuteChecks.every(Boolean);
+  // 次の段階への道すじの、いまの位置（チェック → 専門家との面談 → 希望を伝える）
+  const stepNow = !allChecked ? 0 : !state.psychMeetingDone ? 1 : 2;
   // 急性期は、面談は1つずつ。コーディネーターとの面談が済むまでは、心理の専門家の面談を申し込めない
   const coordBusy = state.coordinatorMeeting !== null && state.coordinatorReport === null;
 
@@ -37,6 +39,14 @@ export default function AcuteHome({ state, dispatch }: Props) {
       <details className="card card-quiet">
         <summary>{ACUTE.checkTitle}</summary>
         <p className="muted">{ACUTE.checkNote}</p>
+        <ol className="next-steps">
+          {ACUTE.checkSteps.map((s, i) => (
+            <li key={s} className={i === stepNow ? "step-now" : i < stepNow ? "step-done" : undefined}>
+              {s}
+              {i === stepNow && <span className="tag-soft">{ACUTE.checkHere}</span>}
+            </li>
+          ))}
+        </ol>
         <ul className="list-plain">
           {ACUTE.checkItems.map((item, i) => (
             <li key={item}>
