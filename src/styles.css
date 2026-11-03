@@ -381,7 +381,7 @@ button { font: inherit; cursor: pointer; }
 .an-row-3 { grid-template-columns: repeat(3, 1fr); }
 .an-row .hr-card { margin-bottom: 0; }
 .an-rework h3 { font-size: 13px; margin: 12px 0 4px; }
-.an-bar { display: grid; grid-template-columns: 7.5em 1fr 4.5em; align-items: center; gap: 10px; padding: 4px 0; }
+.an-bar { display: grid; grid-template-columns: 10em 1fr 4.5em; align-items: center; gap: 10px; padding: 4px 0; }
 .an-bar-label { font-size: 13px; }
 .an-bar-value { font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .an-track { height: 10px; background: var(--line); border-radius: 4px; overflow: hidden; }

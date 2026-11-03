@@ -4,21 +4,18 @@ import {
   BY_AGE,
   BY_DEPT,
   BY_JOB,
+  BY_PATH,
   PERFORMANCE,
   PERIOD_PEOPLE,
   RELAPSED_1Y,
   RETURNED,
-  REWORK,
   THIS_YEAR,
   percent,
 } from "../data/analyticsSample";
 
-// データ分析（見本の数字）。いちばん見せたいのは、リワークを使ったかどうかで復職と再休職がどう違うか
+// データ分析（見本の数字）。回復期の過ごし方ごとに、復職と再休職がどう違うかを、会社が自社の数字で確かめる
 export default function Analytics() {
-  const yes = REWORK.yes;
-  const no = REWORK.no;
-  const yesAnswered = PERFORMANCE.yes.reduce((a, b) => a + b, 0);
-  const noAnswered = PERFORMANCE.no.reduce((a, b) => a + b, 0);
+  const answered = Object.values(PERFORMANCE).flat().reduce((a, b) => a + b, 0);
 
   return (
     <>
@@ -38,21 +35,38 @@ export default function Analytics() {
 
       <div className="an-row">
         <section className="hr-card an-rework">
-          <h2>{ANALYTICS.reworkTitle}</h2>
-          <p className="muted">{ANALYTICS.reworkNote(yes.people, no.people)}</p>
+          <h2>{ANALYTICS.pathTitle}</h2>
+          <p className="muted">{ANALYTICS.pathNote}</p>
           <h3>{ANALYTICS.returnRate}</h3>
-          <Bar label={ANALYTICS.yes} value={percent(yes.returned, yes.people)} max={100} unit="%" detail={`${yes.returned}/${yes.people}人`} />
-          <Bar label={ANALYTICS.no} value={percent(no.returned, no.people)} max={100} unit="%" detail={`${no.returned}/${no.people}人`} />
+          {BY_PATH.map((p) => (
+            <Bar
+              key={p.key}
+              label={ANALYTICS.paths[p.key]}
+              value={percent(p.returned, p.people)}
+              max={100}
+              unit="%"
+              detail={`${p.returned}/${p.people}人`}
+            />
+          ))}
           <h3>{ANALYTICS.relapse}</h3>
-          <Bar label={ANALYTICS.yes} value={percent(yes.relapsed, yes.returned)} max={100} unit="%" detail={`${yes.relapsed}/${yes.returned}人`} />
-          <Bar label={ANALYTICS.no} value={percent(no.relapsed, no.returned)} max={100} unit="%" detail={`${no.relapsed}/${no.returned}人`} />
+          {BY_PATH.map((p) => (
+            <Bar
+              key={p.key}
+              label={ANALYTICS.paths[p.key]}
+              value={percent(p.relapsed, p.returned)}
+              max={100}
+              unit="%"
+              detail={`${p.relapsed}/${p.returned}人`}
+            />
+          ))}
         </section>
 
         <section className="hr-card">
           <h2>{ANALYTICS.perfTitle}</h2>
-          <p className="muted">{ANALYTICS.perfNote(yesAnswered + noAnswered)}</p>
-          <Stack label={ANALYTICS.yes} counts={PERFORMANCE.yes} />
-          <Stack label={ANALYTICS.no} counts={PERFORMANCE.no} />
+          <p className="muted">{ANALYTICS.perfNote(answered)}</p>
+          {BY_PATH.map((p) => (
+            <Stack key={p.key} label={ANALYTICS.paths[p.key]} counts={PERFORMANCE[p.key]} />
+          ))}
           <ul className="an-legend">
             {ANALYTICS.perfLevels.map((l, i) => (
               <li key={l}>
