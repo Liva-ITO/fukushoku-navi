@@ -49,6 +49,7 @@ export type ReturnOrder = "occFirst" | "doctorFirst";
 export type HrAccount = { id: string; name: string; position: string; role: "admin" | "staff"; email?: string };
 // 済んだ面談の記録（経緯に、面談の日付で1行ずつ残す。やり直しても前の面談は消えない）
 export type MeetingLog = { date: string; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
+export type Torisetsu = { reason: string; signs: string; actions: string; help: string };
 export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
 
 export type State = {
@@ -104,6 +105,8 @@ export type State = {
   meetingLog: MeetingLog[];
   // 会社の見立ての追記（人ごと・日付つき）。本人には見せない
   issueNotes: Record<string, { date: string; text: string }[]>;
+  // 自分の取説（本人だけのもの。会社には届かない）
+  torisetsu: Torisetsu | null;
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
   returnDecision: "ok" | null;
@@ -174,6 +177,7 @@ export const initialState: State = {
   occOpinions: [],
   meetingLog: [],
   issueNotes: {},
+  torisetsu: null,
   doctorNote: false,
   returnDecision: null,
   returnDecisionLog: [],
@@ -247,6 +251,7 @@ export type Action =
   | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "depts" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
   | { type: "reworkReport" }
   | { type: "addIssueNote"; personId: string; text: string }
+  | { type: "saveTorisetsu"; torisetsu: Torisetsu }
   | { type: "sendSelfReport"; report: SelfReport }
   | { type: "demoSelfReport" }
   | { type: "invite"; person: Omit<Invited, "id" | "date" | "resends"> }
@@ -521,6 +526,8 @@ function reducer(state: State, action: Action): State {
     case "demoSelfReport":
       // デモ：人事の画面で、本人からレポートが届いたことにする（準備期の本人画面はスタッフが作る）
       return { ...state, selfReports: [...state.selfReports, { ...SAMPLE_SELF_REPORT, date: DEMO_TODAY }] };
+    case "saveTorisetsu":
+      return { ...state, torisetsu: action.torisetsu };
     case "addIssueNote":
       return {
         ...state,
@@ -602,7 +609,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v37";
+const STORAGE_KEY = "fukushoku-navi-demo-v38";
 
 function load(): State {
   try {

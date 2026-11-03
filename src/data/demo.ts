@@ -17,7 +17,7 @@ export type HrMessage = {
 export type SentItem = {
   id: string;
   date: string;
-  kind: "reply" | "visit" | "wish" | "new";
+  kind: "reply" | "visit" | "wish" | "new" | "accommodation";
   body: string;
 };
 

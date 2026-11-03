@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { COMMON, CONSULT, CONTACT } from "../constants/labels";
+import { COMMON, CONSULT, CONTACT, WATCH } from "../constants/labels";
 import type { Action, State } from "../state/store";
 import { SlotPicker, WishCard } from "./parts";
 
@@ -22,6 +22,14 @@ export default function ContactTab({ state, dispatch }: Props) {
   const [seenBefore] = useState(state.coordSeen);
   const hasNew = state.coordInbox.length > seenBefore;
   const support = <SupportInbox state={state} dispatch={dispatch} seenBefore={seenBefore} />;
+  if (state.stage === "afterReturn")
+    return (
+      <div className="home">
+        <h1 className="page-title">{CONTACT.title}</h1>
+        <p className="muted">{WATCH.contactNote}</p>
+        {support}
+      </div>
+    );
 
   return (
     <div className="home">

@@ -4,6 +4,8 @@ import JourneySheet from "./JourneySheet";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
 import RecoveryHome from "./RecoveryHome";
+import PreReturnHome from "./PreReturnHome";
+import WatchHome from "./WatchHome";
 import RestHome from "./RestHome";
 import DiaryTab from "./DiaryTab";
 import ContactTab from "./ContactTab";
@@ -15,25 +17,16 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 const REPLY_DELAY = 3000;
 
 const TAB_ORDER: Tab[] = ["home", "record", "contact", "contents", "consult"];
+const AFTER_TABS: Tab[] = ["home", "contact", "consult"];
 
 // 2026-11-10 → 11月10日
-const japaneseDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
 
 function Home({ state, dispatch }: Props) {
   if (state.restMode) return <RestHome state={state} dispatch={dispatch} />;
   if (state.stage === "acute") return <AcuteHome state={state} dispatch={dispatch} />;
   if (state.stage === "recovery") return <RecoveryHome state={state} dispatch={dispatch} />;
-  // 復職後は、人事が確定した復職日だけ先に出す（見守りモードの画面はこれから）
-  if (state.stage === "afterReturn" && state.returnPlan)
-    return (
-      <>
-        <section className="card">
-          <p className="done-note">{COMMON.returnDay(japaneseDate(state.returnPlan.date))}</p>
-        </section>
-        <p className="placeholder">{COMMON.comingSoon}</p>
-      </>
-    );
-  return <p className="placeholder">{COMMON.comingSoon}</p>;
+  if (state.stage === "preReturn") return <PreReturnHome state={state} dispatch={dispatch} />;
+  return <WatchHome state={state} dispatch={dispatch} />;
 }
 
 export default function PersonApp({ state, dispatch }: Props) {
@@ -124,7 +117,8 @@ export default function PersonApp({ state, dispatch }: Props) {
       </div>
 
       <nav className="tab-bar">
-        {TAB_ORDER.map((t) => (
+        {/* 復職後（見守りモード）は、日記とコンテンツを出さない。会社との連絡も終わる */}
+        {(state.stage === "afterReturn" ? AFTER_TABS : TAB_ORDER).map((t) => (
           <button
             key={t}
             aria-current={state.tab === t ? "page" : undefined}

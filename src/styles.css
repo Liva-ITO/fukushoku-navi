@@ -683,3 +683,6 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .an-defs dt { font-weight: 600; }
 .an-defs dd { margin: 0; }
 @media (max-width: 760px) { .an-trends { grid-template-columns: 1fr; } }
+
+/* 準備期：手順 */
+.prep-steps li { margin-bottom: 4px; }

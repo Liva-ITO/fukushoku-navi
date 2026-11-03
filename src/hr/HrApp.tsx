@@ -481,6 +481,8 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
   const occ = state.occMeeting;
   const plan = state.returnPlan;
   const [editing, setEditing] = useState(!state.returnPlan);
+  // 本人から届いた配慮のお願い（いちばん新しいもの）
+  const accRequest = [...state.sentToHr].reverse().find((s) => s.kind === "accommodation");
   // 産業医の意見に書いた配慮を、配慮の欄に最初から入れておく（書き直せる）
   const opinionNote = occ?.opinion?.note ?? "";
   useEffect(() => {
@@ -615,6 +617,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         {HR.stepPlan}
         <Status done={plan !== null && !editing} />
       </p>
+      {accRequest && <p className="opinion-line">{HR.accFromPerson(accRequest.body)}</p>}
       {editing ? (
         <div className="plan-form">
           <label className="muted">
