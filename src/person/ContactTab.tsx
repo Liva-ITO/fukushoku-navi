@@ -104,11 +104,20 @@ function WriteReply({ dispatch }: { dispatch: Dispatch<Action> }) {
       </label>
       <p className="muted examples-label">{CONTACT.replyExamplesLabel}</p>
       <div className="chips">
-        {CONTACT.examples.map((ex) => (
-          <button key={ex} className="chip" aria-pressed={false} onClick={() => setText(text ? `${text}${ex}` : ex)}>
-            {ex}
-          </button>
-        ))}
+        {/* 押すと文が足される。「＋」で足すことが分かるようにし、もう入っている文は二重に入れない */}
+        {CONTACT.examples.map((ex) => {
+          const used = text.includes(ex);
+          return (
+            <button
+              key={ex}
+              className="chip chip-add"
+              disabled={used}
+              onClick={() => setText(text ? `${text}${ex}` : ex)}
+            >
+              ＋ {ex}
+            </button>
+          );
+        })}
       </div>
       <button
         className="btn-primary btn-wide"
