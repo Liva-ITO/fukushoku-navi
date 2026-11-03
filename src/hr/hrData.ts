@@ -19,6 +19,8 @@ export type HrRow = {
   events: HrEvent[];
   live: boolean; // 本人画面と連動しているか
   pending?: boolean; // 招待を送ったが、本人がまだ始めていない
+  issues?: string; // 招待のときに入力した、復職に向けた課題（会社の見立て）
+  sharedWithProgram?: boolean; // オンラインのリワークを使っている（見立てがプログラムに渡る）
 };
 
 function reworkOf(state: State): string {
@@ -149,6 +151,8 @@ export function hrRows(state: State): HrRow[] {
     todos: open(todosOf(state)),
     events: eventsOf(state),
     live: true,
+    issues: PERSON.issues,
+    sharedWithProgram: state.prepPath === "rivabiz",
   };
   const others: HrRow[] = OTHER_PEOPLE.map((p) => ({
     id: p.id,
@@ -183,6 +187,7 @@ export function hrRows(state: State): HrRow[] {
     events: [{ date: p.date, kind: "done", body: INVITE.event, byHr: true }],
     live: false,
     pending: true,
+    issues: p.issues,
   }));
   // 復職を確定した人は、休職者の一覧に出さない
   const people = [...(a.stage === "afterReturn" ? others : [a, ...others]), ...invited];

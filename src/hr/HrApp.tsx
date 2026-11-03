@@ -351,6 +351,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
           </section>
 
           {row.live && <Meetings state={state} dispatch={dispatch} />}
+          <IssuesCard row={row} />
           {row.live && <SendMessage name={row.name} stage={row.stage} dispatch={dispatch} />}
         </div>
       </div>
@@ -475,6 +476,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         )}
       </p>
       <p className="muted">{HR.stepOccNote}</p>
+      <IssuesRef row={row} />
       {!occ && (
         <div className="meeting-action">
           <label className="muted">
@@ -541,6 +543,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         <Status done={decided} />
       </p>
       <p className="muted">{HR.stepDecisionNote}</p>
+      <IssuesRef row={row} />
       {decided ? (
         <div className="meeting-action">
           <span>{HR.decisionResult.ok}</span>
@@ -668,6 +671,28 @@ function CompanySettings({ state, dispatch }: Props) {
         <p className="muted">{HR.returnOrderNote[state.returnOrder]}</p>
       </fieldset>
     </section>
+  );
+}
+
+// 招待のときに入力した、復職に向けた課題（会社の見立て）
+function IssuesCard({ row }: { row: HrRow }) {
+  return (
+    <section className="hr-card">
+      <h2>{INVITE.issuesTitle}</h2>
+      <p className="issues-body">{row.issues || INVITE.issuesNone}</p>
+      {row.sharedWithProgram && <p className="muted issues-shared">{INVITE.issuesSharedRework}</p>}
+    </section>
+  );
+}
+
+// 産業医との面談・会社の復職判断のところで、その場で見返せるようにする
+function IssuesRef({ row }: { row: HrRow }) {
+  if (!row.issues) return null;
+  return (
+    <details className="issues-ref">
+      <summary>{INVITE.issuesRef}</summary>
+      <p className="issues-body">{row.issues}</p>
+    </details>
   );
 }
 

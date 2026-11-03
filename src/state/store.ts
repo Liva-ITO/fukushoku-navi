@@ -13,7 +13,17 @@ import {
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
 export type View = "person" | "hr";
-export type Invited = { id: string; name: string; dept: string; age: string; job: string; leaveStart: string; leaveEnd: string; date: string };
+export type Invited = {
+  id: string;
+  name: string;
+  dept: string;
+  age: string;
+  job: string;
+  leaveStart: string;
+  leaveEnd: string;
+  issues: string; // 復職に向けた課題（会社の見立て）
+  date: string;
+};
 // 支援機関から本人に届くお知らせ（相談タブ）。会社には見えない
 export type CoordMessage = {
   id: string;
@@ -383,7 +393,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v21";
+const STORAGE_KEY = "fukushoku-navi-demo-v22";
 
 function load(): State {
   try {

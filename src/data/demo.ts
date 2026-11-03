@@ -51,6 +51,8 @@ export const PERSON = {
   dept: "営業部",
   leaveStart: "2026-10-06",
   leaveEnd: "2027-04-05",
+  // 招待のときに人事が入力した、復職に向けた課題（会社の見立て）。架空
+  issues: "・業務が重なると、ひとりで抱え込み、相談が遅れがち\n・休職前の3か月ほど、朝の起床が不安定で遅刻が続いていた\n・繁忙期の残業が多かった",
 };
 
 export const INITIAL_STAGE_HISTORY: StageChange[] = [{ date: PERSON.leaveStart, stage: "acute" }];

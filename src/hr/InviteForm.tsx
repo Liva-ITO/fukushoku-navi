@@ -12,6 +12,7 @@ export default function InviteForm({ dispatch }: { dispatch: Dispatch<Action> })
   const [job, setJob] = useState(INVITE.jobs[0]);
   const [leaveStart, setLeaveStart] = useState(DEMO_TODAY);
   const [leaveEnd, setLeaveEnd] = useState("");
+  const [issues, setIssues] = useState("");
   const [sendTo, setSendTo] = useState<"mail" | "line">("mail");
   const [sent, setSent] = useState<string | null>(null);
   const ready = name.trim() && dept.trim() && leaveStart && leaveEnd;
@@ -65,6 +66,17 @@ export default function InviteForm({ dispatch }: { dispatch: Dispatch<Action> })
           <input className="hr-input" type="date" min={leaveStart} value={leaveEnd} onChange={(e) => setLeaveEnd(e.target.value)} />
         </label>
       </div>
+      <label className="hr-field">
+        {INVITE.issues}
+        <textarea
+          className="hr-textarea"
+          rows={4}
+          placeholder={INVITE.issuesExample}
+          value={issues}
+          onChange={(e) => setIssues(e.target.value)}
+        />
+        <span className="muted">{INVITE.issuesNote}</span>
+      </label>
       <fieldset className="invite-send">
         <legend>{INVITE.sendTo}</legend>
         {(["mail", "line"] as const).map((k) => (
@@ -80,7 +92,7 @@ export default function InviteForm({ dispatch }: { dispatch: Dispatch<Action> })
           className="btn-primary"
           disabled={!ready}
           onClick={() => {
-            dispatch({ type: "invite", person: { name: name.trim(), dept: dept.trim(), age, job, leaveStart, leaveEnd } });
+            dispatch({ type: "invite", person: { name: name.trim(), dept: dept.trim(), age, job, leaveStart, leaveEnd, issues: issues.trim() } });
             setSent(name.trim());
           }}
         >
