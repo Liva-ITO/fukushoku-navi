@@ -1,5 +1,6 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { HR, STAGE_LABELS, type Stage } from "../constants/labels";
+import { ANALYTICS, HR, STAGE_LABELS, type Stage } from "../constants/labels";
+import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
@@ -19,15 +20,24 @@ export default function HrApp({ state, dispatch }: Props) {
   // 一覧と詳しい画面を切り替えたら、いちばん上から見せる
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [state.hrSelected]);
+  }, [state.hrSelected, state.hrPage]);
 
+  if (selected)
+    return (
+      <div className="hr">
+        <HrDetail row={selected} state={state} dispatch={dispatch} />
+      </div>
+    );
   return (
     <div className="hr">
-      {selected ? (
-        <HrDetail row={selected} state={state} dispatch={dispatch} />
-      ) : (
-        <HrList rows={rows} state={state} dispatch={dispatch} />
-      )}
+      <nav className="hr-nav">
+        {(["list", "analytics"] as const).map((p) => (
+          <button key={p} aria-current={state.hrPage === p ? "page" : undefined} onClick={() => dispatch({ type: "hrPage", page: p })}>
+            {ANALYTICS.nav[p]}
+          </button>
+        ))}
+      </nav>
+      {state.hrPage === "analytics" ? <Analytics /> : <HrList rows={rows} state={state} dispatch={dispatch} />}
     </div>
   );
 }

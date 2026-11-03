@@ -469,3 +469,34 @@ export const HR = {
   sendCheckNoReply: "「返信は不要です」をつけて送ります",
   sent: "送りました。本人の画面に届いています",
 };
+
+// 人事のデータ分析（数字はすべて見本）
+export const ANALYTICS = {
+  nav: { list: "休職者の一覧", analytics: "データ分析" },
+  title: "データ分析",
+  sample: "数字はすべて見本です（架空の会社・過去3年）",
+  period: "過去3年",
+  returnRate: "復職率",
+  returnRateNote: (n: number) => `過去3年・休職した${n}人のうち`,
+  relapse: "復職後1年以内の再休職率",
+  relapseNote: (n: number) => `復職した${n}人のうち`,
+  avgDays: "平均休職日数",
+  avgDaysNote: "復職した人",
+  thisYear: "今年度の休職発生",
+  thisYearNote: "11月4日時点",
+  reworkTitle: "リワーク利用の有無と復職",
+  reworkNote: (yes: number, no: number) => `過去3年に休職した人（利用あり${yes}人・なし${no}人）`,
+  yes: "リワークあり",
+  no: "リワークなし",
+  perfTitle: "復職後のパフォーマンス",
+  perfNote: (n: number) => `復職6か月後の上司アンケート（回答${n}人）`,
+  perfLevels: ["期待以上", "期待どおり", "やや下回る", "下回る"],
+  byDept: "部署別の休職発生数",
+  byAge: "年代別",
+  byJob: "職種別",
+  notes: [
+    "数字はすべて見本で、実際の会社のデータでも、リワークの効果を示すものでもありません",
+    "人数の少ない区分は、個人が特定されないよう、本番では表示の基準を設けます",
+    "本人の日記・気分・休息モード、面談で話した内容は、集計にも使いません",
+  ],
+};
