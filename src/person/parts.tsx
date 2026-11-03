@@ -20,7 +20,7 @@ export function CoordinatorCard({
   note?: string;
   publicWhenEmpty?: boolean;
   showNewLink?: boolean;
-  pickHere?: boolean; // 日程の候補をここで選べるか（相談タブだけ。ホームでは相談タブへ移る）
+  pickHere?: boolean; // 日程の候補をここで選べるか（いまは使わない。候補は連絡タブで選ぶ）
 }) {
   const hasTickets = state.ticketsLeft > 0;
   const report = state.coordinatorReport;
@@ -57,7 +57,7 @@ export function CoordinatorCard({
             <SlotPicker kind="coordinator" state={state} dispatch={dispatch} />
           </>
         ) : (
-          <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>
+          <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "contact" })}>
             {CONSULT.offerGo}
           </button>
         ))}
@@ -160,7 +160,7 @@ export function NewNoticeLink({ state, dispatch }: { state: State; dispatch: Dis
   const unread = state.coordInbox.length - state.coordSeen;
   if (unread <= 0) return null;
   return (
-    <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>
+    <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "contact" })}>
       <span className="tab-badge">{unread}</span>
       {CONSULT.newLink(unread)}
     </button>
@@ -305,5 +305,64 @@ export function ConfirmButton(props: {
       </button>
       {props.note && <p className="muted">{props.note}</p>}
     </div>
+  );
+}
+
+// 復職コーディネーターとの面談のあと、これからの希望を会社に伝える。選ぶだけ（急性期に書かせない）。選ぶ → 届く文を見る → 送る
+// inline：連絡タブで、コーディネーターからのお知らせのすぐ下に出すとき
+export function WishCard({ state, dispatch, inline = false }: { state: State; dispatch: Dispatch<Action>; inline?: boolean }) {
+  const Box = inline ? "div" : "section";
+  const boxClass = inline ? "wish-inline" : "card";
+  const [picked, setPicked] = useState<"go" | "rest" | null>(null);
+  const [changing, setChanging] = useState(false);
+
+  if (state.nextWish && !changing)
+    return (
+      <Box className={boxClass}>
+        {!inline && <h2>{ACUTE.wishTitle}</h2>}
+        <p className="done-note">{ACUTE.wishSent(ACUTE.wishOptions[state.nextWish])}</p>
+        <button className="btn-quiet" onClick={() => setChanging(true)}>
+          {ACUTE.wishChange}
+        </button>
+      </Box>
+    );
+
+  return (
+    <Box className={boxClass}>
+      {!inline && <h2>{ACUTE.wishTitle}</h2>}
+      <p className="muted">{ACUTE.wishNote}</p>
+      <div className="chips chips-stack">
+        {(["go", "rest"] as const).map((w) => (
+          <button key={w} className="chip" aria-pressed={picked === w} onClick={() => setPicked(w)}>
+            {ACUTE.wishOptions[w]}
+          </button>
+        ))}
+      </div>
+      {picked && (
+        <div className="preview">
+          <p className="muted">{ACUTE.wishPreview}</p>
+          <p>{ACUTE.wishBody(ACUTE.wishOptions[picked])}</p>
+        </div>
+      )}
+      <div className="confirm-actions">
+        <button
+          className="btn-primary"
+          disabled={!picked}
+          onClick={() => {
+            if (!picked) return;
+            dispatch({ type: "sendWish", wish: picked });
+            setPicked(null);
+            setChanging(false);
+          }}
+        >
+          {ACUTE.wishSend}
+        </button>
+        {changing && (
+          <button className="btn-quiet" onClick={() => setChanging(false)}>
+            {ACUTE.checkConfirmNo}
+          </button>
+        )}
+      </div>
+    </Box>
   );
 }

@@ -1,8 +1,8 @@
-import { useState, type Dispatch } from "react";
+import type { Dispatch } from "react";
 import { ACUTE, REST, greeting } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
-import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard } from "./parts";
+import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard, WishCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -89,61 +89,5 @@ export default function AcuteHome({ state, dispatch }: Props) {
         )}
       </details>
     </div>
-  );
-}
-
-// 復職コーディネーターとの面談のあと、これからの希望を会社に伝える。選ぶだけ（急性期に書かせない）。選ぶ → 届く文を見る → 送る
-function WishCard({ state, dispatch }: Props) {
-  const [picked, setPicked] = useState<"go" | "rest" | null>(null);
-  const [changing, setChanging] = useState(false);
-
-  if (state.nextWish && !changing)
-    return (
-      <section className="card">
-        <h2>{ACUTE.wishTitle}</h2>
-        <p className="done-note">{ACUTE.wishSent(ACUTE.wishOptions[state.nextWish])}</p>
-        <button className="btn-quiet" onClick={() => setChanging(true)}>
-          {ACUTE.wishChange}
-        </button>
-      </section>
-    );
-
-  return (
-    <section className="card">
-      <h2>{ACUTE.wishTitle}</h2>
-      <p className="muted">{ACUTE.wishNote}</p>
-      <div className="chips chips-stack">
-        {(["go", "rest"] as const).map((w) => (
-          <button key={w} className="chip" aria-pressed={picked === w} onClick={() => setPicked(w)}>
-            {ACUTE.wishOptions[w]}
-          </button>
-        ))}
-      </div>
-      {picked && (
-        <div className="preview">
-          <p className="muted">{ACUTE.wishPreview}</p>
-          <p>{ACUTE.wishBody(ACUTE.wishOptions[picked])}</p>
-        </div>
-      )}
-      <div className="confirm-actions">
-        <button
-          className="btn-primary"
-          disabled={!picked}
-          onClick={() => {
-            if (!picked) return;
-            dispatch({ type: "sendWish", wish: picked });
-            setPicked(null);
-            setChanging(false);
-          }}
-        >
-          {ACUTE.wishSend}
-        </button>
-        {changing && (
-          <button className="btn-quiet" onClick={() => setChanging(false)}>
-            {ACUTE.checkConfirmNo}
-          </button>
-        )}
-      </div>
-    </section>
   );
 }

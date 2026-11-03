@@ -124,7 +124,7 @@ export default function PersonApp({ state, dispatch }: Props) {
           >
             {TABS[t]}
             {/* 支援機関からの新しいお知らせを見逃さないよう、数を出す（赤ではなく落ち着いた色） */}
-            {t === "consult" && unread > 0 && <span className="tab-badge">{unread}</span>}
+            {t === "contact" && unread > 0 && <span className="tab-badge">{unread}</span>}
           </button>
         ))}
       </nav>

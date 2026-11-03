@@ -1,6 +1,7 @@
-import { useState, type Dispatch } from "react";
-import { COMMON, CONTACT } from "../constants/labels";
+import { useEffect, useState, type Dispatch } from "react";
+import { COMMON, CONSULT, CONTACT } from "../constants/labels";
 import type { Action, State } from "../state/store";
+import { SlotPicker, WishCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -13,13 +14,19 @@ function addSentence(text: string, ex: string): string {
   return `${head}${sep}${ex}。`;
 }
 
-// 人事との連絡。会社に届くのは、ここで本人が送ったものだけ
+// 連絡：やり取りは全部ここ。人事とのやり取りと、コーディネーター・専門家からのお知らせを分けて並べる
+// 会社に届くのは、ここで本人が送ったものだけ。コーディネーター・専門家からのお知らせは会社には見えない
 export default function ContactTab({ state, dispatch }: Props) {
   const messages = [...state.hrMessages].reverse();
+  // 開く前に見ていた件数。新しいお知らせがあれば、その枠を上に出す
+  const [seenBefore] = useState(state.coordSeen);
+  const hasNew = state.coordInbox.length > seenBefore;
+  const support = <SupportInbox state={state} dispatch={dispatch} seenBefore={seenBefore} />;
 
   return (
     <div className="home">
       <h1 className="page-title">{CONTACT.title}</h1>
+      {hasNew && support}
 
       {/* 件名の一覧。押すと本文が開き、返信はその下で書く（返信欄をいつも開いておかない） */}
       <section className="card">
@@ -52,6 +59,8 @@ export default function ContactTab({ state, dispatch }: Props) {
         </ul>
       </section>
 
+      {!hasNew && support}
+
       <VisitReport dispatch={dispatch} />
 
       <section className="card card-quiet-box">
@@ -70,6 +79,42 @@ export default function ContactTab({ state, dispatch }: Props) {
         )}
       </section>
     </div>
+  );
+}
+
+// コーディネーター・専門家からのお知らせ。日程の候補は、届いたお知らせのすぐ下で選ぶ。
+// 回復期に進む前の面談が済んだお知らせの下では、これからの希望を会社に送れる
+function SupportInbox({ state, dispatch, seenBefore }: { state: State; dispatch: Dispatch<Action>; seenBefore: number }) {
+  const count = state.coordInbox.length;
+  useEffect(() => {
+    dispatch({ type: "markCoordSeen" });
+  }, [count, dispatch]);
+  if (count === 0) return null;
+  const lastGate = state.coordInbox.map((m) => m.from).lastIndexOf("psych");
+  const showWish = state.stage === "acute" && state.psychMeetingDone;
+
+  return (
+    <section className="card">
+      <h2>{CONTACT.supportTitle}</h2>
+      <p className="muted">{CONTACT.supportNote}</p>
+      <ul className="inbox">
+        {state.coordInbox
+          .map((m, i) => ({ m, i }))
+          .reverse()
+          .map(({ m, i }) => (
+            <li key={m.id} className={i >= seenBefore ? "inbox-new" : undefined}>
+              <p className="inbox-head">
+                {CONSULT.who[m.who ?? "coord"]}
+                {i >= seenBefore && <span className="new-tag">{CONSULT.newTag}</span>}
+              </p>
+              <p>{m.body}</p>
+              {m.id === state.psychSchedule?.offerId && <SlotPicker kind="psych" state={state} dispatch={dispatch} />}
+              {m.id === state.coordSchedule?.offerId && <SlotPicker kind="coordinator" state={state} dispatch={dispatch} />}
+              {showWish && i === lastGate && <WishCard state={state} dispatch={dispatch} inline />}
+            </li>
+          ))}
+      </ul>
+    </section>
   );
 }
 

@@ -609,3 +609,6 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 
 /* 次の段階へ：日程が決まったときの一文 */
 .next-steps .step-sub { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
+
+/* 連絡タブ：お知らせの下で希望を送る */
+.wish-inline { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
