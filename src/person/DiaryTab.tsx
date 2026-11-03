@@ -9,9 +9,20 @@ const SLEEP: SleepQuality[] = ["good", "normal", "poor"];
 const MEALS: Meal[] = ["morning", "noon", "night"];
 
 // 今日の記録。タップ中心で、1分以内に終わること。点数や評価はつけない
+function withLastTimes(diary: Record<string, DiaryEntry>): DiaryEntry {
+  const last = Object.keys(diary)
+    .filter((d) => d < DEMO_TODAY)
+    .sort()
+    .reverse()
+    .map((d) => diary[d])
+    .find((e) => e.wake || e.sleep);
+  return { ...emptyEntry(), wake: last?.wake ?? "", sleep: last?.sleep ?? "" };
+}
+
 export default function DiaryTab({ state, dispatch }: Props) {
   const saved = state.diary[DEMO_TODAY];
-  const [entry, setEntry] = useState<DiaryEntry>(saved ?? emptyEntry());
+  // 時刻は、前の日に書いたものを最初から入れておく（同じなら触らずに済む）
+  const [entry, setEntry] = useState<DiaryEntry>(saved ?? withLastTimes(state.diary));
   const [editing, setEditing] = useState(!saved);
   const [thanks, setThanks] = useState<string | null>(null);
 
@@ -51,7 +62,7 @@ export default function DiaryTab({ state, dispatch }: Props) {
 
           <fieldset>
             <legend>{RECORD.sleepQuality}</legend>
-            <div className="chips">
+            <div className="chips chips-even">
               {SLEEP.map((s) => (
                 <Chip key={s} on={entry.sleepQuality === s} onClick={() => set("sleepQuality", entry.sleepQuality === s ? null : s)}>
                   {RECORD.sleepQualityOptions[s]}
@@ -115,6 +126,10 @@ export default function DiaryTab({ state, dispatch }: Props) {
                   {f}
                 </button>
               ))}
+            </div>
+            <div className="face-ends" aria-hidden="true">
+              <span>{RECORD.moodEnds[0]}</span>
+              <span>{RECORD.moodEnds[1]}</span>
             </div>
           </fieldset>
 

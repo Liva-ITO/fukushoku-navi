@@ -241,6 +241,7 @@ export const RECORD = {
   mood: "気分",
   // 気分は言葉を出さず、顔だけで選ぶ
   moodFaces: ["😣", "😟", "😐", "🙂", "😊"],
+  moodEnds: ["つらい", "いい"],
   note: "ひとこと",
   notePlaceholder: "書かなくても大丈夫です",
   voice: "話して入力",
