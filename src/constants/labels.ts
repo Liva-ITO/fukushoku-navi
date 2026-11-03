@@ -183,6 +183,11 @@ export const CONSULT = {
     ["11月16日（月）10:00", "11月17日（火）15:00", "11月19日（木）11:00"],
   ],
   noneFit: "どれも難しい",
+  noneFitConfirm: "別の日程の候補をお願いします。",
+  noneFitYes: "お願いする",
+  // 日程の候補は、やることが書いてある枠の中でそのまま選べるようにする（お知らせは履歴だけ）
+  offerPick: "日程の候補が届いています。ご都合のよいものを選んでください",
+  psychTitle: "心理の専門家との面談",
   pickConfirm: (slot: string) => `${slot}で決めます。`,
   pickYes: "これで決める",
   msgDecided: (slot: string) => `${slot}に決まりました。オンラインで行います。前日に、参加のしかたをお送りします。`,

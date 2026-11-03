@@ -1,7 +1,7 @@
 import { useState, type Dispatch, type ReactNode } from "react";
 import { ACUTE, COMMON, CONSULT, CONTACT, RECORD } from "../constants/labels";
 import type { HrMessage } from "../data/demo";
-import type { Action, State } from "../state/store";
+import type { Action, MeetingKind, State } from "../state/store";
 
 // 復職コーディネーターへの相談。チケットが残っていれば申し込み、なければリクエスト。
 // 休息モードでは、チケットがないときはリクエストの代わりに公的な相談窓口を出す
@@ -12,7 +12,6 @@ export function CoordinatorCard({
   note = CONSULT.coordinatorNote,
   publicWhenEmpty = false,
   showNewLink = true,
-  inConsult = false,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
@@ -20,7 +19,6 @@ export function CoordinatorCard({
   note?: string;
   publicWhenEmpty?: boolean;
   showNewLink?: boolean;
-  inConsult?: boolean; // 相談タブの中なら「下の『お知らせ』」と案内する
 }) {
   const hasTickets = state.ticketsLeft > 0;
   const report = state.coordinatorReport;
@@ -42,7 +40,12 @@ export function CoordinatorCard({
       <h2>{title}</h2>
       {newLink}
       {!open && cs?.chosen && <p className="done-note">{CONSULT.decidedNote(cs.chosen)}</p>}
-      {!open && cs?.offerId && <p className="done-note">{inConsult ? CONSULT.offeredNoteHere : CONSULT.offeredNote}</p>}
+      {!open && cs?.offerId && (
+        <>
+          <p className="done-note">{CONSULT.offerPick}</p>
+          <SlotPicker kind="coordinator" state={state} dispatch={dispatch} />
+        </>
+      )}
       {!open && !cs?.chosen && !cs?.offerId && state.coordinatorMeeting === "applied" && <p className="done-note">{CONSULT.applied}</p>}
       {!open && !cs && state.coordinatorMeeting === "requested" && (
         <div className="confirm">
@@ -70,6 +73,55 @@ export function CoordinatorCard({
         </>
       )}
     </section>
+  );
+}
+
+// 日程の候補から選ぶ。選べるのは、いちばん新しい候補だけ。どちらの操作も確認を挟む
+export function SlotPicker({ kind, state, dispatch }: { kind: MeetingKind; state: State; dispatch: Dispatch<Action> }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const [none, setNone] = useState(false);
+  const schedule = kind === "psych" ? state.psychSchedule : state.coordSchedule;
+  const offer = state.coordInbox.find((m) => m.id === schedule?.offerId);
+  if (!offer?.options) return null;
+  if (picked || none)
+    return (
+      <div className="confirm slot-confirm">
+        <p>{picked ? CONSULT.pickConfirm(picked) : CONSULT.noneFitConfirm}</p>
+        <div className="confirm-actions">
+          <button
+            className="btn-primary"
+            onClick={() => {
+              if (picked) dispatch({ type: "chooseSlot", kind, slot: picked });
+              else dispatch({ type: "noneFit", kind });
+              setPicked(null);
+              setNone(false);
+            }}
+          >
+            {picked ? CONSULT.pickYes : CONSULT.noneFitYes}
+          </button>
+          <button
+            className="btn-quiet"
+            onClick={() => {
+              setPicked(null);
+              setNone(false);
+            }}
+          >
+            {CONSULT.no}
+          </button>
+        </div>
+      </div>
+    );
+  return (
+    <div className="slots">
+      {offer.options.map((o) => (
+        <button key={o} className="btn-outline slot" onClick={() => setPicked(o)}>
+          {o}
+        </button>
+      ))}
+      <button className="btn-quiet slot-none" onClick={() => setNone(true)}>
+        {CONSULT.noneFit}
+      </button>
+    </div>
   );
 }
 
