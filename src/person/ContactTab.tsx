@@ -6,6 +6,13 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 
 const shortDate = (d: string) => d.slice(5).replace("-", "/");
 
+// 例文を足すときは、文の終わりに「。」を付けてつなぐ（書きかけの文が句読点で終わっていなければ、先に「。」を付ける）
+function addSentence(text: string, ex: string): string {
+  const head = text.trimEnd();
+  const sep = head === "" || /[。．！？!?]$/.test(head) ? "" : "。";
+  return `${head}${sep}${ex}。`;
+}
+
 // 人事との連絡。会社に届くのは、ここで本人が送ったものだけ
 export default function ContactTab({ state, dispatch }: Props) {
   const messages = [...state.hrMessages].reverse();
@@ -136,7 +143,7 @@ function WriteReply({ dispatch }: { dispatch: Dispatch<Action> }) {
               key={ex}
               className="chip chip-add"
               disabled={used}
-              onClick={() => setText(text ? `${text}${ex}` : ex)}
+              onClick={() => setText(addSentence(text, ex))}
             >
               ＋ {ex}
             </button>
