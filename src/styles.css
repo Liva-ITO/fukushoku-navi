@@ -498,3 +498,16 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
   .demo-controls { display: none; }
   .demo-open .demo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; width: 100%; padding: 6px 0 2px; }
 }
+
+/* 招待（見本） */
+.invite-open { margin-top: 8px; }
+.invite { max-width: 720px; }
+.invite-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.invite-send { border: 0; padding: 0; margin: 14px 0; display: grid; gap: 4px; }
+.invite-send legend { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.stage-pending { background: #eeeae3; color: var(--muted); }
+@media (max-width: 700px) { .invite-grid { grid-template-columns: 1fr; } }
+/* 使い始めの画面 */
+.welcome { padding-top: 24px; }
+.welcome > p { margin: 0 0 14px; }
+.welcome-demo { margin-top: 14px !important; font-size: 12px; }

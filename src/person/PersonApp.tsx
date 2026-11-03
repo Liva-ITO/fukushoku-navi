@@ -8,6 +8,7 @@ import RestHome from "./RestHome";
 import DiaryTab from "./DiaryTab";
 import ContactTab from "./ContactTab";
 import ConsultTab from "./ConsultTab";
+import Welcome from "./Welcome";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -78,6 +79,12 @@ export default function PersonApp({ state, dispatch }: Props) {
       </header>
       {journeyOpen && <JourneySheet stage={state.stage} onClose={() => setJourneyOpen(false)} />}
 
+      {!state.personStarted ? (
+        <div className="phone-body">
+          <Welcome dispatch={dispatch} />
+        </div>
+      ) : (
+      <>
       <div className="phone-body">
         {state.tab === "home" && <Home state={state} dispatch={dispatch} />}
         {state.tab === "record" && <DiaryTab state={state} dispatch={dispatch} />}
@@ -99,6 +106,8 @@ export default function PersonApp({ state, dispatch }: Props) {
           </button>
         ))}
       </nav>
+      </>
+      )}
     </div>
   );
 }

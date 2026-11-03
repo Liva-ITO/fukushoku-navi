@@ -1,4 +1,4 @@
-import { HR, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
+import { HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import { DEMO_TODAY, OTHER_PEOPLE, PERSON, daysSince, type HrEvent, type HrTodo } from "../data/demo";
 import type { Schedule, State } from "../state/store";
 
@@ -18,6 +18,7 @@ export type HrRow = {
   todos: HrTodo[];
   events: HrEvent[];
   live: boolean; // 本人画面と連動しているか
+  pending?: boolean; // 招待を送ったが、本人がまだ始めていない
 };
 
 function reworkOf(state: State): string {
@@ -166,8 +167,25 @@ export function hrRows(state: State): HrRow[] {
     live: false,
   }));
   // 新着＝本人から届いたもののうち、人事がまだ見ていないもの
+  const invited: HrRow[] = state.invited.map((p) => ({
+    id: p.id,
+    name: p.name,
+    dept: p.dept,
+    stage: "acute",
+    leaveStart: p.leaveStart,
+    leaveEnd: p.leaveEnd,
+    rework: HR.reworkNone,
+    news: 0,
+    incoming: 0,
+    seen: 0,
+    newFrom: 0,
+    todos: [],
+    events: [{ date: p.date, kind: "done", body: INVITE.event, byHr: true }],
+    live: false,
+    pending: true,
+  }));
   // 復職を確定した人は、休職者の一覧に出さない
-  const people = a.stage === "afterReturn" ? others : [a, ...others];
+  const people = [...(a.stage === "afterReturn" ? others : [a, ...others]), ...invited];
   return people.map((r) => {
     const incoming = r.events.filter(isIncoming).length;
     return { ...r, incoming, news: Math.max(0, incoming - r.seen) };

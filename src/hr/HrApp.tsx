@@ -1,5 +1,6 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ANALYTICS, HR, STAGE_LABELS, type Stage } from "../constants/labels";
+import { ANALYTICS, HR, INVITE, STAGE_LABELS, type Stage } from "../constants/labels";
+import InviteForm from "./InviteForm";
 import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
@@ -32,12 +33,22 @@ export default function HrApp({ state, dispatch }: Props) {
     <div className="hr">
       <nav className="hr-nav">
         {(["list", "analytics"] as const).map((p) => (
-          <button key={p} aria-current={state.hrPage === p ? "page" : undefined} onClick={() => dispatch({ type: "hrPage", page: p })}>
+          <button
+            key={p}
+            aria-current={state.hrPage === p || (p === "list" && state.hrPage === "invite") ? "page" : undefined}
+            onClick={() => dispatch({ type: "hrPage", page: p })}
+          >
             {ANALYTICS.nav[p]}
           </button>
         ))}
       </nav>
-      {state.hrPage === "analytics" ? <Analytics /> : <HrList rows={rows} state={state} dispatch={dispatch} />}
+      {state.hrPage === "analytics" ? (
+        <Analytics />
+      ) : state.hrPage === "invite" ? (
+        <InviteForm dispatch={dispatch} />
+      ) : (
+        <HrList rows={rows} state={state} dispatch={dispatch} />
+      )}
     </div>
   );
 }
@@ -114,7 +125,12 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
   return (
     <>
       <div className="hr-head">
-        <h1 className="hr-title">{HR.title}</h1>
+        <div>
+          <h1 className="hr-title">{HR.title}</h1>
+          <button className="btn-outline invite-open" onClick={() => dispatch({ type: "hrPage", page: "invite" })}>
+            ＋ {INVITE.open}
+          </button>
+        </div>
         <aside className="notify">
           <p className="notify-title">{HR.notifyTitle}</p>
           <p className="notify-body">{HR.notifyBody}</p>
@@ -185,9 +201,7 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
                   <button className="link-row">{r.name}</button>
                 </td>
                 <td>{r.dept}</td>
-                <td>
-                  <StageTag stage={r.stage} />
-                </td>
+                <td>{r.pending ? <span className="stage-tag stage-pending">{INVITE.pendingTag}</span> : <StageTag stage={r.stage} />}</td>
                 <td>{HR.days(daysSince(r.leaveStart))}</td>
                 <td>{shortDate(r.leaveEnd)}</td>
                 <td>{r.rework}</td>
@@ -329,7 +343,11 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
               {HR.stageTitle}　<StageTag stage={row.stage} />
             </h2>
             <p className="muted stage-guide">{HR.stageGuide[row.stage]}</p>
-            {row.live ? <StageControl row={row} state={state} dispatch={dispatch} /> : <p className="muted">{HR.stageDemoOnly}</p>}
+            {row.live ? (
+              <StageControl row={row} state={state} dispatch={dispatch} />
+            ) : (
+              <p className="muted">{row.pending ? INVITE.pendingNote : HR.stageDemoOnly}</p>
+            )}
           </section>
 
           {row.live && <Meetings state={state} dispatch={dispatch} />}

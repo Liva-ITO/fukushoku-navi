@@ -13,6 +13,7 @@ import {
 
 // 状態はブラウザの中だけに置く（サーバーには送らない）
 export type View = "person" | "hr";
+export type Invited = { id: string; name: string; dept: string; age: string; job: string; leaveStart: string; leaveEnd: string; date: string };
 // 支援機関から本人に届くお知らせ（相談タブ）。会社には見えない
 export type CoordMessage = {
   id: string;
@@ -68,7 +69,11 @@ export type State = {
   // 人事画面で開いている人（null なら一覧）
   hrSelected: string | null;
   // 人事画面の上のタブ（休職者の一覧／データ分析）
-  hrPage: "list" | "analytics";
+  hrPage: "list" | "analytics" | "invite";
+  // 人事が招待した人（デモでは一覧に増えるだけ。本人はまだ始めていない）
+  invited: Invited[];
+  // 本人が招待から始めたか（デモでは、最初の画面で個人アカウントのボタンを押したら始まる）
+  personStarted: boolean;
   // 人事が対応済みにしたこと（経緯にも残す）
   hrDone: { key: string; personId: string; text: string; date: string }[];
   // 人事が詳しい画面で見た件数（新着を消すため）と、開く前に見ていた件数（どれが新着だったかを示すため）
@@ -113,6 +118,8 @@ export const initialState: State = {
   sentToHr: [],
   hrSelected: null,
   hrPage: "list",
+  invited: [],
+  personStarted: false,
   hrDone: [],
   hrSeen: {},
   hrNewFrom: {},
@@ -159,7 +166,9 @@ export type Action =
   | { type: "sendHrMessage"; title: string; body: string; noReplyNeeded: boolean }
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
-  | { type: "hrPage"; page: "list" | "analytics" }
+  | { type: "hrPage"; page: "list" | "analytics" | "invite" }
+  | { type: "invite"; person: Omit<Invited, "id" | "date"> }
+  | { type: "startPerson" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
 
@@ -354,6 +363,13 @@ function reducer(state: State, action: Action): State {
         hrSeen: { ...state.hrSeen, [action.id]: action.incoming ?? 0 },
         hrNewFrom: { ...state.hrNewFrom, [action.id]: action.prevSeen ?? 0 },
       };
+    case "invite":
+      return {
+        ...state,
+        invited: [...state.invited, { ...action.person, id: `inv${state.invited.length + 1}`, date: DEMO_TODAY }],
+      };
+    case "startPerson":
+      return { ...state, personStarted: true };
     case "hrPage":
       return { ...state, hrPage: action.page, hrSelected: null };
     case "hrMarkDone":
@@ -367,7 +383,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v20";
+const STORAGE_KEY = "fukushoku-navi-demo-v21";
 
 function load(): State {
   try {
