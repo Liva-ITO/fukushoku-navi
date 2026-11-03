@@ -110,6 +110,10 @@ export type Action =
   | { type: "scheduleOccMeeting"; date: string }
   | { type: "finishOccMeeting" }
   | { type: "receiveDoctorNote" }
+  | { type: "undoDoctorNote" }
+  | { type: "rescheduleOccMeeting" }
+  | { type: "undoOccMeetingDone" }
+  | { type: "rescheduleCompanyMeeting" }
   | { type: "setReturnPlan"; date: string; accommodation: string }
   | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
@@ -195,6 +199,15 @@ function reducer(state: State, action: Action): State {
       return state.occMeeting ? { ...state, occMeeting: { ...state.occMeeting, status: "done" } } : state;
     case "receiveDoctorNote":
       return { ...state, doctorNote: true };
+    // 押しまちがい・予定の変更に備えて、記録は戻せるようにする
+    case "undoDoctorNote":
+      return { ...state, doctorNote: false };
+    case "rescheduleOccMeeting":
+      return { ...state, occMeeting: null };
+    case "undoOccMeetingDone":
+      return state.occMeeting ? { ...state, occMeeting: { ...state.occMeeting, status: "scheduled" } } : state;
+    case "rescheduleCompanyMeeting":
+      return state.companyMeeting ? { ...state, companyMeeting: { status: "applied" } } : state;
     case "setReturnPlan":
       return { ...state, returnPlan: { date: action.date, accommodation: action.accommodation } };
     case "confirmReturn":

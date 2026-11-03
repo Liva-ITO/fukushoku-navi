@@ -400,7 +400,10 @@ export const HR = {
   confirmNo: "やめておく",
   // 準備期：復職までの手順（職場復帰支援の手引き 第2〜第4ステップ）。どの手順からでも押せ、確定だけは全部そろってから
   returnTitle: "復職までの手順",
-  returnOrderLabel: "会社の設定：手順の順番",
+  settingsTitle: "会社の設定",
+  settingsNote: "最初に一度決めておけば、全員に同じ設定が使われます",
+  returnOrderLabel: "復職までの手順の順番",
+  returnOrderNow: (order: string) => `手順の順番は、会社の設定で決めています（${order}）`,
   returnOrders: {
     occFirst: "産業医との面談 → 主治医の診断書",
     doctorFirst: "主治医の診断書 → 産業医との面談",
@@ -419,6 +422,9 @@ export const HR = {
   accommodationExample: "例：最初の1か月は残業なし",
   savePlan: "決める",
   editPlan: "変える",
+  reschedule: "日程を変える",
+  undoDone: "実施済みを取り消す",
+  undoReceived: "受け取りを取り消す",
   stepDone: "済み",
   stepNotYet: "まだ",
   confirmReturnLabel: "復職を確定する",

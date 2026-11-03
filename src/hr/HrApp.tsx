@@ -179,6 +179,8 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
         </div>
         <p className="muted table-note">{HR.newsNote}</p>
       </section>
+
+      <CompanySettings state={state} dispatch={dispatch} />
     </>
   );
 }
@@ -321,6 +323,15 @@ function Meetings({ state, dispatch }: Props) {
           <button className="btn-outline btn-small" onClick={() => dispatch({ type: "finishCompanyMeeting" })}>
             {HR.companyDone}
           </button>
+          <button
+            className="btn-quiet btn-small"
+            onClick={() => {
+              setDate(c.date ?? "");
+              dispatch({ type: "rescheduleCompanyMeeting" });
+            }}
+          >
+            {HR.reschedule}
+          </button>
         </div>
       )}
 
@@ -353,10 +364,11 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
   const [occDate, setOccDate] = useState("");
   const [planDate, setPlanDate] = useState(state.returnPlan?.date ?? "");
   const [accommodation, setAccommodation] = useState(state.returnPlan?.accommodation ?? "");
-  const [editing, setEditing] = useState(!state.returnPlan);
   const occ = state.occMeeting;
   const plan = state.returnPlan;
-  const ready = occ?.status === "done" && state.doctorNote && plan !== null;
+  const [editing, setEditing] = useState(!state.returnPlan);
+  // 復職日を書き直している間は、確定できない
+  const ready = occ?.status === "done" && state.doctorNote && plan !== null && !editing;
 
   const Status = ({ done }: { done: boolean }) => (
     <span className={`status-tag${done ? " status-done" : ""}`}>{done ? HR.stepDone : HR.stepNotYet}</span>
@@ -389,6 +401,22 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
           <button className="btn-outline btn-small" onClick={() => dispatch({ type: "finishOccMeeting" })}>
             {HR.companyDone}
           </button>
+          <button
+            className="btn-quiet btn-small"
+            onClick={() => {
+              setOccDate(occ.date);
+              dispatch({ type: "rescheduleOccMeeting" });
+            }}
+          >
+            {HR.reschedule}
+          </button>
+        </div>
+      )}
+      {occ?.status === "done" && (
+        <div className="meeting-action">
+          <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "undoOccMeetingDone" })}>
+            {HR.undoDone}
+          </button>
         </div>
       )}
     </li>
@@ -400,13 +428,17 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         {HR.stepDoctor}
         <Status done={state.doctorNote} />
       </p>
-      {!state.doctorNote && (
-        <div className="meeting-action">
+      <div className="meeting-action">
+        {state.doctorNote ? (
+          <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "undoDoctorNote" })}>
+            {HR.undoReceived}
+          </button>
+        ) : (
           <button className="btn-outline btn-small" onClick={() => dispatch({ type: "receiveDoctorNote" })}>
             {HR.doctorReceived}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </li>
   );
 
@@ -448,7 +480,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
           <div className="return-info">
             <p>{HR.afterReturnDate(shortDate(plan.date))}</p>
             {plan.accommodation && <p>{HR.afterReturnAccommodation(plan.accommodation)}</p>}
-            <button className="btn-quiet btn-small" onClick={() => setEditing(true)}>
+            <button className="btn-outline btn-small" onClick={() => setEditing(true)}>
               {HR.editPlan}
             </button>
           </div>
@@ -460,16 +492,8 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
   return (
     <div className="return-steps">
       <h3>{HR.returnTitle}</h3>
-      <fieldset className="return-order">
-        <legend className="muted">{HR.returnOrderLabel}</legend>
-        {(["occFirst", "doctorFirst"] as const).map((o) => (
-          <label key={o} className="check">
-            <input type="radio" name="return-order" checked={state.returnOrder === o} onChange={() => dispatch({ type: "setReturnOrder", order: o })} />
-            {HR.returnOrders[o]}
-          </label>
-        ))}
-        <p className="muted">{HR.returnOrderNote[state.returnOrder]}</p>
-      </fieldset>
+      <p className="muted return-order-now">{HR.returnOrderNow(HR.returnOrders[state.returnOrder])}</p>
+      <p className="muted return-order-now">{HR.returnOrderNote[state.returnOrder]}</p>
 
       <ol className="step-list">
         {state.returnOrder === "occFirst" ? [occStep, doctorStep] : [doctorStep, occStep]}
@@ -493,6 +517,26 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         </>
       )}
     </div>
+  );
+}
+
+// 会社として最初に一度決めること。人ごとには選ばない
+function CompanySettings({ state, dispatch }: Props) {
+  return (
+    <section className="hr-card">
+      <h2>{HR.settingsTitle}</h2>
+      <p className="muted">{HR.settingsNote}</p>
+      <fieldset className="return-order">
+        <legend>{HR.returnOrderLabel}</legend>
+        {(["occFirst", "doctorFirst"] as const).map((o) => (
+          <label key={o} className="check">
+            <input type="radio" name="return-order" checked={state.returnOrder === o} onChange={() => dispatch({ type: "setReturnOrder", order: o })} />
+            {HR.returnOrders[o]}
+          </label>
+        ))}
+        <p className="muted">{HR.returnOrderNote[state.returnOrder]}</p>
+      </fieldset>
+    </section>
   );
 }
 
