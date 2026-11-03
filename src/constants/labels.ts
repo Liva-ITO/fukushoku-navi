@@ -443,6 +443,9 @@ export const HR = {
   confirmReturn: (name: string, date: string) =>
     `${name}さんの復職を確定します。復職日は${date}です。確定すると、段階が「復職（見守りモード）」に変わり、本人の画面に復職日が出ます。`,
   confirmReturnYes: "確定する",
+  // 復職を確定した人は、会社からは見えなくなる。残すのは、会社が自分で決めた復職日と配慮だけ
+  returnedTitle: "復職済み",
+  returnedNote: "復職を確定した人の、連絡・提出物・経緯は見えなくなります。残るのは、会社が決めた復職日と配慮だけです",
   afterReturnDate: (d: string) => `復職日：${d}`,
   afterReturnAccommodation: (t: string) => `就業上の配慮：${t}`,
   stageDemoOnly: "デモでは、社員Aだけ操作できます",

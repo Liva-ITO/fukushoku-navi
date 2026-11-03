@@ -240,7 +240,8 @@ function reducer(state: State, action: Action): State {
       // 3つの手順がそろっているときだけ、復職（見守りモード）に進める
       if (state.occMeeting?.status !== "done" || state.returnDecision !== "ok" || !state.doctorNote || !state.returnPlan)
         return state;
-      return reducer(state, { type: "setStage", stage: "afterReturn" });
+      // 確定したら、会社からはもう詳しい画面を開けないので一覧に戻す
+      return { ...reducer(state, { type: "setStage", stage: "afterReturn" }), hrSelected: null };
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
     case "sendToHr":

@@ -148,7 +148,9 @@ export function hrRows(state: State): HrRow[] {
     live: false,
   }));
   // 新着＝本人から届いたもののうち、人事がまだ見ていないもの
-  return [a, ...others].map((r) => {
+  // 復職を確定した人は、休職者の一覧に出さない
+  const people = a.stage === "afterReturn" ? others : [a, ...others];
+  return people.map((r) => {
     const incoming = r.events.filter(isIncoming).length;
     return { ...r, incoming, news: Math.max(0, incoming - r.seen) };
   });

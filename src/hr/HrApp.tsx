@@ -4,7 +4,7 @@ import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
 import { daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
-import { DEMO_TODAY, type HrEvent, type HrTodo } from "../data/demo";
+import { DEMO_TODAY, PERSON, type HrEvent, type HrTodo } from "../data/demo";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -179,6 +179,21 @@ function HrList({ rows, state, dispatch }: { rows: HrRow[] } & Props) {
         </div>
         <p className="muted table-note">{HR.newsNote}</p>
       </section>
+
+      {state.stage === "afterReturn" && (
+        <section className="hr-card">
+          <h2>{HR.returnedTitle}</h2>
+          <p className="muted">{HR.returnedNote}</p>
+          <ul className="returned-list">
+            <li>
+              <span className="todo-name">{PERSON.name}</span>
+              <span className="muted">{PERSON.dept}</span>
+              {state.returnPlan && <span>{HR.afterReturnDate(shortDate(state.returnPlan.date))}</span>}
+              {state.returnPlan?.accommodation && <span>{HR.afterReturnAccommodation(state.returnPlan.accommodation)}</span>}
+            </li>
+          </ul>
+        </section>
+      )}
 
       <CompanySettings state={state} dispatch={dispatch} />
     </>
@@ -636,14 +651,8 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
           />
         ))}
       {state.stage === "preReturn" && <ReturnSteps row={row} state={state} dispatch={dispatch} />}
-      {state.stage === "afterReturn" && state.returnPlan && (
-        <div className="return-info">
-          <p>{HR.afterReturnDate(shortDate(state.returnPlan.date))}</p>
-          {state.returnPlan.accommodation && <p>{HR.afterReturnAccommodation(state.returnPlan.accommodation)}</p>}
-        </div>
-      )}
 
-      {prev && state.stage !== "afterReturn" && (
+      {prev && (
         <div className="stage-back">
           <ConfirmButton
             key={`back-${state.stage}`}

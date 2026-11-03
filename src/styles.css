@@ -357,3 +357,5 @@ button { font: inherit; cursor: pointer; }
 .return-info p { margin: 2px 0; }
 .return-order-now { margin: 0 0 4px; font-size: 12px; }
 .decision-actions { display: grid; gap: 6px; justify-items: start; margin-top: 6px; }
+.returned-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.returned-list li { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 8px 0; border-top: 1px solid var(--line); }
