@@ -9,6 +9,8 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 // 急性期：やることを求めない、静かなホーム。赤いバッジや数字は出さない
 export default function AcuteHome({ state, dispatch }: Props) {
   const allChecked = state.acuteChecks.every(Boolean);
+  // 急性期は、面談は1つずつ。コーディネーターとの面談が済むまでは、心理の専門家の面談を申し込めない
+  const coordBusy = state.coordinatorMeeting !== null && state.coordinatorReport === null;
 
   return (
     <div className="home home-acute">
@@ -54,6 +56,8 @@ export default function AcuteHome({ state, dispatch }: Props) {
             <p>{ACUTE.checkAllDone}</p>
             {state.rivaMeetingApplied ? (
               <p className="done-note">{ACUTE.checkApplied}</p>
+            ) : coordBusy ? (
+              <p className="muted">{ACUTE.busyCoord}</p>
             ) : (
               <ConfirmButton
                 quiet

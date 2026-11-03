@@ -285,7 +285,8 @@ function reducer(state: State, action: Action): State {
     case "offerSlots": {
       const key = action.kind === "psych" ? "psychSchedule" : "coordSchedule";
       const round = state[key]?.round ?? 0;
-      const options = CONSULT.slotSets[round % CONSULT.slotSets.length];
+      const sets = action.kind === "psych" ? CONSULT.psychSlotSets : CONSULT.slotSets;
+      const options = sets[round % sets.length];
       const s = withMessage(state, action.kind, CONSULT.msgOffer, options);
       const offerId = s.coordInbox[s.coordInbox.length - 1].id;
       return { ...s, [key]: { offerId, chosen: null, round: round + 1 } };

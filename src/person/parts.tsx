@@ -28,6 +28,8 @@ export function CoordinatorCard({
   // 面談が済んだ・今回は難しいと連絡があったときは、また申し込める
   const open = state.coordinatorMeeting === null || report === "done" || report === "declined";
   const newLink = showNewLink && !cs?.offerId && <NewNoticeLink state={state} dispatch={dispatch} />;
+  // 急性期は、面談は1つずつ。心理の専門家との面談を申し込んでいるあいだは、こちらは申し込めない
+  const psychBusy = state.stage === "acute" && state.rivaMeetingApplied && !state.psychMeetingDone;
   if (publicWhenEmpty && !hasTickets && open) {
     return (
       <section className="card">
@@ -64,7 +66,8 @@ export function CoordinatorCard({
           ))}
         </div>
       )}
-      {open && (
+      {open && psychBusy && <p className="muted">{CONSULT.busyPsych}</p>}
+      {open && !psychBusy && (
         <>
           <p className="muted">{note}</p>
           <div className="stack">
