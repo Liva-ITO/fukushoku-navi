@@ -5,6 +5,7 @@ import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
+import { SelfReportView } from "../person/SelfReportCard";
 import { END_NOTICE_DAYS, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
 import { DEMO_TODAY, PERSON, type HrEvent, type HrTodo } from "../data/demo";
 
@@ -489,6 +490,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         )}
       </p>
       <p className="muted">{HR.stepOccNote}</p>
+      <OccMaterial state={state} dispatch={dispatch} />
       <IssuesRef row={row} />
       {!occ && (
         <div className="meeting-action">
@@ -754,6 +756,14 @@ function CompanySettings({ state, dispatch }: Props) {
           />
           {HR.prepCond.companyMeeting}
         </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={state.prepConds.selfReport}
+            onChange={(e) => set({ prepConds: { ...state.prepConds, selfReport: e.target.checked } })}
+          />
+          {HR.prepCond.selfReport}
+        </label>
         <p className="muted">{HR.prepCondNote}</p>
       </fieldset>
 
@@ -802,6 +812,53 @@ function IssuesCard({ row }: { row: HrRow }) {
 }
 
 // 産業医との面談・会社の復職判断のところで、その場で見返せるようにする
+// 自分で準備する人のレポート。いちばん新しいものを、たたんで出す。デモでは届いたことにできる
+function SelfReportRef({ state, dispatch }: Props) {
+  const last = state.selfReports[state.selfReports.length - 1];
+  return (
+    <>
+      {last ? (
+        <details className="issues-ref">
+          <summary>{HR.selfReportView}（{last.date.slice(5).replace("-", "/")}）</summary>
+          <SelfReportView r={last} />
+        </details>
+      ) : (
+        <p className="muted">{HR.selfReportNone}</p>
+      )}
+      <div className="meeting-action demo-report">
+        <span className="muted">{HR.demoFromPerson}</span>
+        <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "demoSelfReport" })}>
+          {HR.selfReportArrive}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// 産業医との面談の材料：自分で準備する人はレポート、リワークの人は月次レポート
+function OccMaterial({ state, dispatch }: Props) {
+  if (state.prepPath === "self")
+    return (
+      <div className="occ-material">
+        <p className="occ-material-title">{HR.occMaterial}：{HR.occMaterialSelf}</p>
+        <SelfReportRef state={state} dispatch={dispatch} />
+      </div>
+    );
+  const last = state.reworkReports[state.reworkReports.length - 1];
+  return (
+    <div className="occ-material">
+      <p className="occ-material-title">{HR.occMaterial}：{HR.occMaterialRework}</p>
+      <p className="muted">{last ? HR.reportBody(last.month, last.days, last.rate) : HR.occMaterialNone}</p>
+      <div className="meeting-action demo-report">
+        <span className="muted">{HR.demoReport}</span>
+        <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "reworkReport" })}>
+          {HR.reportArrive}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function IssuesRef({ row }: { row: HrRow }) {
   if (!row.issues) return null;
   return (
@@ -833,6 +890,7 @@ function prepConditions(state: State): { ok: boolean; message?: string; items: {
         ok: RECOVERY.next.self.every((i) => state.recoveryChecks.includes(i)),
       });
     if (c.companyMeeting) items.push({ label: HR.prepCond.companyMeeting, ok: state.companyMeeting?.status === "done" });
+    if (c.selfReport) items.push({ label: HR.prepCond.selfReport, ok: state.selfReports.length > 0 });
   } else if (c.attendance) {
     const last = state.reworkReports[state.reworkReports.length - 1];
     items.push({ label: HR.prepCond.attendance(c.attendanceRate), ok: !!last && last.rate >= c.attendanceRate });
@@ -911,6 +969,7 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
               </button>
             </div>
           )}
+          {state.prepPath === "self" && <SelfReportRef state={state} dispatch={dispatch} />}
         </div>
       )}
 

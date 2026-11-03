@@ -3,6 +3,7 @@ import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../consta
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
+import { SelfReportCard } from "./SelfReportCard";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -117,6 +118,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
               ),
             )}
           </ul>
+          <SelfReportCard state={state} dispatch={dispatch} />
           <div className="next-step">
             <p className="muted">{RECOVERY.selfConsult}</p>
             <button className="btn-outline" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>

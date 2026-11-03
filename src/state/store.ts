@@ -1,4 +1,5 @@
 import { useEffect, useReducer } from "react";
+import type { SelfReport } from "./selfReport";
 import { ACUTE, CONSULT, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
@@ -6,6 +7,7 @@ import {
   INITIAL_HR_MESSAGES,
   INITIAL_STAGE_HISTORY,
   PERSON,
+  SAMPLE_SELF_REPORT,
   type DiaryEntry,
   type HrMessage,
   type SentItem,
@@ -84,7 +86,9 @@ export type State = {
   sickLeaveDays: number;
   rehab: boolean;
   // 準備期に進める条件（会社が選ぶ）
-  prepConds: { attendance: boolean; attendanceRate: number; selfCheck: boolean; companyMeeting: boolean };
+  prepConds: { attendance: boolean; attendanceRate: number; selfCheck: boolean; companyMeeting: boolean; selfReport: boolean };
+  // 自分で準備する人が会社に出す、生活の記録のレポート（本人が確かめて送ったものだけ）
+  selfReports: SelfReport[];
   // リワークの施設から会社に届く月次レポート（出席の事実だけ）
   reworkReports: { month: string; days: number; rate: number; date: string }[];
   occMeeting: { status: "scheduled" | "done"; date: string } | null;
@@ -145,7 +149,8 @@ export const initialState: State = {
   sickLeave: true,
   sickLeaveDays: 30,
   rehab: true,
-  prepConds: { attendance: true, attendanceRate: 80, selfCheck: true, companyMeeting: true },
+  prepConds: { attendance: true, attendanceRate: 80, selfCheck: true, companyMeeting: true, selfReport: true },
+  selfReports: [],
   reworkReports: [],
   occMeeting: null,
   doctorNote: false,
@@ -208,6 +213,8 @@ export type Action =
   | { type: "hrPage"; page: "list" | "analytics" | "invite" | "settings" }
   | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
   | { type: "reworkReport" }
+  | { type: "sendSelfReport"; report: SelfReport }
+  | { type: "demoSelfReport" }
   | { type: "invite"; person: Omit<Invited, "id" | "date"> }
   | { type: "startPerson" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
@@ -433,6 +440,11 @@ function reducer(state: State, action: Action): State {
       };
     case "setCompany":
       return { ...state, ...action.patch };
+    case "sendSelfReport":
+      return { ...state, selfReports: [...state.selfReports, action.report] };
+    case "demoSelfReport":
+      // デモ：人事の画面で、本人からレポートが届いたことにする（準備期の本人画面はスタッフが作る）
+      return { ...state, selfReports: [...state.selfReports, { ...SAMPLE_SELF_REPORT, date: DEMO_TODAY }] };
     case "reworkReport": {
       // デモ：月次レポートが届く（見本の数字）
       const n = state.reworkReports.length;
@@ -462,7 +474,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v28";
+const STORAGE_KEY = "fukushoku-navi-demo-v29";
 
 function load(): State {
   try {

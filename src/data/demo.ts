@@ -198,3 +198,18 @@ export function lastSevenDays(today = DEMO_TODAY): string[] {
     return `${d.getFullYear()}-${m}-${day}`;
   });
 }
+
+// 人事画面のデモで届く、生活の記録のレポートの見本（架空）
+export const SAMPLE_SELF_REPORT = {
+  period: 14,
+  days: 13,
+  bed: "23:40",
+  wake: "07:20",
+  sleepHours: 7.7,
+  activityHours: 9,
+  outDays: 10,
+  outMinutes: 50,
+  condition: "朝の起きづらさは、ほとんどなくなった。午後に疲れが出る日が、週に1〜2日ある",
+  reason: "担当の仕事が増えたときに一人で抱えこみ、夜遅くまで作業して、睡眠が削られていった",
+  measures: "仕事が増えたら、週1回の面談で上司に量を相談する。0時までに寝ることを続ける。疲れのサイン（朝のだるさ）が3日続いたら、主治医に伝える",
+};
