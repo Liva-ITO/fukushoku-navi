@@ -78,6 +78,7 @@ export const RECOVERY = {
   pathNote: "復職に向けた準備は、2つの道から選べます。どちらを選んでも大丈夫です。途中で変えることもできます",
   pathRework: "リワークを使う",
   pathReworkNote: "専門のプログラムで、仲間と一緒に準備する",
+  pathReworkPick: "どちらで参加しますか",
   pathOptions: {
     rivatore: { name: "通うリワーク", note: "通いながら、仲間と一緒にトレーニングする" },
     rivabiz: { name: "オンラインのリワーク", note: "自宅からオンラインで参加できる" },

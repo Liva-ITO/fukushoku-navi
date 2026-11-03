@@ -137,7 +137,12 @@ button { font: inherit; cursor: pointer; }
   margin: 6px 0 0; padding: 10px 14px; text-align: left;
   border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text);
 }
-.path-option-indent { margin-left: 12px; width: calc(100% - 12px); }
+/* リワークを押したときに開く、通う／オンラインの2つ */
+.path-sub { margin: 6px 0 0 12px; padding: 4px 0 4px 12px; border-left: 2px solid var(--accent-soft); }
+.path-sub > .muted { margin: 0; font-size: 13px; }
+.path-option-sub { padding: 8px 12px; }
+.path-name { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.path-caret { font-size: 10px; color: var(--muted); }
 .path-option:hover { border-color: var(--accent); }
 .path-name { font-weight: 600; }
 .path-chosen { display: flex; justify-content: space-between; align-items: center; gap: 8px; }

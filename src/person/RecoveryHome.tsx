@@ -1,4 +1,4 @@
-import type { Dispatch } from "react";
+import { useState, type Dispatch } from "react";
 import { RECOVERY, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
@@ -17,6 +17,8 @@ export default function RecoveryHome({ state, dispatch }: Props) {
   const nextItems =
     path === null ? RECOVERY.next.none : path === "self" ? RECOVERY.next.self : RECOVERY.next.rework;
   const noteKey = path === null ? "none" : path === "self" ? "self" : "rework";
+  // 準備の進め方は2段階：まず「リワークを使う／自分のペース」の2つ。リワークを押したら、通う／オンラインを開く
+  const [reworkOpen, setReworkOpen] = useState(false);
 
   return (
     <div className="home">
@@ -54,13 +56,23 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         ) : (
           <>
             <p className="muted">{RECOVERY.pathNote}</p>
-            <p className="path-group">
-              {RECOVERY.pathRework}
-              <span className="muted">　{RECOVERY.pathReworkNote}</span>
-            </p>
-            {REWORK_PATHS.map((p) => (
-              <PathOption key={p} path={p} dispatch={dispatch} />
-            ))}
+            <button className="path-option" aria-expanded={reworkOpen} onClick={() => setReworkOpen(!reworkOpen)}>
+              <span className="path-name">
+                {RECOVERY.pathRework}
+                <span className="path-caret" aria-hidden="true">
+                  {reworkOpen ? "▲" : "▼"}
+                </span>
+              </span>
+              <span className="muted">{RECOVERY.pathReworkNote}</span>
+            </button>
+            {reworkOpen && (
+              <div className="path-sub">
+                <p className="muted">{RECOVERY.pathReworkPick}</p>
+                {REWORK_PATHS.map((p) => (
+                  <PathOption key={p} path={p} dispatch={dispatch} />
+                ))}
+              </div>
+            )}
             <PathOption path="self" dispatch={dispatch} />
           </>
         )}
@@ -138,7 +150,7 @@ function PathOption({ path, dispatch }: { path: PrepPath; dispatch: Dispatch<Act
   const opt = RECOVERY.pathOptions[path];
   return (
     <button
-      className={`path-option${path === "self" ? "" : " path-option-indent"}`}
+      className={`path-option${path === "self" ? "" : " path-option-sub"}`}
       onClick={() => dispatch({ type: "setPrepPath", path })}
     >
       <span className="path-name">{opt.name}</span>
