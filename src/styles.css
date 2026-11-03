@@ -656,3 +656,7 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .invite-wide { grid-column: 1 / -1; }
 .invite-resend { margin-top: 8px; display: grid; gap: 6px; }
 .invite-resend p { margin: 0; }
+
+/* 会社の設定：部署 */
+.dept-list { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.dept-list li { display: inline-flex; align-items: center; gap: 4px; padding: 0 0 0 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; }

@@ -87,6 +87,7 @@ export type State = {
   returnOrder: ReturnOrder;
   // 会社の設定（見本）。いまは手順の順番だけが画面に反映される
   maxLeave: string;
+  depts: string[]; // 部署（会社の設定）。登録ではここから選ぶ
   sickLeave: boolean;
   sickLeaveDays: number;
   rehab: boolean;
@@ -156,6 +157,7 @@ export const initialState: State = {
   coordSeen: 0,
   returnOrder: "occFirst",
   maxLeave: "1年6か月",
+  depts: ["営業部", "開発部", "製造部", "総務部", "企画部"],
   sickLeave: true,
   sickLeaveDays: 30,
   rehab: true,
@@ -224,7 +226,7 @@ export type Action =
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
   | { type: "hrPage"; page: "list" | "analytics" | "invite" | "settings" }
-  | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
+  | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "depts" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
   | { type: "reworkReport" }
   | { type: "addIssueNote"; personId: string; text: string }
   | { type: "sendSelfReport"; report: SelfReport }
@@ -543,7 +545,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v34";
+const STORAGE_KEY = "fukushoku-navi-demo-v35";
 
 function load(): State {
   try {

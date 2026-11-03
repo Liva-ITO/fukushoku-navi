@@ -50,7 +50,7 @@ export default function HrApp({ state, dispatch }: Props) {
       ) : state.hrPage === "settings" ? (
         <CompanySettings state={state} dispatch={dispatch} />
       ) : state.hrPage === "invite" ? (
-        <InviteForm dispatch={dispatch} />
+        <InviteForm depts={state.depts} dispatch={dispatch} />
       ) : (
         <HrList rows={rows} state={state} dispatch={dispatch} />
       )}
@@ -690,6 +690,43 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
 }
 
 // 会社として最初に一度決めること。人ごとには選ばない
+// 部署の一覧。登録ではここから選ぶ
+function DeptSetting({ depts, onChange }: { depts: string[]; onChange: (d: string[]) => void }) {
+  const [name, setName] = useState("");
+  const n = name.trim();
+  const dup = depts.includes(n);
+  return (
+    <fieldset className="setting">
+      <legend>{HR.deptLabel}</legend>
+      <ul className="dept-list">
+        {depts.map((d) => (
+          <li key={d}>
+            {d}
+            <button className="btn-quiet btn-small" onClick={() => onChange(depts.filter((x) => x !== d))}>
+              {HR.deptRemove}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="setting-row">
+        <input className="hr-input" placeholder={HR.deptAddPlaceholder} value={name} onChange={(e) => setName(e.target.value)} />
+        <button
+          className="btn-outline btn-small"
+          disabled={!n || dup}
+          onClick={() => {
+            onChange([...depts, n]);
+            setName("");
+          }}
+        >
+          {HR.deptAdd}
+        </button>
+      </div>
+      {dup && <p className="muted">{HR.deptExists}</p>}
+      <p className="muted">{HR.deptNote}</p>
+    </fieldset>
+  );
+}
+
 function CompanySettings({ state, dispatch }: Props) {
   const set = (patch: Parameters<typeof setCompany>[0]) => dispatch(setCompany(patch));
   return (
@@ -697,6 +734,8 @@ function CompanySettings({ state, dispatch }: Props) {
       <h1 className="hr-title">{HR.settingsTitle}</h1>
       <p className="muted">{HR.settingsNote}</p>
       <p className="muted">{HR.settingsDemoNote}</p>
+
+      <DeptSetting depts={state.depts} onChange={(depts) => set({ depts })} />
 
       <fieldset className="setting">
         <legend>{HR.maxLeaveLabel}</legend>

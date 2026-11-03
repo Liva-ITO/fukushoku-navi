@@ -5,7 +5,7 @@ import type { Action } from "../state/store";
 
 // 休職者の登録（見本）。本番では、ここで入れる本人の個人のメールアドレスに案内が届き、本人は自分のアカウントで始める。
 // デモでは何も送らず、一覧に「「まだ始めていません」」の行が増えるだけ
-export default function InviteForm({ dispatch }: { dispatch: Dispatch<Action> }) {
+export default function InviteForm({ depts, dispatch }: { depts: string[]; dispatch: Dispatch<Action> }) {
   const [name, setName] = useState("");
   const [dept, setDept] = useState("");
   const [age, setAge] = useState(INVITE.ages[1]);
@@ -37,9 +37,16 @@ export default function InviteForm({ dispatch }: { dispatch: Dispatch<Action> })
           {INVITE.name}
           <input className="hr-input" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
+        {/* 部署は会社の設定の一覧から選ぶ（書き方の揺れで、集計が分かれないように） */}
         <label className="hr-field">
           {INVITE.dept}
-          <input className="hr-input" value={dept} onChange={(e) => setDept(e.target.value)} />
+          <select className="hr-input" value={dept} onChange={(e) => setDept(e.target.value)}>
+            <option value="">{INVITE.deptPick}</option>
+            {depts.map((d) => (
+              <option key={d}>{d}</option>
+            ))}
+          </select>
+          {depts.length === 0 && <span className="muted">{INVITE.deptNone}</span>}
         </label>
         <label className="hr-field">
           {INVITE.age}
