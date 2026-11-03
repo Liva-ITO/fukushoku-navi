@@ -47,6 +47,9 @@ export default function AcuteHome({ state, dispatch }: Props) {
               {i === 1 && stepNow === 1 && state.psychSchedule?.chosen && (
                 <span className="step-sub">{ACUTE.checkStepDate(state.psychSchedule.chosen)}</span>
               )}
+              {i === 2 && stepNow === 2 && (
+                <span className="step-sub">{state.nextWish ? ACUTE.checkStepSent : ACUTE.checkStepWish}</span>
+              )}
             </li>
           ))}
         </ol>
@@ -64,7 +67,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
             </li>
           ))}
         </ul>
-        {allChecked && (
+        {allChecked && !state.psychMeetingDone && (
           <div className="next-step">
             <p>{ACUTE.checkAllDone}</p>
             {state.rivaMeetingApplied ? (

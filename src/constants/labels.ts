@@ -53,6 +53,8 @@ export const ACUTE = {
   checkTitle: "次の段階へ",
   checkNote: "焦らなくて大丈夫です。こんな順番で、回復期に進みます",
   checkSteps: ["下の3つにチェックがつく", "復職コーディネーターと面談する", "会社にこれからの希望を伝えて、回復期へ"],
+  checkStepWish: "希望を送ってください。ホームのいちばん上から送れます",
+  checkStepSent: "会社に伝えました。回復期に進めるかは、会社が決めます",
   checkStepDate: (slot: string) => `${slot}に面談します。済んだら、次にすることがここに出ます`,
   checkHere: "いまここ",
   checkItems: [
