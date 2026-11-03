@@ -61,6 +61,7 @@ export type HrEvent = {
   status?: string;
   noReply?: boolean;
   byHr?: boolean; // 人事が自分で記録したもの（新着にしない）
+  report?: number; // 生活の記録のレポートなら、その番号（押すと開く）
 };
 // 人事が対応すること。due は期限（満了日など）があるときだけ
 export type HrTodo = { key: string; text: string; date: string; due?: string };

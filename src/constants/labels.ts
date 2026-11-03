@@ -553,7 +553,9 @@ export const HR = {
     psychMeeting: "復職コーディネーターとの面談の申し込みがありました（回復期への切り替えの確認）",
     psychDone: "復職コーディネーターとの面談が済みました。本人の希望が届いたら、回復期に進めるか決めてください",
     wishArrived: "本人から、これからの希望が届きました。回復期に進めるか決めてください",
-    newFromPerson: (n: number) => `本人から連絡が届いています（${n}件）`,
+    // いちばん新しい連絡の中身を出す（件数だけだと、新しく届いても変化に気づきにくい）
+    newFromPerson: (n: number, latest: string) =>
+      `本人から連絡が届いています：${latest.length > 40 ? `${latest.slice(0, 40)}…` : latest}${n > 1 ? `（これまでに${n}件）` : ""}`,
   },
 
   // 面談は1件を1行にし、状態を印で出す
@@ -704,7 +706,24 @@ export const HR = {
   selfReportBody: (d: string) => `生活の記録のレポート（${d}）`,
   selfReportArrive: "レポートが届く",
   demoFromPerson: "デモ用：本人から届く",
-  selfReportView: "届いたレポートを見る",
+  selfReportView: "届いたレポートを開く",
+  // レポートを書類の形で見せる
+  doc: {
+    title: "生活の記録のレポート",
+    name: "氏名",
+    dept: "部署",
+    submitted: "提出日",
+    period: "対象期間",
+    periodBody: (a: string, b: string, days: number, p: number) => `${a}〜${b}（${p}日のうち、日記を書いた日 ${days}日）`,
+    rhythm: "生活のリズム（日記から）",
+    sleepSub: (bed: string, wake: string) => `${bed}ごろ寝て、${wake}ごろ起きる`,
+    activitySub: "横にならずに過ごした時間",
+    outSub: (m: number) => `外出・運動をした日（平均${m}分）`,
+    reflection: "本人のふり返り",
+    foot: "本人が中身を確かめて、会社に提出したものです。日記そのものや気分は含みません。",
+    print: "印刷・PDFで保存",
+    close: "閉じる",
+  },
   selfReportNone: "生活の記録のレポート：まだ届いていません",
   // 産業医との面談の材料（会社の判断にも使う）
   occMaterial: "面談の材料",

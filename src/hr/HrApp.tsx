@@ -2,11 +2,11 @@ import { useEffect, useState, type Dispatch } from "react";
 import { ACUTE, ANALYTICS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import InviteForm from "./InviteForm";
 import Accounts from "./Accounts";
+import ReportDoc from "./ReportDoc";
 import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
 import type { Action, OccOpinion, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
-import { SelfReportView } from "../person/SelfReportCard";
 import { END_NOTICE_DAYS, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
 import { DEMO_TODAY, PERSON, type HrEvent, type HrTodo } from "../data/demo";
 
@@ -275,10 +275,14 @@ function sortRows(rows: HrRow[], col: SortCol, asc: boolean): HrRow[] {
 }
 
 function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
+  const openReport = row.live && state.hrReport !== null ? state.selfReports[state.hrReport] : undefined;
   // 開く前に見ていなかったもの。経緯の中だけだと埋もれるので、いちばん上にも出す
   const newItems = markNew(row).filter((x) => x.isNew).reverse();
   return (
     <>
+      {openReport && (
+        <ReportDoc r={openReport} name={row.name} dept={row.dept} onClose={() => dispatch({ type: "openReport", index: null })} />
+      )}
       <BackButton dispatch={dispatch} />
       <div className="hr-head">
         <h1 className="hr-title">
@@ -339,7 +343,14 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
                   {isNew && <span className="new-tag">{HR.newTag}</span>}
                   <EventTags e={e} />
                 </span>
-                {e.kind !== "stage" && <span className="tl-body">{e.body}</span>}
+                {e.kind !== "stage" &&
+                  (e.report !== undefined ? (
+                    <button className="tl-body link-row tl-link" onClick={() => dispatch({ type: "openReport", index: e.report ?? null })}>
+                      {e.body} ›
+                    </button>
+                  ) : (
+                    <span className="tl-body">{e.body}</span>
+                  ))}
               </li>
             ))}
           </ol>
@@ -977,10 +988,9 @@ function SelfReportRef({ state, dispatch }: Props) {
   return (
     <>
       {last ? (
-        <details className="issues-ref">
-          <summary>{HR.selfReportView}（{last.date.slice(5).replace("-", "/")}）</summary>
-          <SelfReportView r={last} />
-        </details>
+        <button className="btn-outline btn-small" onClick={() => dispatch({ type: "openReport", index: state.selfReports.length - 1 })}>
+          {HR.selfReportView}（{last.date.slice(5).replace("-", "/")}） ›
+        </button>
       ) : (
         <p className="muted">{HR.selfReportNone}</p>
       )}

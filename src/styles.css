@@ -689,3 +689,37 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 
 /* デモの次の一手：いつも見えるところに、目立つ形で */
 .demo-step { background: #f3d9a4 !important; color: #3b3a36 !important; border-color: #f3d9a4 !important; font-weight: 700; white-space: nowrap; }
+
+/* 経緯：押して開けるもの */
+.tl-link { text-align: left; padding: 0; min-height: 0; }
+/* 生活の記録のレポート（書類の形） */
+.report-backdrop { align-items: flex-start; overflow-y: auto; padding: 24px 12px; }
+.report-doc { background: #fff; color: var(--text); width: 100%; max-width: 720px; margin: 0 auto; padding: 32px 36px; border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,.15); font-size: 14px; line-height: 1.7; }
+.report-doc h1 { font-size: 20px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--text); }
+.report-doc h2 { font-size: 15px; margin: 22px 0 10px; padding-left: 8px; border-left: 4px solid var(--accent); }
+.report-doc h3 { font-size: 13px; margin: 0 0 2px; color: var(--muted); font-weight: 600; }
+.report-doc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin: 0; }
+.report-doc-meta div { display: grid; grid-template-columns: 5.5em 1fr; }
+.report-doc-meta dt { color: var(--muted); }
+.report-doc-meta dd { margin: 0; }
+.report-doc-figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 8px; }
+.report-doc-figures > div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.report-doc-label { margin: 0; font-size: 12px; color: var(--muted); }
+.report-doc-value { margin: 2px 0; font-size: 22px; font-weight: 700; }
+.report-doc-sub { margin: 0; font-size: 12px; color: var(--muted); }
+.report-doc .act-bars { height: 120px; }
+.report-doc-text { margin-bottom: 12px; }
+.report-doc-text p { margin: 0; white-space: pre-wrap; }
+.report-doc-foot { margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+@media (max-width: 600px) {
+  .report-doc { padding: 20px 16px; }
+  .report-doc-meta, .report-doc-figures { grid-template-columns: 1fr; }
+}
+/* 印刷・PDF：レポートだけを出す */
+@media print {
+  body * { visibility: hidden; }
+  .report-doc, .report-doc * { visibility: visible; }
+  .report-backdrop { position: static; background: none; padding: 0; overflow: visible; }
+  .report-doc { position: absolute; left: 0; top: 0; box-shadow: none; max-width: none; padding: 0; }
+  .no-print { display: none !important; }
+}

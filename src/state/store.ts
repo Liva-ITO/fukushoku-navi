@@ -120,6 +120,7 @@ export type State = {
   hrPage: "list" | "analytics" | "invite" | "settings" | "accounts";
   // デモで人事の画面を見るときの権限（管理者だけが会社の設定とアカウントを触れる）
   hrRole: "admin" | "staff";
+  hrReport: number | null; // 人事の画面で開いているレポート（selfReports の番号）
   hrAccounts: HrAccount[];
   // 人事が招待した人（デモでは一覧に増えるだけ。本人はまだ始めていない）
   invited: Invited[];
@@ -187,6 +188,7 @@ export const initialState: State = {
   hrSelected: null,
   hrPage: "list",
   hrRole: "admin",
+  hrReport: null,
   hrAccounts: [
     { id: "u1", name: "担当A", position: "人事", role: "admin" },
     { id: "u2", name: "担当B", position: "人事", role: "staff" },
@@ -245,6 +247,7 @@ export type Action =
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
   | { type: "hrPage"; page: State["hrPage"] }
   | { type: "setHrRole"; role: "admin" | "staff" }
+  | { type: "openReport"; index: number | null }
   | { type: "addAccount"; account: Omit<HrAccount, "id"> }
   | { type: "setAccountRole"; id: string; role: "admin" | "staff" }
   | { type: "removeAccount"; id: string }
@@ -575,6 +578,8 @@ function reducer(state: State, action: Action): State {
       // 会社の設定とアカウントは、管理者だけ
       if ((action.page === "settings" || action.page === "accounts") && state.hrRole !== "admin") return state;
       return { ...state, hrPage: action.page, hrSelected: null };
+    case "openReport":
+      return { ...state, hrReport: action.index };
     case "setHrRole":
       return {
         ...state,
@@ -617,7 +622,7 @@ const LOCAL_STORAGE_KEY = `${STORAGE_KEY}-window`;
 
 // ウィンドウごとに持つもの（見ている画面）。ほかのウィンドウとは合わせず、このウィンドウの中だけに保存する。
 // 共有する保存にこれを混ぜると、2つのウィンドウが互いに書き換え合って止まらなくなる
-const LOCAL_KEYS = ["view", "tab", "hrPage", "hrSelected", "contactOpen", "hrRole", "introSeen"] as const;
+const LOCAL_KEYS = ["view", "tab", "hrPage", "hrSelected", "contactOpen", "hrRole", "introSeen", "hrReport"] as const;
 type LocalKey = (typeof LOCAL_KEYS)[number];
 function pick<T extends object, K extends keyof T>(o: T, keys: readonly K[]): Pick<T, K> {
   const r = {} as Pick<T, K>;

@@ -105,7 +105,7 @@ export function SelfReportView({ r }: { r: Omit<SelfReport, "date"> }) {
 }
 
 // 日ごとの活動時間の棒グラフ。数字は文字でも出す（色だけに頼らない）
-function ActivityChart({ series }: { series: SelfReport["activitySeries"] }) {
+export function ActivityChart({ series }: { series: SelfReport["activitySeries"] }) {
   if (!series?.length) return null;
   const max = 12;
   const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;

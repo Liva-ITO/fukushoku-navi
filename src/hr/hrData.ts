@@ -42,7 +42,7 @@ function todosOf(state: State): HrTodo[] {
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
   if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested(CONSULT.who[state.coordWho]));
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
-  if (state.sentToHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length));
+  if (state.sentToHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length, state.sentToHr[state.sentToHr.length - 1].body));
   return t;
 }
 
@@ -91,7 +91,7 @@ function eventsOf(state: State): HrEvent[] {
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
     ...state.reworkReports.map((r) => ({ date: r.date, kind: "submit" as const, body: HR.reportBody(r.month, r.days, r.rate) })),
-    ...state.selfReports.map((r) => ({ date: r.date, kind: "submit" as const, body: HR.selfReportBody(r.date.slice(5).replace("-", "/")) })),
+    ...state.selfReports.map((r, i) => ({ date: r.date, kind: "submit" as const, body: HR.selfReportBody(r.date.slice(5).replace("-", "/")), report: i })),
     ...state.occOpinions.map((o) => ({
       date: o.date,
       kind: "meeting" as const,
