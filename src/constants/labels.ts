@@ -316,6 +316,9 @@ export const DEMO_BAR = {
   on: "オン",
   off: "オフ",
   reset: "最初の状態に戻す",
+  // スマホでは1行にたたみ、いまの状態だけを出す
+  summary: (view: "person" | "hr", stage: string, rest: boolean) =>
+    `${view === "person" ? "本人" : "人事"}・${stage}${rest ? "・休息モード" : ""}`,
   tickets: "面談チケット",
   ticketsYes: "残りあり",
   ticketsNo: "なし",

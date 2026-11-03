@@ -483,3 +483,18 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .hr-field { display: grid; gap: 4px; margin-top: 10px; font-size: 13px; color: var(--muted); }
 .hr-input { font: inherit; color: var(--text); padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
 .send-preview strong { display: block; margin-bottom: 6px; }
+
+/* デモ操作バー：PCでは1行に全部、スマホでは1行にたたむ */
+.demo-toggle { display: none; }
+.demo-controls { display: contents; }
+@media (max-width: 700px) {
+  .demo-bar { flex-wrap: nowrap; padding: 6px 12px; gap: 10px; }
+  .demo-bar.demo-open { flex-wrap: wrap; }
+  .demo-toggle {
+    display: flex; flex: 1; justify-content: space-between; align-items: center; gap: 8px;
+    min-height: 36px; padding: 4px 10px; border: 1px solid #5d6b67; border-radius: 6px;
+    background: transparent; color: var(--bar-text); font-size: 13px;
+  }
+  .demo-controls { display: none; }
+  .demo-open .demo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; width: 100%; padding: 6px 0 2px; }
+}

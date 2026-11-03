@@ -1,4 +1,4 @@
-import type { Dispatch } from "react";
+import { useState, type Dispatch } from "react";
 import { DEMO_BAR, STAGE_LABELS, type Stage } from "../constants/labels";
 import type { Action, State } from "../state/store";
 
@@ -6,12 +6,24 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 
 const STAGES: Stage[] = ["acute", "recovery", "preReturn", "afterReturn"];
 
-export default function DemoBar({ state, dispatch }: Props) {
+export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
   const restAllowed = state.stage === "recovery" || state.stage === "preReturn";
+  // スマホでは1行にたたむ（製品の画面を広く見せるため）。操作したら閉じる。PCではいつも開いている
+  const [open, setOpen] = useState(false);
+  const dispatch: Dispatch<Action> = (a) => {
+    rawDispatch(a);
+    setOpen(false);
+  };
 
   return (
-    <div className="demo-bar" aria-label={DEMO_BAR.title}>
+    <div className={`demo-bar${open ? " demo-open" : ""}`} aria-label={DEMO_BAR.title}>
       <span className="demo-bar-title">{DEMO_BAR.title}</span>
+      <button className="demo-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span>{DEMO_BAR.summary(state.view, STAGE_LABELS[state.stage], state.restMode)}</span>
+        <span aria-hidden="true">{open ? "▲" : "▼"}</span>
+      </button>
+
+      <div className="demo-controls">
 
       <div className="seg" role="group" aria-label={DEMO_BAR.viewAs}>
         <button
@@ -68,6 +80,7 @@ export default function DemoBar({ state, dispatch }: Props) {
       <button className="demo-reset" onClick={() => dispatch({ type: "reset" })}>
         {DEMO_BAR.reset}
       </button>
+      </div>
     </div>
   );
 }
