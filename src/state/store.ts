@@ -36,6 +36,7 @@ export type State = {
   introSeen: boolean;
   hrMessages: HrMessage[];
   acuteChecks: boolean[];
+  recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
   // 急性期→回復期に必須の、心理の専門家との面談が済んだか（人事が記録する）
   psychMeetingDone: boolean;
@@ -86,6 +87,7 @@ export const initialState: State = {
   introSeen: false,
   hrMessages: INITIAL_HR_MESSAGES,
   acuteChecks: ACUTE.checkItems.map(() => false),
+  recoveryChecks: [],
   rivaMeetingApplied: false,
   psychMeetingDone: false,
   psychSchedule: null,
@@ -121,6 +123,7 @@ export type Action =
   | { type: "setTab"; tab: Tab }
   | { type: "closeIntro" }
   | { type: "toggleAcuteCheck"; index: number }
+  | { type: "toggleRecoveryCheck"; item: string }
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
   | { type: "markCoordSeen" }
@@ -200,6 +203,13 @@ function reducer(state: State, action: Action): State {
       return { ...state, psychMeetingDone: true };
     case "markCoordSeen":
       return { ...state, coordSeen: state.coordInbox.length };
+    case "toggleRecoveryCheck":
+      return {
+        ...state,
+        recoveryChecks: state.recoveryChecks.includes(action.item)
+          ? state.recoveryChecks.filter((i) => i !== action.item)
+          : [...state.recoveryChecks, action.item],
+      };
     case "closeRecoveryIntro":
       return { ...state, recoveryIntroSeen: true };
     case "markRecoveryJourneySeen":
@@ -351,7 +361,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v18";
+const STORAGE_KEY = "fukushoku-navi-demo-v19";
 
 function load(): State {
   try {

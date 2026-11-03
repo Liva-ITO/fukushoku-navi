@@ -17,6 +17,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
   const nextItems =
     path === null ? RECOVERY.next.none : path === "self" ? RECOVERY.next.self : RECOVERY.next.rework;
   const noteKey = path === null ? "none" : path === "self" ? "self" : "rework";
+  const allChecked = nextItems.every((i) => state.recoveryChecks.includes(i));
   // 準備の進め方は2段階：まず「リワークを使う／自分のペース」の2つ。リワークを押したら、通う／オンラインを開く
   const [reworkOpen, setReworkOpen] = useState(false);
 
@@ -108,13 +109,24 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         </section>
       )}
 
-      <section className="card">
-        <h2>{RECOVERY.nextTitle}</h2>
-        <ul className="list-dot">
+      {/* 急性期と同じく、たたんでおき、自分でチェックできる。会社との面談を申し込んだあとは、状態が見えるよう開いておく */}
+      <details className="card card-quiet" open={state.companyMeeting !== null || undefined}>
+        <summary>{RECOVERY.nextTitle}</summary>
+        <ul className="list-plain">
           {nextItems.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item}>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={state.recoveryChecks.includes(item)}
+                  onChange={() => dispatch({ type: "toggleRecoveryCheck", item })}
+                />
+                {item}
+              </label>
+            </li>
           ))}
         </ul>
+        {allChecked && RECOVERY.nextAllDone[noteKey] && <p className="next-note">{RECOVERY.nextAllDone[noteKey]}</p>}
         <p className="muted next-note">{RECOVERY.nextNote[noteKey]}</p>
 
         {/* 自分のペースで準備する人だけ、ここから会社との面談を申し込む。リワークはプログラムの中で確かめる */}
@@ -143,7 +155,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
             )}
           </div>
         )}
-      </section>
+      </details>
 
       {/* 相談は段階に関係なく、相談したいときに選ぶ（急性期・休息モードと同じ枠） */}
       <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} showNewLink={false} />
