@@ -641,3 +641,7 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .opinion-form .opinion-title { margin: 0; font-weight: 600; font-size: 14px; }
 .opinion-form p { margin: 0; }
 .opinion-line { margin: 4px 0; font-weight: 600; font-size: 14px; }
+
+/* 確認の文の改行を活かす（件名と本文を分けて見せる） */
+.confirm > p:first-child { white-space: pre-line; }
+.modal > p:first-child { white-space: pre-line; }

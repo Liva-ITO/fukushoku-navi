@@ -13,6 +13,7 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 
 const STAGES: Stage[] = ["acute", "recovery", "preReturn", "afterReturn"];
 const shortDate = (d: string) => d.replace(/-/g, "/");
+const jpDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
 
 // 会社（人事・産業保健）の画面。本人が提出したもの・やり取り・申し込みがあったことだけを表示する
 export default function HrApp({ state, dispatch }: Props) {
@@ -365,7 +366,14 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
           {row.live && row.stage !== "afterReturn" && <Meetings state={state} dispatch={dispatch} />}
           <IssuesCard row={row} />
           {!row.pending && row.stage !== "afterReturn" && (
-            <SendMessage key={row.id} personId={row.id} name={row.name} stage={row.stage} dispatch={dispatch} />
+            <SendMessage
+              key={row.id}
+              personId={row.id}
+              name={row.name}
+              stage={row.stage}
+              occDate={row.live && state.occMeeting?.status === "scheduled" ? jpDate(state.occMeeting.date) : null}
+              dispatch={dispatch}
+            />
           )}
         </div>
       </div>
@@ -508,6 +516,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
           </button>
         </div>
       )}
+      {occ?.status === "scheduled" && <OccNotify name={row.name} date={occ.date} state={state} dispatch={dispatch} />}
       {occ?.status === "scheduled" && (
         <div className="meeting-action">
           <OccDone dispatch={dispatch} />
@@ -867,6 +876,25 @@ function OccMaterial({ state, dispatch }: Props) {
   );
 }
 
+// 産業医との面談の日を、本人に知らせる（例文を確かめてから送る）。本人の「連絡」タブに届く
+function OccNotify({ name, date, state, dispatch }: { name: string; date: string } & Props) {
+  const t = HR.templatesPreReturn(jpDate(date))[0];
+  const done = state.hrMessages.some((m) => m.title === t.title && m.body === t.text);
+  if (done) return <p className="done-note">{HR.occNotified}</p>;
+  return (
+    <div className="meeting-action">
+      <ConfirmButton
+        quiet
+        label={HR.occNotify}
+        confirm={HR.occNotifyConfirm(name, t.title, t.text)}
+        yes={HR.occNotifyYes}
+        no={HR.confirmNo}
+        onConfirm={() => dispatch({ type: "sendHrMessage", personId: PERSON.id, title: t.title, body: t.text, noReplyNeeded: t.noReply })}
+      />
+    </div>
+  );
+}
+
 // 産業医との面談を実施済みにする。そのとき、産業医の意見を短く残す
 function OccDone({ dispatch }: { dispatch: Dispatch<Action> }) {
   const [open, setOpen] = useState(false);
@@ -1061,8 +1089,25 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
 }
 
 // 送る前に、宛先と本文をもう一度見せる
-function SendMessage({ personId, name, stage, dispatch }: { personId: string; name: string; stage: Stage; dispatch: Dispatch<Action> }) {
-  const templates = stage === "acute" ? HR.templates : [...HR.templates, ...HR.templatesFromRecovery];
+function SendMessage({
+  personId,
+  name,
+  stage,
+  occDate = null,
+  dispatch,
+}: {
+  personId: string;
+  name: string;
+  stage: Stage;
+  occDate?: string | null;
+  dispatch: Dispatch<Action>;
+}) {
+  const templates =
+    stage === "acute"
+      ? HR.templates
+      : stage === "preReturn"
+        ? [...HR.templates, ...HR.templatesFromRecovery, ...HR.templatesPreReturn(occDate)]
+        : [...HR.templates, ...HR.templatesFromRecovery];
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [noReply, setNoReply] = useState(false);

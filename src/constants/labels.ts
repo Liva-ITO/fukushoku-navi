@@ -685,11 +685,23 @@ export const HR = {
       text: "傷病手当金の申請書をお送りします。主治医の記入が済んだら、送ってください。",
       noReply: false,
     },
-    { title: "診断書のお願い", text: "休職の期間を延ばす場合は、主治医の診断書を送ってください。", noReply: false },
+    { title: "休職延長の診断書のお願い", text: "休職の期間を延ばす場合は、主治医の診断書を送ってください。", noReply: false },
   ],
   templatesFromRecovery: [
     { title: "面談の日程", text: "面談の日程について、ご都合のよい日を教えてください。", noReply: false },
   ],
+  // 準備期の例文。産業医との面談の日が決まっていれば、その日を入れる
+  templatesPreReturn: (occDate: string | null) => [
+    occDate
+      ? { title: "産業医との面談の日程", text: `産業医との面談を、${occDate}に行います。時間と場所は、あらためてお知らせします。`, noReply: true }
+      : { title: "産業医との面談の日程", text: "産業医との面談の日程について、ご都合のよい日を教えてください。", noReply: false },
+    { title: "復職の診断書のお願い", text: "復職に向けて、主治医に復職についての診断書を書いてもらい、送ってください。", noReply: false },
+  ],
+  // 産業医との面談の日を決めたら、その場で本人に知らせる
+  occNotify: "本人に日程を知らせる",
+  occNotifyConfirm: (name: string, title: string, text: string) => `${name}さんに、次の内容を送ります。\n件名：${title}\n${text}`,
+  occNotifyYes: "送る",
+  occNotified: "本人に日程を知らせました",
   subject: "件名",
   bodyLabel: "本文",
   noReply: "「返信は不要です」をつける",
