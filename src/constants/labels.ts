@@ -520,11 +520,13 @@ export const HR = {
   stepNotYet: "まだ",
   confirmReturnLabel: "復職を確定する",
   confirmReturnLocked: "4つの手順がそろうと押せます",
-  stepDecision: "会社の復職判断",
+  // 診断書は最後の確認（主治医の「復職可」が先に出ると、本人がその時点で戻れると受け取りやすい）。確定は診断書がそろってから
+  stepDecision: "会社の復職判断（主治医の診断書で最終確認）",
   stepDecisionNote: "産業医の意見を踏まえて、会社が決めます",
   decisionLocked: "産業医との面談が済むと、判断できます",
   decisionOk: "復職できると判断する",
-  decisionOkConfirm: (name: string) => `${name}さんは、復職できると判断します。`,
+  decisionOkConfirm: (name: string) =>
+    `${name}さんは、復職できると判断します。このあと主治医の診断書を受け取ってから、復職を確定します。`,
   decisionNotYet: "もう少し準備が必要と判断する",
   decisionNotYetConfirm: (name: string) =>
     `${name}さんは、もう少し準備が必要と判断します。段階は準備期のままで、産業医との面談をもう一度行う形に戻ります。本人には、面談で理由を伝えてください。`,
