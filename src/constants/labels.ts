@@ -372,6 +372,7 @@ export const HR = {
     meeting: "面談",
     submit: "提出",
     done: "対応済み",
+    decision: "会社の判断",
   },
   hidden: "日記の中身・気分・休息モードかどうか・面談で話した内容は、会社には表示されません",
 
@@ -427,7 +428,18 @@ export const HR = {
   stepDone: "済み",
   stepNotYet: "まだ",
   confirmReturnLabel: "復職を確定する",
-  confirmReturnLocked: "3つの手順がそろうと押せます",
+  confirmReturnLocked: "4つの手順がそろうと押せます",
+  stepDecision: "会社の復職判断",
+  stepDecisionNote: "産業医の意見を踏まえて、会社が決めます",
+  decisionLocked: "産業医との面談が済むと、判断できます",
+  decisionOk: "復職できると判断する",
+  decisionOkConfirm: (name: string) => `${name}さんは、復職できると判断します。`,
+  decisionNotYet: "もう少し準備が必要と判断する",
+  decisionNotYetConfirm: (name: string) =>
+    `${name}さんは、もう少し準備が必要と判断します。段階は準備期のままで、産業医との面談をもう一度行う形に戻ります。本人には、面談で理由を伝えてください。`,
+  decisionYes: "判断する",
+  decisionUndo: "判断を取り消す",
+  decisionResult: { ok: "復職できる", notYet: "もう少し準備が必要" },
   confirmReturn: (name: string, date: string) =>
     `${name}さんの復職を確定します。復職日は${date}です。確定すると、段階が「復職（見守りモード）」に変わり、本人の画面に復職日が出ます。`,
   confirmReturnYes: "確定する",

@@ -356,3 +356,4 @@ button { font: inherit; cursor: pointer; }
 .plan-form .btn-small { justify-self: start; }
 .return-info p { margin: 2px 0; }
 .return-order-now { margin: 0 0 4px; font-size: 12px; }
+.decision-actions { display: grid; gap: 6px; justify-items: start; margin-top: 6px; }

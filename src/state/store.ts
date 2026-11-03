@@ -42,6 +42,9 @@ export type State = {
   returnOrder: ReturnOrder;
   occMeeting: { status: "scheduled" | "done"; date: string } | null;
   doctorNote: boolean;
+  // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
+  returnDecision: "ok" | null;
+  returnDecisionLog: { date: string; result: "ok" | "notYet" }[];
   returnPlan: { date: string; accommodation: string } | null;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
@@ -78,6 +81,8 @@ export const initialState: State = {
   returnOrder: "occFirst",
   occMeeting: null,
   doctorNote: false,
+  returnDecision: null,
+  returnDecisionLog: [],
   returnPlan: null,
   diary: INITIAL_DIARY,
   sentToHr: [],
@@ -115,6 +120,8 @@ export type Action =
   | { type: "undoOccMeetingDone" }
   | { type: "rescheduleCompanyMeeting" }
   | { type: "setReturnPlan"; date: string; accommodation: string }
+  | { type: "decideReturn"; result: "ok" | "notYet" }
+  | { type: "undoReturnDecision" }
   | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
@@ -143,7 +150,7 @@ function reducer(state: State, action: Action): State {
         ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false } : {}),
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
-          ? { occMeeting: null, doctorNote: false, returnPlan: null }
+          ? { occMeeting: null, doctorNote: false, returnPlan: null, returnDecision: null }
           : {}),
       };
     }
@@ -202,17 +209,37 @@ function reducer(state: State, action: Action): State {
     // 押しまちがい・予定の変更に備えて、記録は戻せるようにする
     case "undoDoctorNote":
       return { ...state, doctorNote: false };
+    // 会社の判断は産業医との面談が前提なので、面談を戻したら判断も戻す
     case "rescheduleOccMeeting":
-      return { ...state, occMeeting: null };
+      return { ...state, occMeeting: null, returnDecision: null };
     case "undoOccMeetingDone":
-      return state.occMeeting ? { ...state, occMeeting: { ...state.occMeeting, status: "scheduled" } } : state;
+      return state.occMeeting
+        ? { ...state, occMeeting: { ...state.occMeeting, status: "scheduled" }, returnDecision: null }
+        : state;
+    case "decideReturn": {
+      if (state.occMeeting?.status !== "done") return state;
+      const log = [...state.returnDecisionLog, { date: DEMO_TODAY, result: action.result }];
+      // もう少し準備が必要なら、準備期のまま産業医との面談をもう一度にする（段階は戻さない）
+      return action.result === "ok"
+        ? { ...state, returnDecision: "ok", returnDecisionLog: log }
+        : { ...state, returnDecision: null, occMeeting: null, returnDecisionLog: log };
+    }
+    case "undoReturnDecision": {
+      const last = state.returnDecisionLog[state.returnDecisionLog.length - 1];
+      return {
+        ...state,
+        returnDecision: null,
+        returnDecisionLog: last?.result === "ok" ? state.returnDecisionLog.slice(0, -1) : state.returnDecisionLog,
+      };
+    }
     case "rescheduleCompanyMeeting":
       return state.companyMeeting ? { ...state, companyMeeting: { status: "applied" } } : state;
     case "setReturnPlan":
       return { ...state, returnPlan: { date: action.date, accommodation: action.accommodation } };
     case "confirmReturn":
       // 3つの手順がそろっているときだけ、復職（見守りモード）に進める
-      if (state.occMeeting?.status !== "done" || !state.doctorNote || !state.returnPlan) return state;
+      if (state.occMeeting?.status !== "done" || state.returnDecision !== "ok" || !state.doctorNote || !state.returnPlan)
+        return state;
       return reducer(state, { type: "setStage", stage: "afterReturn" });
     case "saveDiary":
       return { ...state, diary: { ...state.diary, [DEMO_TODAY]: action.entry } };
@@ -256,7 +283,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v14";
+const STORAGE_KEY = "fukushoku-navi-demo-v15";
 
 function load(): State {
   try {

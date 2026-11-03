@@ -368,7 +368,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
   const plan = state.returnPlan;
   const [editing, setEditing] = useState(!state.returnPlan);
   // 復職日を書き直している間は、確定できない
-  const ready = occ?.status === "done" && state.doctorNote && plan !== null && !editing;
+  const ready = occ?.status === "done" && state.returnDecision === "ok" && state.doctorNote && plan !== null && !editing;
 
   const Status = ({ done }: { done: boolean }) => (
     <span className={`status-tag${done ? " status-done" : ""}`}>{done ? HR.stepDone : HR.stepNotYet}</span>
@@ -442,6 +442,47 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
     </li>
   );
 
+  // 会社の判断は人事が操作する。産業医との面談が済むまでは押せない
+  const decided = state.returnDecision === "ok";
+  const decisionStep = (
+    <li key="decision">
+      <p className="step-title">
+        {HR.stepDecision}
+        <Status done={decided} />
+      </p>
+      <p className="muted">{HR.stepDecisionNote}</p>
+      {decided ? (
+        <div className="meeting-action">
+          <span>{HR.decisionResult.ok}</span>
+          <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "undoReturnDecision" })}>
+            {HR.decisionUndo}
+          </button>
+        </div>
+      ) : occ?.status === "done" ? (
+        <div className="decision-actions">
+          <ConfirmButton
+            quiet
+            label={HR.decisionOk}
+            confirm={HR.decisionOkConfirm(row.name)}
+            yes={HR.decisionYes}
+            no={HR.confirmNo}
+            onConfirm={() => dispatch({ type: "decideReturn", result: "ok" })}
+          />
+          <ConfirmButton
+            quiet
+            label={HR.decisionNotYet}
+            confirm={HR.decisionNotYetConfirm(row.name)}
+            yes={HR.decisionYes}
+            no={HR.confirmNo}
+            onConfirm={() => dispatch({ type: "decideReturn", result: "notYet" })}
+          />
+        </div>
+      ) : (
+        <p className="muted">{HR.decisionLocked}</p>
+      )}
+    </li>
+  );
+
   const planStep = (
     <li key="plan">
       <p className="step-title">
@@ -496,7 +537,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
       <p className="muted return-order-now">{HR.returnOrderNote[state.returnOrder]}</p>
 
       <ol className="step-list">
-        {state.returnOrder === "occFirst" ? [occStep, doctorStep] : [doctorStep, occStep]}
+        {state.returnOrder === "occFirst" ? [occStep, decisionStep, doctorStep] : [doctorStep, occStep, decisionStep]}
         {planStep}
       </ol>
 

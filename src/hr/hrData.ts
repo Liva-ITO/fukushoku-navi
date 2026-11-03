@@ -69,6 +69,12 @@ function eventsOf(state: State): HrEvent[] {
     ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body })),
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
+    ...state.returnDecisionLog.map((d) => ({
+      date: d.date,
+      kind: "decision" as const,
+      body: HR.decisionResult[d.result],
+      byHr: true,
+    })),
     // 同じ日なら、段階の切り替えは面談や提出のあと
     ...state.stageHistory.map((s) => ({ date: s.date, kind: "stage" as const, body: STAGE_LABELS[s.stage] })),
     ...doneEvents(state, PERSON.id),
