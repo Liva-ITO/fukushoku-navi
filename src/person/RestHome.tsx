@@ -15,6 +15,12 @@ export default function RestHome({ state, dispatch }: Props) {
           {l}
         </p>
       ))}
+      {/* 回復期の「今日はしんどい」と同じ場所に、出口を置く（入口と出口を対にする） */}
+      <p className="rest-link">
+        <button className="link-small" onClick={() => dispatch({ type: "setRestMode", on: false })}>
+          {REST.back}
+        </button>
+      </p>
 
       <ReadingsCard />
 

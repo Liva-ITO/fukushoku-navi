@@ -206,7 +206,7 @@ export const REST = {
   recordEntry: "日記",
   talkTitle: "過ごし方などを相談したいときは",
   talkNote: "復職コーディネーターに相談できます",
-  back: "少し動けそう",
+  back: "いつもの画面に戻る",
 };
 
 export type SleepQuality = "good" | "normal" | "poor";
