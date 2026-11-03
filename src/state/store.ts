@@ -600,9 +600,12 @@ function reducer(state: State, action: Action): State {
         ...state,
         hrDone: [...state.hrDone, { key: action.key, personId: action.personId, text: action.text, date: DEMO_TODAY }],
       };
-    case "sync":
-      // ほかのウィンドウで変わった中身を取りこむ。見ている画面（本人か人事か、どのタブか）は、このウィンドウのまま
-      return { ...action.state, ...pick(state, LOCAL_KEYS) };
+    case "sync": {
+      // ほかのウィンドウで変わった中身を取りこむ。見ている画面（本人か人事か、どのタブか）は、このウィンドウのまま。
+      // ただし段階が変わったときは、本人の画面はホームに戻す（新しい段階のホームを見せるため）
+      const local = pick(state, LOCAL_KEYS);
+      return { ...action.state, ...local, tab: action.state.stage !== state.stage ? "home" : local.tab };
+    }
     case "reset":
       return { ...initialState, introSeen: true, view: state.view };
   }
@@ -662,8 +665,21 @@ export function useDemoStore() {
         // 読めない内容は無視する
       }
     };
+    // 念のため、ウィンドウに戻ってきたときも保存を読み直す（知らせを取りこぼしても追いつくように）
+    const onFocus = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) dispatch({ type: "sync", state: { ...initialState, ...JSON.parse(raw) } });
+      } catch {
+        // 読めない内容は無視する
+      }
+    };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
   return [state, dispatch] as const;
 }
