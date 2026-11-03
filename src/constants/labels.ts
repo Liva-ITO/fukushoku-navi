@@ -423,8 +423,11 @@ export const DEMO_BAR = {
   // スマホでは1行にたたみ、いまの状態だけを出す
   summary: (view: "person" | "hr", stage: string, rest: boolean) =>
     view === "hr" ? "人事" : `本人・${stage}${rest ? "・休息モード" : ""}`,
+  summaryHr: (role: string) => `人事・${role}`,
   tickets: "面談チケット",
   gateDone: "面談が済む",
+  hrRole: "権限",
+  hrRoles: { admin: "管理者", staff: "スタッフ" },
   ticketsYes: "残りあり",
   ticketsNo: "なし",
   intro:
@@ -740,7 +743,7 @@ export const HR = {
 
 // 人事のデータ分析（数字はすべて見本）
 export const ANALYTICS = {
-  nav: { list: "休職者の一覧", analytics: "データ分析", settings: "会社の設定" },
+  nav: { list: "休職者の一覧", analytics: "データ分析", settings: "会社の設定", accounts: "アカウント" },
   title: "データ分析",
   sample: "数字はすべて見本です（架空の会社・過去3年）",
   period: "過去3年",
@@ -782,6 +785,28 @@ export const WELCOME = {
   records: "休職中に会社に送った連絡や提出物は、会社の記録として残ります。日記や気分は、会社には届きません。",
   providers: ["Googleで始める", "Appleで始める", "LINEで始める"],
   demoNote: "デモなので、どれを押してもそのまま始まります（実際のログインはしません）",
+};
+
+// 会社側のアカウント。管理者だけが「会社の設定」と「アカウント」を触れる。ほかの人はスタッフとして登録する
+// 会社側は、会社のアカウントで使う（本人とは違う）。デモでは本物のログインは作らない
+export const ACCOUNTS = {
+  title: "アカウント",
+  note: "会社側でこのサービスを使う人です。「会社の設定」と「アカウント」は、管理者だけが変えられます。ほかの人は、スタッフとして登録します",
+  demoNote: "デモでは、本物のログインや招待のメールはありません。上のデモ操作の「権限」で、管理者とスタッフの見え方を切り替えられます",
+  name: "名前",
+  position: "立場",
+  positions: ["人事", "産業医", "保健師", "そのほか"],
+  role: "権限",
+  roles: { admin: "管理者", staff: "スタッフ" },
+  add: "アカウントを追加する",
+  addTitle: "アカウントを追加する",
+  email: "会社のメールアドレス",
+  emailNote: "本番では、ここに招待が届き、会社のアカウントで使い始めます",
+  save: "追加する",
+  cancel: "やめておく",
+  remove: "外す",
+  lastAdmin: "管理者がいなくなるので、変えられません（管理者は1人以上必要です）",
+  adminOnly: "この画面は、管理者だけが使えます",
 };
 
 export const INVITE = {

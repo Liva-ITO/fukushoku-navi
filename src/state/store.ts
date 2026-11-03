@@ -46,6 +46,8 @@ export type Who = "coord" | "psych";
 export const whoNow = (s: { stage: Stage; restMode: boolean }): Who => (s.stage === "acute" || s.restMode ? "psych" : "coord");
 
 export type ReturnOrder = "occFirst" | "doctorFirst";
+// 会社側のアカウント（デモでは名前・立場・権限だけ）
+export type HrAccount = { id: string; name: string; position: string; role: "admin" | "staff"; email?: string };
 // 済んだ面談の記録（経緯に、面談の日付で1行ずつ残す。やり直しても前の面談は消えない）
 export type MeetingLog = { date: string; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
 export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
@@ -113,7 +115,10 @@ export type State = {
   // 人事画面で開いている人（null なら一覧）
   hrSelected: string | null;
   // 人事画面の上のタブ（休職者の一覧／データ分析）
-  hrPage: "list" | "analytics" | "invite" | "settings";
+  hrPage: "list" | "analytics" | "invite" | "settings" | "accounts";
+  // デモで人事の画面を見るときの権限（管理者だけが会社の設定とアカウントを触れる）
+  hrRole: "admin" | "staff";
+  hrAccounts: HrAccount[];
   // 人事が招待した人（デモでは一覧に増えるだけ。本人はまだ始めていない）
   invited: Invited[];
   // 本人が招待から始めたか（デモでは、最初の画面で個人アカウントのボタンを押したら始まる）
@@ -176,6 +181,13 @@ export const initialState: State = {
   sentToHr: [],
   hrSelected: null,
   hrPage: "list",
+  hrRole: "admin",
+  hrAccounts: [
+    { id: "u1", name: "担当A", position: "人事", role: "admin" },
+    { id: "u2", name: "担当B", position: "人事", role: "staff" },
+    { id: "u3", name: "担当C", position: "産業医", role: "staff" },
+    { id: "u4", name: "担当D", position: "保健師", role: "staff" },
+  ],
   invited: [],
   personStarted: false,
   hrDone: [],
@@ -225,7 +237,11 @@ export type Action =
   | { type: "sendHrMessage"; personId: string; title: string; body: string; noReplyNeeded: boolean }
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
-  | { type: "hrPage"; page: "list" | "analytics" | "invite" | "settings" }
+  | { type: "hrPage"; page: State["hrPage"] }
+  | { type: "setHrRole"; role: "admin" | "staff" }
+  | { type: "addAccount"; account: Omit<HrAccount, "id"> }
+  | { type: "setAccountRole"; id: string; role: "admin" | "staff" }
+  | { type: "removeAccount"; id: string }
   | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "depts" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
   | { type: "reworkReport" }
   | { type: "addIssueNote"; personId: string; text: string }
@@ -495,6 +511,7 @@ function reducer(state: State, action: Action): State {
         hrNewFrom: { ...state.hrNewFrom, [action.id]: action.prevSeen ?? 0 },
       };
     case "setCompany":
+      if (state.hrRole !== "admin") return state;
       return { ...state, ...action.patch };
     case "sendSelfReport":
       return { ...state, selfReports: [...state.selfReports, action.report] };
@@ -533,7 +550,29 @@ function reducer(state: State, action: Action): State {
     case "startPerson":
       return { ...state, personStarted: true };
     case "hrPage":
+      // 会社の設定とアカウントは、管理者だけ
+      if ((action.page === "settings" || action.page === "accounts") && state.hrRole !== "admin") return state;
       return { ...state, hrPage: action.page, hrSelected: null };
+    case "setHrRole":
+      return {
+        ...state,
+        hrRole: action.role,
+        hrPage: action.role === "staff" && (state.hrPage === "settings" || state.hrPage === "accounts") ? "list" : state.hrPage,
+      };
+    case "addAccount":
+      if (state.hrRole !== "admin") return state;
+      return { ...state, hrAccounts: [...state.hrAccounts, { ...action.account, id: `u${state.hrAccounts.length + 1}-${Date.now() % 1000}` }] };
+    case "setAccountRole": {
+      if (state.hrRole !== "admin") return state;
+      const next = state.hrAccounts.map((a) => (a.id === action.id ? { ...a, role: action.role } : a));
+      // 管理者は1人以上
+      return next.some((a) => a.role === "admin") ? { ...state, hrAccounts: next } : state;
+    }
+    case "removeAccount": {
+      if (state.hrRole !== "admin") return state;
+      const next = state.hrAccounts.filter((a) => a.id !== action.id);
+      return next.some((a) => a.role === "admin") ? { ...state, hrAccounts: next } : state;
+    }
     case "hrMarkDone":
       return {
         ...state,
@@ -545,7 +584,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v35";
+const STORAGE_KEY = "fukushoku-navi-demo-v36";
 
 function load(): State {
   try {

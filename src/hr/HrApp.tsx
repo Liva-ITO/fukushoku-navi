@@ -1,6 +1,7 @@
 import { useEffect, useState, type Dispatch } from "react";
 import { ACUTE, ANALYTICS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import InviteForm from "./InviteForm";
+import Accounts from "./Accounts";
 import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
 import type { Action, OccOpinion, State } from "../state/store";
@@ -35,7 +36,7 @@ export default function HrApp({ state, dispatch }: Props) {
   return (
     <div className="hr">
       <nav className="hr-nav">
-        {(["list", "analytics", "settings"] as const).map((p) => (
+        {(state.hrRole === "admin" ? (["list", "analytics", "settings", "accounts"] as const) : (["list", "analytics"] as const)).map((p) => (
           <button
             key={p}
             aria-current={state.hrPage === p || (p === "list" && state.hrPage === "invite") ? "page" : undefined}
@@ -47,8 +48,10 @@ export default function HrApp({ state, dispatch }: Props) {
       </nav>
       {state.hrPage === "analytics" ? (
         <Analytics />
-      ) : state.hrPage === "settings" ? (
+      ) : state.hrPage === "settings" && state.hrRole === "admin" ? (
         <CompanySettings state={state} dispatch={dispatch} />
+      ) : state.hrPage === "accounts" && state.hrRole === "admin" ? (
+        <Accounts state={state} dispatch={dispatch} />
       ) : state.hrPage === "invite" ? (
         <InviteForm depts={state.depts} dispatch={dispatch} />
       ) : (

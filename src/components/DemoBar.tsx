@@ -19,7 +19,11 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
     <div className={`demo-bar${open ? " demo-open" : ""}`} aria-label={DEMO_BAR.title}>
       <span className="demo-bar-title">{DEMO_BAR.title}</span>
       <button className="demo-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <span>{DEMO_BAR.summary(state.view, STAGE_LABELS[state.stage], state.restMode)}</span>
+        <span>
+          {state.view === "hr"
+            ? DEMO_BAR.summaryHr(DEMO_BAR.hrRoles[state.hrRole])
+            : DEMO_BAR.summary(state.view, STAGE_LABELS[state.stage], state.restMode)}
+        </span>
         <span aria-hidden="true">{open ? "▲" : "▼"}</span>
       </button>
 
@@ -36,6 +40,17 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
           {DEMO_BAR.viewHr}
         </button>
       </div>
+
+      {state.view === "hr" && (
+        <div className="seg" role="group" aria-label={DEMO_BAR.hrRole}>
+          <span className="seg-label">{DEMO_BAR.hrRole}</span>
+          {(["admin", "staff"] as const).map((r) => (
+            <button key={r} aria-pressed={state.hrRole === r} onClick={() => dispatch({ type: "setHrRole", role: r })}>
+              {DEMO_BAR.hrRoles[r]}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 人事の画面では、段階は人事の画面の中で進める。デモの段階の切り替えは本人の画面のときだけ */}
       {state.view === "person" && (

@@ -660,3 +660,7 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 /* 会社の設定：部署 */
 .dept-list { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .dept-list li { display: inline-flex; align-items: center; gap: 4px; padding: 0 0 0 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; }
+
+/* アカウント */
+.accounts-table { margin: 10px 0; }
+.accounts-table select { min-height: 36px; }
