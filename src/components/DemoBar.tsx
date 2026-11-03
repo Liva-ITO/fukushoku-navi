@@ -27,6 +27,14 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
         <span aria-hidden="true">{open ? "▲" : "▼"}</span>
       </button>
 
+      {/* デモ：回復期に進む前の面談の日が来て、済んだことにする（本番では支援機関から報告が届く）。
+          次に押すボタンなので、たたんだ帯の中に隠さず、いつも見えるところに出す */}
+      {state.view === "person" && state.stage === "acute" && state.psychSchedule?.chosen && !state.psychMeetingDone && (
+        <button className="demo-step" onClick={() => dispatch({ type: "markPsychDone" })}>
+          {DEMO_BAR.gateDone} ›
+        </button>
+      )}
+
       <div className="demo-controls">
 
       <div className="seg" role="group" aria-label={DEMO_BAR.viewAs}>
@@ -79,13 +87,6 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
             {DEMO_BAR.off}
           </button>
         </div>
-      )}
-
-      {/* デモ：回復期に進む前の面談の日が来て、済んだことにする（本番では支援機関から報告が届く） */}
-      {state.view === "person" && state.stage === "acute" && state.psychSchedule?.chosen && !state.psychMeetingDone && (
-        <button className="demo-step" onClick={() => dispatch({ type: "markPsychDone" })}>
-          {DEMO_BAR.gateDone}
-        </button>
       )}
 
       {/* 本番では人事の画面で管理する。デモでは相談の入口がある画面のときだけ切り替えられる */}

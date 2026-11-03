@@ -686,3 +686,6 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 
 /* 準備期：手順 */
 .prep-steps li { margin-bottom: 4px; }
+
+/* デモの次の一手：いつも見えるところに、目立つ形で */
+.demo-step { background: #f3d9a4 !important; color: #3b3a36 !important; border-color: #f3d9a4 !important; font-weight: 700; white-space: nowrap; }
