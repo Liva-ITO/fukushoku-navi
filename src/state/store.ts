@@ -609,33 +609,45 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v38";
+const STORAGE_KEY = "fukushoku-navi-demo-v39";
+const LOCAL_STORAGE_KEY = `${STORAGE_KEY}-window`;
 
-function load(): State {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...initialState, ...JSON.parse(raw) };
-  } catch {
-    // 保存できない環境でも、最初の状態で動かす
-  }
-  return initialState;
-}
-
-// ウィンドウごとに持つもの（見ている画面）。ほかのウィンドウとは合わせない
+// ウィンドウごとに持つもの（見ている画面）。ほかのウィンドウとは合わせず、このウィンドウの中だけに保存する。
+// 共有する保存にこれを混ぜると、2つのウィンドウが互いに書き換え合って止まらなくなる
 const LOCAL_KEYS = ["view", "tab", "hrPage", "hrSelected", "contactOpen", "hrRole", "introSeen"] as const;
+type LocalKey = (typeof LOCAL_KEYS)[number];
 function pick<T extends object, K extends keyof T>(o: T, keys: readonly K[]): Pick<T, K> {
   const r = {} as Pick<T, K>;
   for (const k of keys) r[k] = o[k];
   return r;
+}
+function shared(state: State): Omit<State, LocalKey> {
+  const r = { ...state } as Partial<State>;
+  for (const k of LOCAL_KEYS) delete r[k];
+  return r as Omit<State, LocalKey>;
+}
+
+function load(): State {
+  let s = initialState;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) s = { ...s, ...JSON.parse(raw) };
+    const local = sessionStorage.getItem(LOCAL_STORAGE_KEY);
+    if (local) s = { ...s, ...JSON.parse(local) };
+  } catch {
+    // 保存できない環境でも、最初の状態で動かす
+  }
+  return s;
 }
 
 export function useDemoStore() {
   const [state, dispatch] = useReducer(reducer, undefined, load);
   useEffect(() => {
     try {
-      const json = JSON.stringify(state);
-      // 同じ中身なら書かない（ほかのウィンドウとの行ったり来たりを止める）
+      // 共有するのは中身だけ。同じ中身なら書かない
+      const json = JSON.stringify(shared(state));
       if (localStorage.getItem(STORAGE_KEY) !== json) localStorage.setItem(STORAGE_KEY, json);
+      sessionStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(pick(state, LOCAL_KEYS)));
     } catch {
       // 保存できなくても動作は続ける
     }
