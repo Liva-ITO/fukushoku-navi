@@ -65,7 +65,7 @@ function eventsOf(state: State): HrEvent[] {
   }));
 
   return byDate([
-    ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.body, noReply: m.noReplyNeeded })),
+    ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.title, noReply: m.noReplyNeeded })),
     ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body })),
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),

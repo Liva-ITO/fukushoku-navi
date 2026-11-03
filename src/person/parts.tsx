@@ -1,5 +1,5 @@
 import { useState, type Dispatch, type ReactNode } from "react";
-import { ACUTE, COMMON, CONSULT, RECORD } from "../constants/labels";
+import { ACUTE, COMMON, CONSULT, CONTACT, RECORD } from "../constants/labels";
 import type { HrMessage } from "../data/demo";
 import type { Action, State } from "../state/store";
 
@@ -105,18 +105,34 @@ export function PublicLines() {
   );
 }
 
-// 人事からの連絡は1行にたたむ。本文は、本人が開いたときだけ見える
-export function HrNoticeFold({ messages }: { messages: HrMessage[] }) {
-  const latest = messages[messages.length - 1];
-  if (!latest) return null;
+// 人事からの連絡は、ホームには件名だけを出す。押すと連絡タブで本文を読む
+export function HrNoticeList({ messages, max, dispatch }: { messages: HrMessage[]; max: number; dispatch: Dispatch<Action> }) {
+  if (messages.length === 0) return null;
+  const latest = [...messages].reverse();
+  const shown = latest.slice(0, max);
+  const rest = latest.length - shown.length;
   return (
-    <details className="card card-fold">
-      <summary>
-        {ACUTE.hrContactSummary(messages.length)}
-        {latest.noReplyNeeded && <span className="tag-soft">{COMMON.noReplyNeeded}</span>}
-      </summary>
-      <p className="fold-body">{latest.body}</p>
-    </details>
+    <section className="card">
+      <h2>{CONTACT.inboxTitle}</h2>
+      <ul className="notice-list">
+        {shown.map((m) => (
+          <li key={m.id}>
+            <button className="notice-row" onClick={() => dispatch({ type: "openHrMessage", id: m.id, goContact: true })}>
+              <span className="notice-title">{m.title}</span>
+              <span className="notice-meta">
+                {m.date.slice(5).replace("-", "/")}
+                {m.noReplyNeeded && <span className="tag-soft">{COMMON.noReplyNeeded}</span>}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {rest > 0 && (
+        <button className="notice-more" onClick={() => dispatch({ type: "openHrMessage", id: null, goContact: true })}>
+          {CONTACT.more(rest)}
+        </button>
+      )}
+    </section>
   );
 }
 

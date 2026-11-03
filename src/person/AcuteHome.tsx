@@ -2,7 +2,7 @@ import type { Dispatch } from "react";
 import { ACUTE, REST, greeting } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
-import { ConfirmButton, CoordinatorCard, HrNoticeFold, ReadingsCard } from "./parts";
+import { ConfirmButton, CoordinatorCard, HrNoticeList, ReadingsCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -15,7 +15,8 @@ export default function AcuteHome({ state, dispatch }: Props) {
       <p className="greeting">{greeting(PERSON.name, new Date().getHours())}</p>
       <p className="lead">{ACUTE.message}</p>
 
-      <HrNoticeFold messages={state.hrMessages} />
+      {/* 急性期は、人事からの連絡は新しい1件だけ（仕様どおり） */}
+      <HrNoticeList messages={state.hrMessages} max={1} dispatch={dispatch} />
 
       <ReadingsCard />
 

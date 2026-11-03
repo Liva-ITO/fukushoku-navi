@@ -737,6 +737,7 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
 // 送る前に、宛先と本文をもう一度見せる
 function SendMessage({ name, stage, dispatch }: { name: string; stage: Stage; dispatch: Dispatch<Action> }) {
   const templates = stage === "acute" ? HR.templates : [...HR.templates, ...HR.templatesFromRecovery];
+  const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [noReply, setNoReply] = useState(false);
   const [sent, setSent] = useState(false);
@@ -755,13 +756,18 @@ function SendMessage({ name, stage, dispatch }: { name: string; stage: Stage; di
       ) : checking ? (
         <div className="confirm send-check">
           <p>{HR.sendCheck(name)}</p>
-          <blockquote className="send-preview">{text.trim()}</blockquote>
+          <blockquote className="send-preview">
+            <strong>{HR.sendCheckSubject(title.trim())}</strong>
+            {"\n\n"}
+            {text.trim()}
+          </blockquote>
           {noReply && <p className="muted">{HR.sendCheckNoReply}</p>}
           <div className="confirm-actions">
             <button
               className="btn-primary"
               onClick={() => {
-                dispatch({ type: "sendHrMessage", body: text.trim(), noReplyNeeded: noReply });
+                dispatch({ type: "sendHrMessage", title: title.trim(), body: text.trim(), noReplyNeeded: noReply });
+                setTitle("");
                 setText("");
                 setNoReply(false);
                 setChecking(false);
@@ -785,22 +791,30 @@ function SendMessage({ name, stage, dispatch }: { name: string; stage: Stage; di
                 className="chip"
                 aria-pressed={text === t.text}
                 onClick={() => {
+                  setTitle(t.title);
                   setText(t.text);
                   setNoReply(t.noReply);
                 }}
               >
-                {t.text}
+                {t.title}
               </button>
             ))}
           </div>
-          <textarea className="hr-textarea" rows={4} value={text} onChange={(e) => setText(e.target.value)} />
+          <label className="hr-field">
+            {HR.subject}
+            <input className="hr-input" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </label>
+          <label className="hr-field">
+            {HR.bodyLabel}
+            <textarea className="hr-textarea" rows={4} value={text} onChange={(e) => setText(e.target.value)} />
+          </label>
           <label className="check">
             <input type="checkbox" checked={noReply} onChange={(e) => setNoReply(e.target.checked)} />
             {HR.noReply}
           </label>
           <button
             className="btn-primary send-row"
-            disabled={!text.trim()}
+            disabled={!text.trim() || !title.trim()}
             onClick={() => setChecking(true)}
           >
             {HR.send}

@@ -2,7 +2,7 @@ import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
-import { ConfirmButton, CoordinatorCard, HrNoticeFold, NewNoticeLink } from "./parts";
+import { ConfirmButton, CoordinatorCard, HrNoticeList, NewNoticeLink } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -43,7 +43,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         </section>
       )}
 
-      <HrNoticeFold messages={state.hrMessages} />
+      <HrNoticeList messages={state.hrMessages} max={3} dispatch={dispatch} />
       {/* 回復期のホームは長いので、新しいお知らせは上にも出す */}
       <NewNoticeLink state={state} dispatch={dispatch} />
 

@@ -4,9 +4,11 @@ import type { Meal, SleepQuality, Stage } from "../constants/labels";
 // デモの「今日」は固定する（挨拶の時間帯だけは実際の時刻を使う）
 export const DEMO_TODAY = "2026-11-04";
 
+// 人事からの連絡。長い案内もあるので、ホームには件名だけを出し、本文は連絡タブで読む
 export type HrMessage = {
   id: string;
   date: string;
+  title: string;
   body: string;
   noReplyNeeded: boolean;
 };
@@ -160,8 +162,16 @@ export function daysSince(start: string, today = DEMO_TODAY): number {
 export const INITIAL_HR_MESSAGES: HrMessage[] = [
   {
     id: "m1",
+    date: "2026-10-07",
+    title: "休職中の連絡について",
+    body: "休職中の連絡は、人事の担当からこのアプリでお送りします。\n\n連絡は月に1回くらいにします。急ぎのものがあるときは、件名でお知らせします。\n\nいまは、休むことを優先してください。",
+    noReplyNeeded: true,
+  },
+  {
+    id: "m2",
     date: "2026-11-02",
-    body: "手続きのご案内です。急ぎではありませんので、落ち着いたときにご確認ください。",
+    title: "休職中の手続きのご案内",
+    body: "休職中の手続きについて、ご案内します。\n\n・傷病手当金の申請書は、月に1回お送りします。主治医の記入が済んだら、送ってください。\n・休職の期間を延ばす場合は、主治医の診断書をお送りください。\n\n急ぎではありませんので、落ち着いたときにご確認ください。",
     noReplyNeeded: true,
   },
 ];

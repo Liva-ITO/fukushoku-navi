@@ -14,23 +14,35 @@ export default function ContactTab({ state, dispatch }: Props) {
     <div className="home">
       <h1 className="page-title">{CONTACT.title}</h1>
 
-      {messages.map((m) => (
-        <section key={m.id} className="card">
-          <h2>
-            {CONTACT.fromHr}　<span className="muted">{shortDate(m.date)}</span>
-          </h2>
-          <p>{m.body}</p>
-          {m.noReplyNeeded && <span className="tag-soft">{COMMON.noReplyNeeded}</span>}
-        </section>
-      ))}
-
+      {/* 件名の一覧。押すと本文が開き、返信はその下で書く（返信欄をいつも開いておかない） */}
       <section className="card">
-        <h2>{CONTACT.replyTitle}</h2>
-        {state.stage === "acute" ? (
-          <PickReply dispatch={dispatch} />
-        ) : (
-          <WriteReply dispatch={dispatch} />
-        )}
+        <h2>{CONTACT.inboxTitle}</h2>
+        <ul className="notice-list">
+          {messages.map((m) => {
+            const open = state.contactOpen === m.id;
+            return (
+              <li key={m.id} className={open ? "notice-open" : undefined}>
+                <button
+                  className="notice-row notice-toggle"
+                  aria-expanded={open}
+                  onClick={() => dispatch({ type: "openHrMessage", id: open ? null : m.id })}
+                >
+                  <span className="notice-title">{m.title}</span>
+                  <span className="notice-meta">
+                    {shortDate(m.date)}
+                    {m.noReplyNeeded && <span className="tag-soft">{COMMON.noReplyNeeded}</span>}
+                  </span>
+                </button>
+                {open && (
+                  <div className="notice-body">
+                    <p>{m.body}</p>
+                    <ReplyArea key={m.id} stage={state.stage} dispatch={dispatch} />
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       <VisitReport dispatch={dispatch} />
@@ -52,6 +64,18 @@ export default function ContactTab({ state, dispatch }: Props) {
       </section>
     </div>
   );
+}
+
+// 返信は［返信する］を押してから書く
+function ReplyArea({ stage, dispatch }: { stage: State["stage"]; dispatch: Dispatch<Action> }) {
+  const [open, setOpen] = useState(false);
+  if (!open)
+    return (
+      <button className="btn-outline btn-reply" onClick={() => setOpen(true)}>
+        {CONTACT.replyOpen}
+      </button>
+    );
+  return <div className="reply-area">{stage === "acute" ? <PickReply dispatch={dispatch} /> : <WriteReply dispatch={dispatch} />}</div>;
 }
 
 // 急性期：例文を選ぶだけ。入力欄は出さない

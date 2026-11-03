@@ -273,6 +273,10 @@ export const JOURNEY = {
 
 export const CONTACT = {
   title: "人事との連絡",
+  // ホームには件名だけを出す（急性期は1件、回復期からは3件まで）。押すと連絡タブで本文を読む
+  inboxTitle: "人事からのお知らせ",
+  more: (n: number) => `ほか${n}件`,
+  replyOpen: "返信する",
   fromHr: "人事から",
   replyTitle: "返信する",
   // 急性期は例文を選ぶだけ。回復期からは自分の言葉で書く（復職に向けた練習）
@@ -496,14 +500,23 @@ export const HR = {
   // 例文は段階に合うものだけ出す。返信がいるかどうかは本文に書かず、「返信は不要です」の印で伝える
   // 急性期の連絡は手続きに合わせる（職場復帰支援の手引き 第1ステップ）
   templates: [
-    { text: "その後、体調はいかがですか。無理のない範囲で過ごしてください。", noReply: true },
-    { text: "傷病手当金の申請書をお送りします。主治医の記入が済んだら、送ってください。", noReply: false },
-    { text: "休職の期間を延ばす場合は、主治医の診断書を送ってください。", noReply: false },
+    { title: "体調のおうかがい", text: "その後、体調はいかがですか。無理のない範囲で過ごしてください。", noReply: true },
+    {
+      title: "傷病手当金の申請書",
+      text: "傷病手当金の申請書をお送りします。主治医の記入が済んだら、送ってください。",
+      noReply: false,
+    },
+    { title: "診断書のお願い", text: "休職の期間を延ばす場合は、主治医の診断書を送ってください。", noReply: false },
   ],
-  templatesFromRecovery: [{ text: "面談の日程について、ご都合のよい日を教えてください。", noReply: false }],
+  templatesFromRecovery: [
+    { title: "面談の日程", text: "面談の日程について、ご都合のよい日を教えてください。", noReply: false },
+  ],
+  subject: "件名",
+  bodyLabel: "本文",
   noReply: "「返信は不要です」をつける",
   send: "送る",
   sendCheck: (name: string) => `${name}さんに、次の内容を送ります`,
+  sendCheckSubject: (t: string) => `件名：${t}`,
   sendCheckNoReply: "「返信は不要です」をつけて送ります",
   sent: "送りました。本人の画面に届いています",
 };

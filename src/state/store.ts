@@ -35,6 +35,7 @@ export type State = {
   tab: Tab;
   introSeen: boolean;
   hrMessages: HrMessage[];
+  contactOpen: string | null; // 連絡タブで開いている人事からの連絡
   acuteChecks: boolean[];
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
@@ -86,6 +87,7 @@ export const initialState: State = {
   tab: "home",
   introSeen: false,
   hrMessages: INITIAL_HR_MESSAGES,
+  contactOpen: null,
   acuteChecks: ACUTE.checkItems.map(() => false),
   recoveryChecks: [],
   rivaMeetingApplied: false,
@@ -154,7 +156,8 @@ export type Action =
   | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
-  | { type: "sendHrMessage"; body: string; noReplyNeeded: boolean }
+  | { type: "sendHrMessage"; title: string; body: string; noReplyNeeded: boolean }
+  | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
   | { type: "hrPage"; page: "list" | "analytics" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
@@ -335,11 +338,14 @@ function reducer(state: State, action: Action): State {
           {
             id: `m${state.hrMessages.length + 1}`,
             date: DEMO_TODAY,
+            title: action.title,
             body: action.body,
             noReplyNeeded: action.noReplyNeeded,
           },
         ],
       };
+    case "openHrMessage":
+      return { ...state, contactOpen: action.id, ...(action.goContact ? { tab: "contact" as const } : {}) };
     case "hrSelect":
       if (action.id === null) return { ...state, hrSelected: null };
       return {
@@ -361,7 +367,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v19";
+const STORAGE_KEY = "fukushoku-navi-demo-v20";
 
 function load(): State {
   try {
