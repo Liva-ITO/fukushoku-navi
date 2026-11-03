@@ -740,7 +740,7 @@ function CompanySettings({ state, dispatch }: Props) {
 
 const setCompany = (patch: Extract<Action, { type: "setCompany" }>["patch"]): Action => ({ type: "setCompany", patch });
 
-// 招待のときに入力した、復職に向けた課題（会社の見立て）
+// 登録のときに入力した、復職に向けた課題（会社の見立て）
 function IssuesCard({ row }: { row: HrRow }) {
   return (
     <section className="hr-card">

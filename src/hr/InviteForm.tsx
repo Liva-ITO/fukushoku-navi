@@ -3,8 +3,8 @@ import { INVITE } from "../constants/labels";
 import { DEMO_TODAY } from "../data/demo";
 import type { Action } from "../state/store";
 
-// 休職者の招待（見本）。本番では本人の個人のメールアドレスかLINEに招待が届き、本人は自分のアカウントで始める。
-// デモでは何も送らず、一覧に「招待済み」の行が増えるだけ
+// 休職者の登録（見本）。本番では本人の個人のメールアドレスかLINEに案内が届き、本人は自分のアカウントで始める。
+// デモでは何も送らず、一覧に「「まだ始めていません」」の行が増えるだけ
 export default function InviteForm({ dispatch }: { dispatch: Dispatch<Action> }) {
   const [name, setName] = useState("");
   const [dept, setDept] = useState("");

@@ -482,7 +482,7 @@ export const HR = {
   settingsMore: "設定の項目は、運用に合わせてこれから増やします",
   maxLeaveLabel: "休職期間（最長）",
   maxLeaveOptions: ["6か月", "1年", "1年6か月", "2年", "勤続年数で変わる"],
-  maxLeaveNote: "休職者を招待するときの、満了日の目安に使います",
+  maxLeaveNote: "休職者を登録するときの、満了日の目安に使います",
   sickLeaveLabel: "病気休暇",
   sickLeaveYes: "あり",
   sickLeaveNo: "なし",
@@ -609,7 +609,7 @@ export const ANALYTICS = {
 export const COMPANY_NAME = "サンプル株式会社";
 
 export const WELCOME = {
-  lead: (company: string) => `${company}の人事から、招待が届いています`,
+  lead: (company: string) => `${company}の人事から、ご案内が届いています`,
   about: "休んでいるあいだの過ごし方と、会社との連絡を、ひとつにまとめておく場所です。",
   account: "ご自分のアカウントで始めてください。会社のアカウントは使いません。復職したあとも、会社からは見えない形で使い続けられます。",
   records: "休職中に会社に送った連絡や提出物は、会社の記録として残ります。日記や気分は、会社には届きません。",
@@ -618,9 +618,9 @@ export const WELCOME = {
 };
 
 export const INVITE = {
-  open: "休職者を招待する",
-  title: "休職者を招待する",
-  note: "入力した内容をもとに、本人に招待を送ります。本人は自分の個人アカウントで始めるので、会社がパスワードを発行・管理することはありません。",
+  open: "休職者を登録する",
+  title: "休職者を登録する",
+  note: "入力した内容で登録し、本人に使い始めの案内を送ります。本人は自分の個人アカウントで始めるので、会社がパスワードを発行・管理することはありません。",
   name: "氏名",
   dept: "部署",
   age: "年代",
@@ -634,18 +634,18 @@ export const INVITE = {
   issues: "復職に向けた課題（会社の見立て）",
   issuesNote: "休職に至った背景や、職場で気になっていたこと。本人の画面には出ません。会社の復職判断と、産業医との面談で参考にします。オンラインのリワークを使う場合は、プログラムのスタッフにも渡り、取り組みの土台になります",
   issuesExample: "例：業務が重なると、ひとりで抱え込み、相談が遅れがち",
-  sendTo: "招待の送り先",
+  sendTo: "案内の送り先",
   sendToOptions: { mail: "本人の個人のメールアドレス", line: "本人のLINE" },
   sendToNote: "会社のメールアドレスには送りません。デモでは、実際には送りません。",
-  send: "招待を送る",
-  sent: (name: string) => `${name}さんに招待を送りました。本人が始めると、段階が「急性期」になります`,
+  send: "登録して案内を送る",
+  sent: (name: string) => `${name}さんを登録し、案内を送りました。本人が始めると、段階が「急性期」になります`,
   back: "一覧に戻る",
-  pendingTag: "招待済み",
+  pendingTag: "まだ始めていません",
   pendingNote: "本人がまだ始めていません。始めると、ここに段階や連絡が出ます",
-  event: "招待を送った",
+  event: "登録して案内を送った",
   issuesTitle: "復職に向けた課題（会社の見立て）",
-  issuesNone: "招待のときに入力されていません",
-  issuesRef: "招待のときに入力した課題を見る",
+  issuesNone: "登録のときに入力されていません",
+  issuesRef: "登録のときに入力した課題を見る",
   issuesSharedRework: "オンラインのリワークを使っているので、この見立てはプログラムのスタッフにも渡り、取り組みの土台になっています",
 };
 
