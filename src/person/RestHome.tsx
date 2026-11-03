@@ -1,7 +1,7 @@
 import type { Dispatch } from "react";
 import { REST, STAGE_LABELS } from "../constants/labels";
 import type { Action, State } from "../state/store";
-import { CoordinatorCard, ReadingsCard } from "./parts";
+import { CoordinatorCard, DiaryEntryCard, ReadingsCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -24,9 +24,7 @@ export default function RestHome({ state, dispatch }: Props) {
 
       <ReadingsCard />
 
-      <button className="link-soft" onClick={() => dispatch({ type: "setTab", tab: "record" })}>
-        {REST.recordEntry}
-      </button>
+      <DiaryEntryCard state={state} dispatch={dispatch} />
 
       <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} publicWhenEmpty />
 

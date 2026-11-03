@@ -2,7 +2,7 @@ import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
-import { ConfirmButton, CoordinatorCard, HrNoticeList, NewNoticeLink } from "./parts";
+import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -43,9 +43,10 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         </section>
       )}
 
-      <HrNoticeList messages={state.hrMessages} max={3} dispatch={dispatch} />
-      {/* 回復期のホームは長いので、新しいお知らせは上にも出す */}
+      {/* 回復期のホームは長いので、相談の新しいお知らせは上にも出す */}
       <NewNoticeLink state={state} dispatch={dispatch} />
+
+      <DiaryEntryCard state={state} dispatch={dispatch} />
 
       <section className="card">
         <h2>{RECOVERY.pathTitle}</h2>
@@ -147,6 +148,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
                 <p className="muted">{RECOVERY.meetCompanyNote}</p>
                 <ConfirmButton
                   quiet
+                  modal
                   label={RECOVERY.meetCompany}
                   confirm={RECOVERY.meetCompanyConfirm}
                   yes={RECOVERY.confirmYes}
@@ -159,6 +161,9 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         )}
       </details>
       )}
+
+      {/* 人事からの連絡は、上にあるとプレッシャーになるので下に */}
+      <HrNoticeList messages={state.hrMessages} max={3} dispatch={dispatch} />
 
       {/* 相談は段階に関係なく、相談したいときに選ぶ（急性期・休息モードと同じ枠） */}
       <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} showNewLink={false} />

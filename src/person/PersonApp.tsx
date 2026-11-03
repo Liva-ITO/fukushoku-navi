@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { APP_NAME, COMMON, JOURNEY, TABS, type Tab } from "../constants/labels";
+import { ABOUT, APP_NAME, COMMON, JOURNEY, TABS, type Tab } from "../constants/labels";
 import JourneySheet from "./JourneySheet";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
@@ -8,7 +8,7 @@ import RestHome from "./RestHome";
 import DiaryTab from "./DiaryTab";
 import ContactTab from "./ContactTab";
 import ConsultTab from "./ConsultTab";
-import Welcome from "./Welcome";
+import Welcome, { AboutList } from "./Welcome";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -38,6 +38,12 @@ function Home({ state, dispatch }: Props) {
 
 export default function PersonApp({ state, dispatch }: Props) {
   const [journeyOpen, setJourneyOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+
+  // タブ・段階・休息モードが変わったら、いちばん上から見せる
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [state.tab, state.stage, state.restMode, state.personStarted]);
   const unread = state.coordInbox.length - state.coordSeen;
 
   // 回復期に入ったときに一度だけ、復職までの流れを見せる（急性期の人には自動では出さない）
@@ -73,11 +79,27 @@ export default function PersonApp({ state, dispatch }: Props) {
     <div className={state.restMode ? "phone phone-rest" : "phone"}>
       <header className="phone-header">
         <span className="app-name">{APP_NAME}</span>
-        <button className="link-small" onClick={() => setJourneyOpen(true)}>
-          {JOURNEY.open}
-        </button>
+        <span className="header-links">
+          <button className="link-small" onClick={() => setAboutOpen(true)}>
+            {ABOUT.open}
+          </button>
+          <button className="link-small" onClick={() => setJourneyOpen(true)}>
+            {JOURNEY.open}
+          </button>
+        </span>
       </header>
       {journeyOpen && <JourneySheet stage={state.stage} onClose={() => setJourneyOpen(false)} />}
+      {aboutOpen && (
+        <div className="sheet" role="dialog" aria-modal="true" aria-label={ABOUT.title}>
+          <div className="sheet-body">
+            <h1 className="page-title">{ABOUT.title}</h1>
+            <AboutList />
+            <button className="btn-outline btn-wide" onClick={() => setAboutOpen(false)}>
+              {ABOUT.close}
+            </button>
+          </div>
+        </div>
+      )}
 
       {!state.personStarted ? (
         <div className="phone-body">

@@ -2,7 +2,7 @@ import type { Dispatch } from "react";
 import { ACUTE, REST, greeting } from "../constants/labels";
 import { PERSON } from "../data/demo";
 import type { Action, State } from "../state/store";
-import { ConfirmButton, CoordinatorCard, HrNoticeList, ReadingsCard } from "./parts";
+import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -15,14 +15,9 @@ export default function AcuteHome({ state, dispatch }: Props) {
       <p className="greeting">{greeting(PERSON.name, new Date().getHours())}</p>
       <p className="lead">{ACUTE.message}</p>
 
-      {/* 急性期は、人事からの連絡は新しい1件だけ（仕様どおり） */}
-      <HrNoticeList messages={state.hrMessages} max={1} dispatch={dispatch} />
+      <DiaryEntryCard state={state} dispatch={dispatch} />
 
       <ReadingsCard />
-
-      <button className="link-soft" onClick={() => dispatch({ type: "setTab", tab: "record" })}>
-        {ACUTE.recordEntry}
-      </button>
 
       {/* 大きく体調を崩している時期なので、休息モードと同じく、チケットがなければ公的な窓口を出す */}
       <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} publicWhenEmpty />
@@ -31,6 +26,9 @@ export default function AcuteHome({ state, dispatch }: Props) {
         <h2>{ACUTE.todoTitle}</h2>
         <p>{ACUTE.todo}</p>
       </section>
+
+      {/* 人事からの連絡は、上にあるとプレッシャーになるので下に。急性期は新しい1件だけ（仕様どおり） */}
+      <HrNoticeList messages={state.hrMessages} max={1} dispatch={dispatch} />
 
       <details className="card card-quiet">
         <summary>{ACUTE.checkTitle}</summary>
@@ -57,6 +55,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
             ) : (
               <ConfirmButton
                 quiet
+                modal
                 label={ACUTE.checkButton}
                 confirm={ACUTE.checkConfirm}
                 yes={ACUTE.checkConfirmYes}

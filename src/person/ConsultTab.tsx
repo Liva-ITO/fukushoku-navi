@@ -25,7 +25,7 @@ export default function ConsultTab({ state, dispatch }: Props) {
           <SlotPicker kind="psych" state={state} dispatch={dispatch} />
         </section>
       )}
-      <CoordinatorCard state={state} dispatch={dispatch} showNewLink={false} />
+      <CoordinatorCard state={state} dispatch={dispatch} showNewLink={false} pickHere />
 
       {/* 支援機関からのお知らせ。人事とのやり取り（連絡タブ）とは場所を分ける */}
       {count > 0 && (
