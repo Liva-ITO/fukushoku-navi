@@ -727,3 +727,11 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 /* 通しのデモ／見本の切り替え */
 .demo-mode { color: #fff; text-decoration: underline; font-size: 13px; white-space: nowrap; padding: 6px 4px; }
 .demo-browse-tag { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #f3d9a4; color: #3b3a36; font-size: 12px; font-weight: 700; }
+
+/* 人事の上のタブ：文字を折り返さない。狭い画面では小さめにして、入りきらなければ2段にする */
+.hr-nav { flex-wrap: wrap; }
+.hr-nav button { white-space: nowrap; flex-shrink: 0; min-height: 44px; }
+@media (max-width: 600px) {
+  .hr-nav { gap: 6px; margin-bottom: 16px; }
+  .hr-nav button { padding: 6px 14px; font-size: 14px; }
+}
