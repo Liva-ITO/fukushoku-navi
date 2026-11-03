@@ -60,7 +60,7 @@ export function CoordinatorCard({
   );
 }
 
-function PublicLines() {
+export function PublicLines() {
   return (
     <ul className="list-plain">
       {CONSULT.publicPlaces.map((p) => (
