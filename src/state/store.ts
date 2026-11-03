@@ -88,7 +88,8 @@ export type State = {
   coordSchedule: Schedule | null;
   coordInbox: CoordMessage[];
   coordSeen: number; // 本人が連絡タブで見た件数（①の印を消すため）
-  personHrSeen: number; // 本人が連絡タブで見た、人事からのお知らせの件数
+  personHrSeen: number;
+  hrRepliedAt: number; // 人事が最後に本人へ送ったとき、本人から届いていた件数（返信したら「本人からの連絡」は消える） // 本人が連絡タブで見た、人事からのお知らせの件数
   // 復職までの手順。順番は会社の設定（産業医との面談を先にするか、主治医の診断書を先にするか）
   returnOrder: ReturnOrder;
   // 会社の設定（見本）。いまは手順の順番だけが画面に反映される
@@ -172,6 +173,7 @@ export const initialState: State = {
   coordInbox: [],
   coordSeen: 0,
   personHrSeen: 0,
+  hrRepliedAt: 0,
   returnOrder: "occFirst",
   maxLeave: "1年6か月",
   depts: ["営業部", "開発部", "製造部", "総務部", "企画部"],
@@ -520,6 +522,7 @@ function reducer(state: State, action: Action): State {
       }
       return {
         ...state,
+        hrRepliedAt: state.sentToHr.length,
         hrMessages: [
           ...state.hrMessages,
           {

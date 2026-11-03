@@ -37,12 +37,12 @@ function todosOf(state: State): HrTodo[] {
   const at = (key: string, text: string) => t.push({ key, text, date: DEMO_TODAY });
   if (state.stage === "acute" && state.psychMeetingDone && state.nextWish) at(`a-wish-${state.sentToHr.length}`, HR.todoA.wishArrived);
   else if (state.stage === "acute" && state.psychMeetingDone) at("a-psych-done", HR.todoA.psychDone);
-  else if (state.stage === "acute" && state.rivaMeetingApplied) at("a-psych", HR.todoA.psychMeeting);
+  // 回復期に進むための面談の申し込みは、人事がすることがないので出さない（段階の欄に状態が出る）
   if (state.companyMeeting?.status === "applied") at("a-company", HR.todoA.companyMeeting);
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
   if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested(CONSULT.who[state.coordWho]));
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
-  if (state.sentToHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length, state.sentToHr[state.sentToHr.length - 1].body));
+  if (state.sentToHr.length > state.hrRepliedAt) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length, state.sentToHr[state.sentToHr.length - 1].body));
   return t;
 }
 

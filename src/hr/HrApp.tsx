@@ -74,13 +74,53 @@ function TodoText({ todo }: { todo: HrTodo }) {
   );
 }
 
-function DoneButton({ todo, personId, dispatch }: { todo: HrTodo; personId: string; dispatch: Dispatch<Action> }) {
+// 対応が必要なことの、対応する場所（詳しい画面の中の枠）
+function todoTarget(key: string, live: boolean): string {
+  if (key === "a-company") return "sec-meetings";
+  if (key.startsWith("a-wish") || key === "a-psych-done") return "sec-stage";
+  if (key.includes("-end-")) return live ? "sec-reg" : "sec-send";
+  return "sec-send";
+}
+// 自分で「確認した」にするもの（それ以外は、対応すると自動で消える）
+const manualTodo = (key: string) => !(key === "a-company" || key.startsWith("a-wish") || key === "a-psych-done");
+
+// 一覧の［対応する］から開いたとき、詳しい画面を開いたあとで移る場所
+let pendingTarget: string | null = null;
+
+// 対応する場所へ移り、少しのあいだ枠を目立たせる
+function goTo(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // なめらかに動かす指定は、環境によって動かないことがあるので、すぐに移る
+  el.scrollIntoView({ block: "start" });
+  el.classList.add("sec-flash");
+  setTimeout(() => el.classList.remove("sec-flash"), 1600);
+}
+
+// 対応する場所に出す「ここで対応すること」。自分で確かめて終えるものだけ［確認した］を置く
+function TodoHere({ row, section, dispatch }: { row: HrRow; section: string; dispatch: Dispatch<Action> }) {
+  const here = row.todos.filter((t) => todoTarget(t.key, row.live) === section && manualTodo(t.key) && t.key !== REQUEST_KEY);
+  if (here.length === 0) return null;
   return (
-    <button className="btn-outline btn-small" onClick={() => dispatch({ type: "hrMarkDone", key: todo.key, personId, text: todo.text })}>
-      {HR.done}
-    </button>
+    <div className="todo-here">
+      <p className="todo-here-title">{HR.todoHereTitle}</p>
+      <ul className="list-plain">
+        {here.map((t) => (
+          <li key={t.key}>
+            <p>{t.text}</p>
+            <p className="muted">
+              {t.key.startsWith("a-msg") ? HR.todoAckNote.msg : t.key.includes("-end-") ? (row.live ? HR.todoAckNote.end : HR.todoAckNote.endOther) : HR.todoAckNote.other}
+            </p>
+            <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "hrMarkDone", key: t.key, personId: row.id, text: t.text })}>
+              {HR.todoAck}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
+
 
 // リクエストに人事ができるのは、チケットを補充することだけ（補充すると受け付けられる）
 const REQUEST_KEY = "a-coord-req";
@@ -169,10 +209,16 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
               <li key={todo.key}>
                 <span className="todo-name">{row.name}</span>
                 <TodoText todo={todo} />
-                {/* 中身を確かめてから対応するので、一覧では開くだけ。対応済みは詳しい画面で */}
+                {/* 一覧では「済み」にしない。押すと詳しい画面の、対応する場所へ移る */}
                 <span className="todo-actions">
-                  <button className="btn-outline btn-small" onClick={() => open(row)}>
-                    {HR.open}
+                  <button
+                    className="btn-outline btn-small"
+                    onClick={() => {
+                      pendingTarget = todoTarget(todo.key, row.live);
+                      open(row);
+                    }}
+                  >
+                    {HR.todoGo} ›
                   </button>
                 </span>
               </li>
@@ -275,6 +321,16 @@ function sortRows(rows: HrRow[], col: SortCol, asc: boolean): HrRow[] {
 }
 
 function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
+  // 一覧の［対応する］から来たときは、対応する場所まで移る（画面の切り替えでいちばん上に戻したあとに）
+  useEffect(() => {
+    if (!pendingTarget) return;
+    // 移ってから消す（開発中は効果が2回走るので、先に消すと移れない）
+    const t = setTimeout(() => {
+      if (pendingTarget) goTo(pendingTarget);
+      pendingTarget = null;
+    }, 150);
+    return () => clearTimeout(t);
+  }, []);
   const openReport = row.live && state.hrReport !== null ? state.selfReports[state.hrReport] : undefined;
   // 開く前に見ていなかったもの。経緯の中だけだと埋もれるので、いちばん上にも出す
   const newItems = markNew(row).filter((x) => x.isNew).reverse();
@@ -322,7 +378,9 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
                 {todo.key === REQUEST_KEY ? (
                   <RefillButton label={HR.refillTodo} dispatch={dispatch} />
                 ) : (
-                  <DoneButton todo={todo} personId={row.id} dispatch={dispatch} />
+                  <button className="btn-outline btn-small" onClick={() => goTo(todoTarget(todo.key, row.live))}>
+                    {HR.todoGo} ›
+                  </button>
                 )}
               </li>
             ))}
@@ -358,7 +416,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
         </section>
 
         <div>
-          <section className="hr-card">
+          <section className="hr-card" id="sec-stage">
             <h2>
               {HR.stageTitle}　<StageTag stage={row.stage} />
             </h2>
@@ -385,6 +443,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
               name={row.name}
               stage={row.stage}
               occDate={row.live && state.occMeeting?.status === "scheduled" ? jpDate(state.occMeeting.date) : null}
+              row={row}
               dispatch={dispatch}
             />
           )}
@@ -418,7 +477,7 @@ function Meetings({ state, dispatch }: Props) {
   const cs = state.coordSchedule;
 
   return (
-    <section className="hr-card">
+    <section className="hr-card" id="sec-meetings">
       <h2>{HR.meetingTitle}</h2>
       <ul className="meeting-list">
         {list.map((m) => (
@@ -933,8 +992,9 @@ function RegistrationCard({ row, state, dispatch }: { row: HrRow } & Props) {
   const emailInvalid = !/.+@.+\..+/.test(draft.email.trim());
 
   return (
-    <section className="hr-card">
+    <section className="hr-card" id="sec-reg">
       <h2>{INVITE.regTitle}</h2>
+      <TodoHere row={row} section="sec-reg" dispatch={dispatch} />
       {!open ? (
         <>
           <dl className="reg-list">
@@ -1328,12 +1388,14 @@ function SendMessage({
   name,
   stage,
   occDate = null,
+  row,
   dispatch,
 }: {
   personId: string;
   name: string;
   stage: Stage;
   occDate?: string | null;
+  row?: HrRow;
   dispatch: Dispatch<Action>;
 }) {
   const templates =
@@ -1349,8 +1411,9 @@ function SendMessage({
   const [checking, setChecking] = useState(false);
 
   return (
-    <section className="hr-card">
+    <section className="hr-card" id="sec-send">
       <h2>{HR.sendTitle(name)}</h2>
+      {row && <TodoHere row={row} section="sec-send" dispatch={dispatch} />}
       {sent ? (
         <>
           <p className="done-note">{HR.sent}</p>

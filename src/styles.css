@@ -745,3 +745,9 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 
 /* 版（2つのウィンドウが同じかを見分ける） */
 .demo-build { margin-left: 8px; font-size: 11px; font-weight: 400; opacity: .6; white-space: nowrap; }
+
+/* 対応する場所：ここで対応すること・移ったときに目立たせる */
+.todo-here { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); }
+.todo-here-title { margin: 0 0 4px; font-weight: 700; font-size: 13px; }
+.todo-here li p { margin: 0 0 4px; }
+.sec-flash { box-shadow: 0 0 0 3px var(--accent); transition: box-shadow .3s; }
