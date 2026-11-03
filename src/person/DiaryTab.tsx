@@ -113,6 +113,17 @@ export default function DiaryTab({ state, dispatch }: Props) {
           </fieldset>
 
           <fieldset>
+            <legend>{RECORD.active}</legend>
+            <div className="chips chips-even">
+              {RECORD.activeOptions.map((h) => (
+                <Chip key={h} on={entry.activeHours === h} onClick={() => set("activeHours", entry.activeHours === h ? null : h)}>
+                  {RECORD.activeHours(h)}
+                </Chip>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
             <legend>{RECORD.mood}</legend>
             <div className="faces">
               {RECORD.moodFaces.map((f, i) => (
@@ -171,6 +182,7 @@ function DiarySummary({ entry }: { entry: DiaryEntry }) {
     entry.meals.length > 0 && `${RECORD.meals}：${MEALS.filter((m) => entry.meals.includes(m)).map((m) => RECORD.mealOptions[m]).join("・")}`,
     entry.activity !== null &&
       `${RECORD.activity}：${entry.activity ? RECORD.activityYes : RECORD.activityNo}${entry.activityMinutes ? `（${RECORD.minutes(entry.activityMinutes)}）` : ""}`,
+    entry.activeHours !== null && `${RECORD.active}：${RECORD.activeHours(entry.activeHours)}`,
   ].filter(Boolean) as string[];
   return (
     <div className="diary-summary">

@@ -28,6 +28,7 @@ export type DiaryEntry = {
   meals: Meal[];
   activity: boolean | null;
   activityMinutes: number | null;
+  activeHours: number | null; // 日中、横にならずに過ごした時間（生活記録表の活動時間）
   mood: number | null; // 0〜4
   note: string;
 };
@@ -39,6 +40,7 @@ export const emptyEntry = (): DiaryEntry => ({
   meals: [],
   activity: null,
   activityMinutes: null,
+  activeHours: null,
   mood: null,
   note: "",
 });
@@ -180,11 +182,15 @@ export const INITIAL_HR_MESSAGES: HrMessage[] = [
 
 // 社員Aのこれまでの記録（書けなかった日もある）
 export const INITIAL_DIARY: Record<string, DiaryEntry> = {
-  "2026-10-29": { wake: "09:30", sleep: "01:00", sleepQuality: "poor", meals: ["noon", "night"], activity: false, activityMinutes: null, mood: 1, note: "" },
-  "2026-10-30": { wake: "09:00", sleep: "00:30", sleepQuality: "normal", meals: ["noon", "night"], activity: true, activityMinutes: 15, mood: 2, note: "コンビニまで歩いた" },
-  "2026-11-01": { wake: "08:30", sleep: "00:00", sleepQuality: "normal", meals: ["morning", "noon", "night"], activity: true, activityMinutes: 30, mood: 2, note: "" },
-  "2026-11-02": { wake: "08:00", sleep: "23:30", sleepQuality: "good", meals: ["morning", "noon", "night"], activity: true, activityMinutes: 30, mood: 3, note: "図書館に行けた" },
-  "2026-11-03": { wake: "08:30", sleep: "00:00", sleepQuality: "normal", meals: ["morning", "night"], activity: false, activityMinutes: null, mood: 2, note: "" },
+  "2026-10-23": { wake: "10:30", sleep: "01:30", sleepQuality: "poor", meals: ["noon", "night"], activity: false, activityMinutes: null, activeHours: 2, mood: 1, note: "" },
+  "2026-10-24": { wake: "10:00", sleep: "01:30", sleepQuality: "poor", meals: ["noon", "night"], activity: false, activityMinutes: null, activeHours: 2, mood: 1, note: "" },
+  "2026-10-26": { wake: "10:00", sleep: "01:00", sleepQuality: "normal", meals: ["noon", "night"], activity: false, activityMinutes: null, activeHours: 4, mood: 1, note: "" },
+  "2026-10-27": { wake: "09:30", sleep: "01:00", sleepQuality: "normal", meals: ["noon", "night"], activity: true, activityMinutes: 15, activeHours: 4, mood: 2, note: "" },
+  "2026-10-29": { wake: "09:30", sleep: "01:00", sleepQuality: "poor", meals: ["noon", "night"], activity: false, activityMinutes: null, activeHours: 2, mood: 1, note: "" },
+  "2026-10-30": { wake: "09:00", sleep: "00:30", sleepQuality: "normal", meals: ["noon", "night"], activity: true, activityMinutes: 15, activeHours: 4, mood: 2, note: "コンビニまで歩いた" },
+  "2026-11-01": { wake: "08:30", sleep: "00:00", sleepQuality: "normal", meals: ["morning", "noon", "night"], activity: true, activityMinutes: 30, activeHours: 6, mood: 2, note: "" },
+  "2026-11-02": { wake: "08:00", sleep: "23:30", sleepQuality: "good", meals: ["morning", "noon", "night"], activity: true, activityMinutes: 30, activeHours: 6, mood: 3, note: "図書館に行けた" },
+  "2026-11-03": { wake: "08:30", sleep: "00:00", sleepQuality: "normal", meals: ["morning", "night"], activity: false, activityMinutes: null, activeHours: 4, mood: 2, note: "" },
 };
 
 // 今日から数えて過去7日の日付（古い順）
@@ -206,7 +212,8 @@ export const SAMPLE_SELF_REPORT = {
   bed: "23:40",
   wake: "07:20",
   sleepHours: 7.7,
-  activityHours: 9,
+  activityHours: 6.4,
+  activitySeries: [4, 4, 6, null, 6, 6, 8, 6, 8, 6, 8, 8, null, 8].map((h, i) => ({ date: `2026-${i < 10 ? `10-${22 + i}` : `11-0${i - 9}`}`, h })),
   outDays: 10,
   outMinutes: 50,
   condition: "朝の起きづらさは、ほとんどなくなった。午後に疲れが出る日が、週に1〜2日ある",

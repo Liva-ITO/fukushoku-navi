@@ -619,9 +619,19 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .report-hours { display: flex; align-items: center; gap: 8px; }
 .report-hours select { min-height: 44px; font-size: 16px; padding: 0 8px; }
 .report-view { margin: 6px 0 10px; display: grid; gap: 6px; font-size: 14px; }
-.report-view div { display: grid; grid-template-columns: 9em 1fr; gap: 8px; }
+.report-view > div { display: grid; grid-template-columns: 9em 1fr; gap: 8px; }
 .report-view dt { color: var(--muted); }
 .report-view dd { margin: 0; white-space: pre-wrap; }
-@media (max-width: 600px) { .report-view div { grid-template-columns: 1fr; gap: 0; } }
+@media (max-width: 600px) { .report-view > div { grid-template-columns: 1fr; gap: 0; } }
 .occ-material { margin: 6px 0; padding: 8px 10px; background: var(--bg); border-radius: 8px; }
 .occ-material-title { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+
+/* レポート：日ごとの活動時間 */
+.act-chart { margin: 8px 0 0; }
+.act-chart figcaption { font-size: 12px; margin-bottom: 4px; }
+.act-bars { display: grid; grid-template-columns: repeat(14, 1fr); gap: 2px; height: 96px; align-items: end; }
+.act-col { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 2px; }
+.act-val { font-size: 10px; color: var(--muted); }
+.act-bar { width: 70%; max-width: 14px; background: var(--accent); border-radius: 3px 3px 0 0; }
+.act-day { font-size: 10px; color: var(--muted); }
+.act-note { font-size: 12px; margin: 4px 0 0; }

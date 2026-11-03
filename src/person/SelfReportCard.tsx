@@ -13,12 +13,11 @@ export function SelfReportCard({ state, dispatch }: { state: State; dispatch: Di
   const last = state.selfReports[state.selfReports.length - 1];
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState(false);
-  const [activityHours, setActivityHours] = useState(last?.activityHours ?? 8);
   const [condition, setCondition] = useState(last?.condition ?? "");
   const [reason, setReason] = useState(last?.reason ?? "");
   const [measures, setMeasures] = useState(last?.measures ?? "");
   const auto = fromDiary(state.diary);
-  const report = { ...auto, activityHours, condition: condition.trim(), reason: reason.trim(), measures: measures.trim() };
+  const report = { ...auto, condition: condition.trim(), reason: reason.trim(), measures: measures.trim() };
   const filled = report.condition !== "" && report.reason !== "" && report.measures !== "";
 
   return (
@@ -53,19 +52,6 @@ export function SelfReportCard({ state, dispatch }: { state: State; dispatch: Di
       ) : (
         <div className="report-form">
           <p className="muted">{auto.days > 0 ? L.fromDiary(auto.period, auto.days) : L.noDiary}</p>
-          <label className="field field-tight">
-            {L.activity}
-            <span className="report-hours">
-              <select value={activityHours} onChange={(e) => setActivityHours(Number(e.target.value))}>
-                {Array.from({ length: 13 }, (_, i) => i + 2).map((h) => (
-                  <option key={h} value={h}>
-                    {h}
-                  </option>
-                ))}
-              </select>
-              {L.activityUnit}
-            </span>
-          </label>
           <label className="field field-tight">
             {L.condition}
             <textarea rows={2} placeholder={L.conditionHint} value={condition} onChange={(e) => setCondition(e.target.value)} />
@@ -108,9 +94,36 @@ export function SelfReportView({ r }: { r: Omit<SelfReport, "date"> }) {
       {rows.map(([k, v]) => (
         <div key={k}>
           <dt>{k}</dt>
-          <dd>{v}</dd>
+          <dd>
+            {v}
+            {k === HR.rep.activity && <ActivityChart series={r.activitySeries} />}
+          </dd>
         </div>
       ))}
     </dl>
+  );
+}
+
+// 日ごとの活動時間の棒グラフ。数字は文字でも出す（色だけに頼らない）
+function ActivityChart({ series }: { series: SelfReport["activitySeries"] }) {
+  if (!series?.length) return null;
+  const max = 12;
+  const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
+  return (
+    <figure className="act-chart">
+      <figcaption className="muted">{HR.rep.activityChart}</figcaption>
+      <div className="act-bars" role="img" aria-label={series.map((x) => `${md(x.date)} ${x.h ?? "—"}`).join("、")}>
+        {series.map((x) => (
+          <div key={x.date} className="act-col" title={`${md(x.date)}：${x.h === null ? "書いていない" : `${x.h}時間`}`}>
+            <span className="act-val">{x.h ?? ""}</span>
+            <span className="act-bar" style={{ height: `${((x.h ?? 0) / max) * 70}px` }} />
+            <span className="act-day">{md(x.date).split("/")[1]}</span>
+          </div>
+        ))}
+      </div>
+      <p className="muted act-note">
+        {md(series[0].date)}〜{md(series[series.length - 1].date)}（時間）。{HR.rep.activityChartNote}
+      </p>
+    </figure>
   );
 }

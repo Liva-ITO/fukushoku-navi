@@ -474,7 +474,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v29";
+const STORAGE_KEY = "fukushoku-navi-demo-v30";
 
 function load(): State {
   try {

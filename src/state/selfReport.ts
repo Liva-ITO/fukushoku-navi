@@ -10,7 +10,8 @@ export type SelfReport = {
   bed: string; // 平均の寝た時刻
   wake: string; // 平均の起きた時刻
   sleepHours: number; // 平均の睡眠時間
-  activityHours: number; // 1日の活動時間（横にならずに過ごした時間。本人が書く）
+  activityHours: number; // 1日の活動時間の平均（日記の「横にならずに過ごした時間」から）
+  activitySeries: { date: string; h: number | null }[]; // 日ごとの活動時間（書いていない日は null）
   outDays: number; // 外出・運動した日
   outMinutes: number; // その平均の分
   condition: string; // 体調の変化
@@ -44,12 +45,21 @@ export function fromDiary(diary: Record<string, DiaryEntry>, today = DEMO_TODAY)
   const beds = slept.map((e) => toMin(e.sleep, true));
   const wakes = slept.map((e) => toMin(e.wake, false) + 24 * 60);
   const out = entries.filter((e) => e.activity);
+  const days = Array.from({ length: REPORT_PERIOD }, (_, i) => {
+    const d = new Date(from);
+    d.setDate(from.getDate() + i);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  const activitySeries = days.map((date) => ({ date, h: diary[date]?.activeHours ?? null }));
+  const hs = activitySeries.map((x) => x.h).filter((h): h is number => h !== null);
   return {
     period: REPORT_PERIOD,
     days: entries.length,
     bed: slept.length ? toTime(avg(beds)) : "",
     wake: slept.length ? toTime(avg(wakes)) : "",
     sleepHours: slept.length ? Math.round(avg(slept.map((_, i) => wakes[i] - beds[i])) / 6) / 10 : 0,
+    activityHours: hs.length ? Math.round(avg(hs) * 10) / 10 : 0,
+    activitySeries,
     outDays: out.length,
     outMinutes: out.length ? Math.round(avg(out.map((e) => e.activityMinutes ?? 0))) : 0,
   };
