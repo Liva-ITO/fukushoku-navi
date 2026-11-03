@@ -742,3 +742,6 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .reg-list dt { color: var(--muted); }
 .reg-list dd { margin: 0; overflow-wrap: anywhere; }
 .field-error { color: #a34a2a; font-size: 13px; }
+
+/* 版（2つのウィンドウが同じかを見分ける） */
+.demo-build { margin-left: 8px; font-size: 11px; font-weight: 400; opacity: .6; white-space: nowrap; }

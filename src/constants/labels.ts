@@ -491,6 +491,7 @@ export const DEMO_BAR = {
   toBrowse: "画面を見る（見本）",
   toJourney: "通しのデモに戻る",
   browseTag: "見本",
+  build: (s: string) => `版 ${s}`,
   // スマホでは1行にたたみ、いまの状態だけを出す
   summary: (view: "person" | "hr", stage: string, rest: boolean) =>
     view === "hr" ? "人事" : `本人・${stage}${rest ? "・休息モード" : ""}`,

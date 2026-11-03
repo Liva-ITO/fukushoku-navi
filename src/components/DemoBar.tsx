@@ -20,6 +20,7 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
       <span className="demo-bar-title">
         {DEMO_BAR.title}
         {BROWSE && <span className="demo-browse-tag">{DEMO_BAR.browseTag}</span>}
+        <span className="demo-build">{DEMO_BAR.build(__BUILD__)}</span>
       </span>
       <button className="demo-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span>
