@@ -279,7 +279,8 @@ export const CONTACT = {
 
   visitTitle: "通院のあとに",
   visitButton: "通院してきました",
-  visitNote: "選ぶだけで、人事に届きます",
+  visitNote: "選んで送るだけで、人事に届きます",
+  visitPreview: "人事に届く文",
   visitOptions: ["順調と言われました", "少し様子を見ることになりました", "薬が変わりました"],
   visitSent: "送りました。おつかれさまでした",
   visitBody: (option: string) => `通院してきました。${option}`,

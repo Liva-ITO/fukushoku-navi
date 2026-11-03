@@ -128,6 +128,8 @@ function WriteReply({ dispatch }: { dispatch: Dispatch<Action> }) {
 function VisitReport({ dispatch }: { dispatch: Dispatch<Action> }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  // 選んだだけでは送らない（選ぶ → 届く文を見る → 送る）
+  const [picked, setPicked] = useState<string | null>(null);
 
   return (
     <section className="card">
@@ -141,23 +143,41 @@ function VisitReport({ dispatch }: { dispatch: Dispatch<Action> }) {
       ) : (
         <>
           <p className="muted">{CONTACT.visitNote}</p>
-          <div className="stack">
+          <div className="chips chips-stack">
             {CONTACT.visitOptions.map((opt) => (
-              <button
-                key={opt}
-                className="path-option"
-                onClick={() => {
-                  dispatch({ type: "sendToHr", kind: "visit", body: CONTACT.visitBody(opt) });
-                  setSent(true);
-                }}
-              >
+              <button key={opt} className="chip" aria-pressed={picked === opt} onClick={() => setPicked(opt)}>
                 {opt}
               </button>
             ))}
           </div>
-          <button className="btn-quiet" onClick={() => setOpen(false)}>
-            {CONTACT.cancel}
-          </button>
+          {picked && (
+            <div className="preview">
+              <p className="muted">{CONTACT.visitPreview}</p>
+              <p>{CONTACT.visitBody(picked)}</p>
+            </div>
+          )}
+          <div className="confirm-actions">
+            <button
+              className="btn-primary"
+              disabled={!picked}
+              onClick={() => {
+                if (!picked) return;
+                dispatch({ type: "sendToHr", kind: "visit", body: CONTACT.visitBody(picked) });
+                setSent(true);
+              }}
+            >
+              {CONTACT.send}
+            </button>
+            <button
+              className="btn-quiet"
+              onClick={() => {
+                setOpen(false);
+                setPicked(null);
+              }}
+            >
+              {CONTACT.cancel}
+            </button>
+          </div>
         </>
       )}
     </section>
