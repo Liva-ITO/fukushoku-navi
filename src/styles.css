@@ -645,3 +645,4 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 /* 確認の文の改行を活かす（件名と本文を分けて見せる） */
 .confirm > p:first-child { white-space: pre-line; }
 .modal > p:first-child { white-space: pre-line; }
+.field input[type="file"] { max-width: 100%; font-size: 14px; }

@@ -61,6 +61,8 @@ export default function ContactTab({ state, dispatch }: Props) {
 
       {!hasNew && support}
 
+      <NewToHr stage={state.stage} dispatch={dispatch} />
+
       <VisitReport dispatch={dispatch} />
 
       <section className="card card-quiet-box">
@@ -206,6 +208,145 @@ function WriteReply({ dispatch }: { dispatch: Dispatch<Action> }) {
         {CONTACT.send}
       </button>
     </>
+  );
+}
+
+type Topic = keyof typeof CONTACT.topics;
+
+// 本人から会社に連絡する。用件を選ぶ → 書く（急性期は例文を選ぶだけ）→ 届く文を見る → 送る
+function NewToHr({ stage, dispatch }: { stage: State["stage"]; dispatch: Dispatch<Action> }) {
+  const [open, setOpen] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [topic, setTopic] = useState<Topic | null>(null);
+  const [text, setText] = useState("");
+  const [file, setFile] = useState("");
+  const [preview, setPreview] = useState(false);
+  const pickOnly = stage === "acute";
+  const reset = () => {
+    setTopic(null);
+    setText("");
+    setFile("");
+    setPreview(false);
+  };
+  const t = topic ? CONTACT.topics[topic] : null;
+  const ready = t !== null && text.trim() !== "" && (topic !== "file" || file !== "");
+  const body = t ? CONTACT.newBody(t.name, text.trim(), file) : "";
+
+  return (
+    <section className="card">
+      <h2>{CONTACT.newTitle}</h2>
+      {sent ? (
+        <>
+          <p className="done-note">{CONTACT.newSent}</p>
+          <button
+            className="btn-quiet"
+            onClick={() => {
+              setSent(false);
+              setOpen(true);
+            }}
+          >
+            {CONTACT.newAgain}
+          </button>
+        </>
+      ) : !open ? (
+        <>
+          <p className="muted">{CONTACT.newNote}</p>
+          <button className="btn-outline" onClick={() => setOpen(true)}>
+            {CONTACT.newOpen}
+          </button>
+        </>
+      ) : preview ? (
+        <div className="preview">
+          <p className="muted">{CONTACT.newPreview}</p>
+          <p>{body}</p>
+          <div className="confirm-actions">
+            <button
+              className="btn-primary"
+              onClick={() => {
+                dispatch({ type: "sendToHr", kind: "new", body });
+                reset();
+                setOpen(false);
+                setSent(true);
+              }}
+            >
+              {CONTACT.send}
+            </button>
+            <button className="btn-quiet" onClick={() => setPreview(false)}>
+              {CONTACT.cancel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="muted examples-label">{CONTACT.topicLabel}</p>
+          <div className="chips">
+            {(Object.keys(CONTACT.topics) as Topic[]).map((k) => (
+              <button
+                key={k}
+                className="chip"
+                aria-pressed={topic === k}
+                onClick={() => {
+                  setTopic(k);
+                  setText("");
+                }}
+              >
+                {CONTACT.topics[k].name}
+              </button>
+            ))}
+          </div>
+          {t && topic === "file" && (
+            <label className="field field-tight">
+              {CONTACT.fileLabel}
+              {/* 名前だけを読む。中身は読まず、どこにも送らない */}
+              <input type="file" onChange={(e) => setFile(e.target.files?.[0]?.name ?? "")} />
+              <span className="muted">{CONTACT.fileNote}</span>
+            </label>
+          )}
+          {t &&
+            (pickOnly ? (
+              <>
+                <p className="muted examples-label">{CONTACT.replyPickNote}</p>
+                <div className="chips chips-stack">
+                  {t.examples.map((ex) => (
+                    <button key={ex} className="chip" aria-pressed={text === ex} onClick={() => setText(text === ex ? "" : ex)}>
+                      {ex}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="field field-tight">
+                  {CONTACT.replyWriteNote}
+                  <textarea rows={3} value={text} onChange={(e) => setText(e.target.value)} />
+                </label>
+                <p className="muted examples-label">{CONTACT.replyExamplesLabel}</p>
+                <div className="chips">
+                  {t.examples.map((ex) => (
+                    <button key={ex} className="chip chip-add" disabled={text.includes(ex)} onClick={() => setText(addSentence(text, ex))}>
+                      ＋ {ex}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ))}
+          <div className="confirm-actions">
+            <button className="btn-primary" disabled={!ready} onClick={() => setPreview(true)}>
+              {CONTACT.newPreview}
+            </button>
+            <button
+              className="btn-quiet"
+              onClick={() => {
+                reset();
+                setOpen(false);
+              }}
+            >
+              {CONTACT.cancel}
+            </button>
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 
