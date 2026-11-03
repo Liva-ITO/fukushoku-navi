@@ -635,3 +635,9 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .act-bar { width: 70%; max-width: 14px; background: var(--accent); border-radius: 3px 3px 0 0; }
 .act-day { font-size: 10px; color: var(--muted); }
 .act-note { font-size: 12px; margin: 4px 0 0; }
+
+/* 産業医の意見 */
+.opinion-form { display: grid; gap: 6px; margin: 6px 0; padding: 10px 12px; background: var(--bg); border-radius: 8px; }
+.opinion-form .opinion-title { margin: 0; font-weight: 600; font-size: 14px; }
+.opinion-form p { margin: 0; }
+.opinion-line { margin: 4px 0; font-weight: 600; font-size: 14px; }

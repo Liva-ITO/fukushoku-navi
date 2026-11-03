@@ -44,6 +44,7 @@ export type Who = "coord" | "psych";
 export const whoNow = (s: { stage: Stage; restMode: boolean }): Who => (s.stage === "acute" || s.restMode ? "psych" : "coord");
 
 export type ReturnOrder = "occFirst" | "doctorFirst";
+export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
 
 export type State = {
   view: View;
@@ -91,7 +92,9 @@ export type State = {
   selfReports: SelfReport[];
   // リワークの施設から会社に届く月次レポート（出席の事実だけ）
   reworkReports: { month: string; days: number; rate: number; date: string }[];
-  occMeeting: { status: "scheduled" | "done"; date: string } | null;
+  occMeeting: { status: "scheduled" | "done"; date: string; opinion?: OccOpinion } | null;
+  // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
+  occOpinions: (OccOpinion & { date: string })[];
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
   returnDecision: "ok" | null;
@@ -153,6 +156,7 @@ export const initialState: State = {
   selfReports: [],
   reworkReports: [],
   occMeeting: null,
+  occOpinions: [],
   doctorNote: false,
   returnDecision: null,
   returnDecisionLog: [],
@@ -195,7 +199,7 @@ export type Action =
   | { type: "askCoordinator" }
   | { type: "setReturnOrder"; order: ReturnOrder }
   | { type: "scheduleOccMeeting"; date: string }
-  | { type: "finishOccMeeting" }
+  | { type: "finishOccMeeting"; opinion: OccOpinion }
   | { type: "receiveDoctorNote" }
   | { type: "undoDoctorNote" }
   | { type: "rescheduleOccMeeting" }
@@ -355,7 +359,13 @@ function reducer(state: State, action: Action): State {
     case "scheduleOccMeeting":
       return { ...state, occMeeting: { status: "scheduled", date: action.date } };
     case "finishOccMeeting":
-      return state.occMeeting ? { ...state, occMeeting: { ...state.occMeeting, status: "done" } } : state;
+      return state.occMeeting
+        ? {
+            ...state,
+            occMeeting: { ...state.occMeeting, status: "done", opinion: action.opinion },
+            occOpinions: [...state.occOpinions, { ...action.opinion, date: DEMO_TODAY }],
+          }
+        : state;
     case "receiveDoctorNote":
       return { ...state, doctorNote: true };
     // 押しまちがい・予定の変更に備えて、記録は戻せるようにする
@@ -365,8 +375,14 @@ function reducer(state: State, action: Action): State {
     case "rescheduleOccMeeting":
       return { ...state, occMeeting: null, returnDecision: null };
     case "undoOccMeetingDone":
+      // 押しまちがいなので、そのとき残した意見の記録も消す
       return state.occMeeting
-        ? { ...state, occMeeting: { ...state.occMeeting, status: "scheduled" }, returnDecision: null }
+        ? {
+            ...state,
+            occMeeting: { status: "scheduled", date: state.occMeeting.date },
+            occOpinions: state.occOpinions.slice(0, -1),
+            returnDecision: null,
+          }
         : state;
     case "decideReturn": {
       if (state.occMeeting?.status !== "done") return state;
@@ -476,7 +492,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // 状態の形を変えたら番号を上げる（古い保存内容を読まないため）
-const STORAGE_KEY = "fukushoku-navi-demo-v30";
+const STORAGE_KEY = "fukushoku-navi-demo-v31";
 
 function load(): State {
   try {

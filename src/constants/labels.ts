@@ -635,6 +635,18 @@ export const HR = {
   },
   reportBody: (month: string, days: number, rate: number) => `リワークの月次レポート（${month}）：出席${days}日・出席率${rate}%`,
   stepDecisionNote: "産業医の意見を踏まえて、会社が決めます",
+  // 産業医の意見：面談を実施済みにするときに残す。人事の画面だけ（本人には出さない）
+  opinion: {
+    title: "産業医の意見",
+    verdict: "復職について",
+    options: { ok: "復職できる", conditional: "条件つきで復職できる", notYet: "まだ難しい" },
+    note: "就業上の配慮（書かなくてもよい）",
+    noteExample: "例：残業なし。3か月は短時間勤務",
+    save: "記録する",
+    cancel: "やめておく",
+    line: (v: string, n: string) => `産業医の意見：${v}${n ? `（配慮：${n}）` : ""}`,
+    none: "産業医の意見：記録されていません",
+  },
   decisionLocked: "産業医との面談が済むと、判断できます",
   decisionOk: "復職できると判断する",
   decisionOkConfirm: (name: string) =>

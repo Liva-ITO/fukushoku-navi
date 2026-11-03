@@ -3,7 +3,7 @@ import { ACUTE, ANALYTICS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from
 import InviteForm from "./InviteForm";
 import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
-import type { Action, State } from "../state/store";
+import type { Action, OccOpinion, State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
 import { SelfReportView } from "../person/SelfReportCard";
 import { END_NOTICE_DAYS, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
@@ -472,6 +472,11 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
   const occ = state.occMeeting;
   const plan = state.returnPlan;
   const [editing, setEditing] = useState(!state.returnPlan);
+  // 産業医の意見に書いた配慮を、配慮の欄に最初から入れておく（書き直せる）
+  const opinionNote = occ?.opinion?.note ?? "";
+  useEffect(() => {
+    if (opinionNote) setAccommodation((a) => a || opinionNote);
+  }, [opinionNote]);
   // 復職日を書き直している間は、確定できない
   const ready = occ?.status === "done" && state.returnDecision === "ok" && state.doctorNote && plan !== null && !editing;
 
@@ -505,9 +510,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
       )}
       {occ?.status === "scheduled" && (
         <div className="meeting-action">
-          <button className="btn-outline btn-small" onClick={() => dispatch({ type: "finishOccMeeting" })}>
-            {HR.companyDone}
-          </button>
+          <OccDone dispatch={dispatch} />
           <button
             className="btn-quiet btn-small"
             onClick={() => {
@@ -558,6 +561,11 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         <Status done={decided} />
       </p>
       <p className="muted">{HR.stepDecisionNote}</p>
+      {occ?.status === "done" && (
+        <p className="opinion-line">
+          {occ.opinion ? HR.opinion.line(HR.opinion.options[occ.opinion.verdict], occ.opinion.note) : HR.opinion.none}
+        </p>
+      )}
       <IssuesRef row={row} />
       {decided ? (
         <div className="meeting-action">
@@ -853,6 +861,48 @@ function OccMaterial({ state, dispatch }: Props) {
         <span className="muted">{HR.demoReport}</span>
         <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "reworkReport" })}>
           {HR.reportArrive}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 産業医との面談を実施済みにする。そのとき、産業医の意見を短く残す
+function OccDone({ dispatch }: { dispatch: Dispatch<Action> }) {
+  const [open, setOpen] = useState(false);
+  const [verdict, setVerdict] = useState<OccOpinion["verdict"] | null>(null);
+  const [note, setNote] = useState("");
+  if (!open)
+    return (
+      <button className="btn-outline btn-small" onClick={() => setOpen(true)}>
+        {HR.companyDone}
+      </button>
+    );
+  return (
+    <div className="opinion-form">
+      <p className="opinion-title">{HR.opinion.title}</p>
+      <p className="muted">{HR.opinion.verdict}</p>
+      <div className="chips">
+        {(Object.keys(HR.opinion.options) as OccOpinion["verdict"][]).map((v) => (
+          <button key={v} className="chip" aria-pressed={verdict === v} onClick={() => setVerdict(v)}>
+            {HR.opinion.options[v]}
+          </button>
+        ))}
+      </div>
+      <label className="muted">
+        {HR.opinion.note}
+        <textarea className="hr-textarea" rows={2} placeholder={HR.opinion.noteExample} value={note} onChange={(e) => setNote(e.target.value)} />
+      </label>
+      <div className="confirm-actions">
+        <button
+          className="btn-primary btn-small"
+          disabled={!verdict}
+          onClick={() => verdict && dispatch({ type: "finishOccMeeting", opinion: { verdict, note: note.trim() } })}
+        >
+          {HR.opinion.save}
+        </button>
+        <button className="btn-quiet btn-small" onClick={() => setOpen(false)}>
+          {HR.opinion.cancel}
         </button>
       </div>
     </div>

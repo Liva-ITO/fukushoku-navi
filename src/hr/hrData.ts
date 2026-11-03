@@ -75,6 +75,12 @@ function eventsOf(state: State): HrEvent[] {
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
     ...state.reworkReports.map((r) => ({ date: r.date, kind: "submit" as const, body: HR.reportBody(r.month, r.days, r.rate) })),
     ...state.selfReports.map((r) => ({ date: r.date, kind: "submit" as const, body: HR.selfReportBody(r.date.slice(5).replace("-", "/")) })),
+    ...state.occOpinions.map((o) => ({
+      date: o.date,
+      kind: "meeting" as const,
+      body: HR.opinion.line(HR.opinion.options[o.verdict], o.note),
+      byHr: true,
+    })),
     ...state.returnDecisionLog.map((d) => ({
       date: d.date,
       kind: "decision" as const,
