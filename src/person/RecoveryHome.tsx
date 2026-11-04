@@ -66,12 +66,15 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       <section className="card">
         <h2>{RECOVERY.pathTitle}</h2>
         {path ? (
+          <>
           <div className="path-chosen">
             <p>{RECOVERY.pathChosen(RECOVERY.pathOptions[path].name)}</p>
             <button className="btn-quiet" onClick={() => dispatch({ type: "setPrepPath", path: null })}>
               {RECOVERY.pathChange}
             </button>
           </div>
+          {REWORK_PATHS.includes(path) && <ShareConsentCard state={state} dispatch={dispatch} />}
+          </>
         ) : (
           <>
             <p className="muted">{RECOVERY.pathNote}</p>
@@ -221,5 +224,37 @@ function PathOption({ path, dispatch }: { path: PrepPath; dispatch: Dispatch<Act
       <span className="path-name">{opt.name}</span>
       <span className="muted">{opt.note}</span>
     </button>
+  );
+}
+
+// リワークを選んだら、会社が把握している課題をリワークのスタッフに共有してよいかをたずねる。
+// 課題の中身は見せない（はじめは受け止めにくいことも多いため）。答えは会社に届き、あとから変えられる
+function ShareConsentCard({ state, dispatch }: Props) {
+  const c = state.shareConsent;
+  return (
+    <div className="consent-box">
+      <p className="consent-title">{RECOVERY.consentTitle}</p>
+      {c === null ? (
+        <>
+          <p>{RECOVERY.consentBody}</p>
+          <div className="confirm-actions">
+            <button className="btn-outline" onClick={() => dispatch({ type: "setShareConsent", consent: true })}>
+              {RECOVERY.consentYes}
+            </button>
+            <button className="btn-outline" onClick={() => dispatch({ type: "setShareConsent", consent: false })}>
+              {RECOVERY.consentNo}
+            </button>
+          </div>
+          <p className="muted">{RECOVERY.consentNote}</p>
+        </>
+      ) : (
+        <>
+          <p className="done-note">{c ? RECOVERY.consentDoneYes : RECOVERY.consentDoneNo}</p>
+          <button className="btn-quiet" onClick={() => dispatch({ type: "setShareConsent", consent: null })}>
+            {RECOVERY.consentChange}
+          </button>
+        </>
+      )}
+    </div>
   );
 }

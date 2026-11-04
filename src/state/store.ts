@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 import type { SelfReport } from "./selfReport";
-import { ACUTE, CONSULT, HR, type PrepPath, type Stage, type Tab } from "../constants/labels";
+import { ACUTE, CONSULT, HR, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
   INITIAL_DIARY,
@@ -114,6 +114,9 @@ export type State = {
   regEdits: { personId: string; date: string; text: string }[];
   // 自分の取説（本人だけのもの。会社には届かない）
   torisetsu: Torisetsu | null;
+  // リワークのスタッフへの共有：本人の同意（null はまだ答えていない）と、会社が共有した日
+  shareConsent: boolean | null;
+  sharedDate: string | null;
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
   returnDecision: "ok" | null;
@@ -189,6 +192,8 @@ export const initialState: State = {
   issueNotes: {},
   regEdits: [],
   torisetsu: null,
+  shareConsent: null,
+  sharedDate: null,
   doctorNote: false,
   returnDecision: null,
   returnDecisionLog: [],
@@ -266,6 +271,8 @@ export type Action =
   | { type: "addIssueNote"; personId: string; text: string }
   | { type: "editRegistration"; personId: string; patch: RegPatch; text: string }
   | { type: "saveTorisetsu"; torisetsu: Torisetsu }
+  | { type: "setShareConsent"; consent: boolean | null }
+  | { type: "recordShared" }
   | { type: "sendSelfReport"; report: SelfReport }
   | { type: "demoSelfReport" }
   | { type: "invite"; person: Omit<Invited, "id" | "date" | "resends"> }
@@ -553,6 +560,19 @@ function reducer(state: State, action: Action): State {
     case "demoSelfReport":
       // デモ：人事の画面で、本人からレポートが届いたことにする（準備期の本人画面はスタッフが作る）
       return { ...state, selfReports: [...state.selfReports, { ...SAMPLE_SELF_REPORT, date: DEMO_TODAY }] };
+    case "setShareConsent": {
+      if (action.consent === null) return { ...state, shareConsent: null };
+      // 答えたことは、本人から会社への連絡として届く
+      const body = RECOVERY.consentSent(action.consent ? RECOVERY.consentYes : RECOVERY.consentNo);
+      return {
+        ...state,
+        shareConsent: action.consent,
+        sharedDate: action.consent ? state.sharedDate : null,
+        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: "new", body }],
+      };
+    }
+    case "recordShared":
+      return state.shareConsent ? { ...state, sharedDate: DEMO_TODAY } : state;
     case "saveTorisetsu":
       return { ...state, torisetsu: action.torisetsu };
     case "editRegistration": {

@@ -751,3 +751,8 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .todo-here-title { margin: 0 0 4px; font-weight: 700; font-size: 13px; }
 .todo-here li p { margin: 0 0 4px; }
 .sec-flash { box-shadow: 0 0 0 3px var(--accent); transition: box-shadow .3s; }
+
+/* リワークへの共有（本人の同意・人事の記録） */
+.consent-box, .share-box { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.consent-title, .share-title { margin: 0 0 4px; font-weight: 700; font-size: 14px; }
+.consent-box p, .share-box p { margin: 0 0 6px; }

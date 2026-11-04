@@ -435,7 +435,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
 
           {row.live && row.stage !== "afterReturn" && <Meetings state={state} dispatch={dispatch} />}
           {(row.live || row.pending) && <RegistrationCard row={row} state={state} dispatch={dispatch} />}
-          <IssuesCard row={row} dispatch={dispatch} />
+          <IssuesCard row={row} state={state} dispatch={dispatch} />
           {!row.pending && row.stage !== "afterReturn" && (
             <SendMessage
               key={row.id}
@@ -1068,14 +1068,35 @@ function RegistrationCard({ row, state, dispatch }: { row: HrRow } & Props) {
   );
 }
 
-function IssuesCard({ row, dispatch }: { row: HrRow; dispatch: Dispatch<Action> }) {
+// リワークのスタッフへの共有。本人の同意があるときだけ。共有そのものは、会社とリワークのあいだで行う
+function ShareConsent({ state, dispatch }: Props) {
+  const c = state.shareConsent;
+  return (
+    <div className="share-box">
+      <p className="share-title">{INVITE.shareTitle}</p>
+      <p>{c === null ? INVITE.shareNone : c ? INVITE.shareYes : INVITE.shareNo}</p>
+      {c && (state.sharedDate ? (
+        <p className="done-note">{INVITE.shareDone(state.sharedDate.slice(5).replace("-", "/"))}</p>
+      ) : (
+        <>
+          <p className="muted">{INVITE.shareHow}</p>
+          <button className="btn-outline btn-small" onClick={() => dispatch({ type: "recordShared" })}>
+            {INVITE.shareRecord}
+          </button>
+        </>
+      ))}
+    </div>
+  );
+}
+
+function IssuesCard({ row, state, dispatch }: { row: HrRow; state: State; dispatch: Dispatch<Action> }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   return (
     <section className="hr-card">
       <h2>{INVITE.issuesTitle}</h2>
       <IssuesBody row={row} />
-      {row.sharedWithProgram && <p className="muted issues-shared">{INVITE.issuesSharedRework}</p>}
+      {row.live && row.rework_ && <ShareConsent state={state} dispatch={dispatch} />}
       {row.stage !== "afterReturn" &&
         (open ? (
           <div className="issues-add">

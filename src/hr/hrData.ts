@@ -22,7 +22,7 @@ export type HrRow = {
   issues?: string; // 招待のときに入力した、復職に向けた課題（会社の見立て）
   issueNotes: { date: string; text: string }[]; // あとから書き足した見立て
   invite?: { date: string; email: string; resends: { date: string; email: string }[] }; // まだ始めていない人の案内
-  sharedWithProgram?: boolean; // オンラインのリワークを使っている（見立てがプログラムに渡る）
+  rework_?: boolean; // リワークを使っている（見立ての共有の同意を出す）
 };
 
 function reworkOf(state: State): string {
@@ -107,6 +107,7 @@ function eventsOf(state: State): HrEvent[] {
     })),
     // 同じ日なら、段階の切り替えは面談や提出のあと
     ...state.stageHistory.map((s) => ({ date: s.date, kind: "stage" as const, body: STAGE_LABELS[s.stage] })),
+    ...(state.sharedDate ? [{ date: state.sharedDate, kind: "done" as const, body: INVITE.shareEvent, byHr: true }] : []),
     ...doneEvents(state, PERSON.id),
   ]);
 }
@@ -212,7 +213,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     live: true,
     issues: live.issues,
     issueNotes: state.issueNotes[PERSON.id] ?? [],
-    sharedWithProgram: state.prepPath === "rivabiz",
+    rework_: state.prepPath === "rivabiz" || state.prepPath === "rivatore",
   };
   const others: HrRow[] = OTHER_PEOPLE.map((p) => ({
     id: p.id,
