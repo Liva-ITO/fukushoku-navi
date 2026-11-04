@@ -37,7 +37,7 @@
    npx wrangler secret put ANTHROPIC_API_KEY
    ```
 
-5. 公開されたURL（`https://fukushoku-navi-summary.<アカウント名>.workers.dev`）を、`src/constants/ai.ts` に入れて公開版に送る
+5. 公開されたURL（`https://fukushoku-navi-summary.fukushoku-navi-summary.workers.dev`）を、`src/constants/ai.ts` に入れて公開版に送る（11/4 済み）
 
 ## 手元で試すとき
 
