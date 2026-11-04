@@ -295,6 +295,19 @@ details[open] > summary::after { content: "▲"; }
 .hr-back { padding-left: 0; margin-bottom: 4px; }
 .hr-columns { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
 .timeline { list-style: none; margin: 12px 0 0; padding: 0; }
+.tl-flash { background: var(--accent-soft, #e8f1ee); transition: background .3s; }
+
+/* 経緯のまとめ（AI） */
+.ai-summary { margin: 10px 0 4px; }
+.ai-note { font-size: 12px; margin: 6px 0 0; }
+.ai-error { color: #9a4a2b; font-size: 13px; margin: 6px 0 0; }
+.ai-box { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #fafaf7; }
+.ai-title { font-weight: 700; margin: 0 0 4px; }
+.ai-sec { margin-top: 8px; }
+.ai-sec-title { font-size: 13px; color: var(--muted); margin: 0 0 2px; }
+.ai-sec ul { margin: 0; padding-left: 18px; }
+.ai-sec li { margin: 2px 0; line-height: 1.6; }
+.ai-ref { border: 1px solid var(--line); background: #fff; border-radius: 999px; font-size: 11px; padding: 0 8px; margin-left: 6px; min-height: 22px; color: var(--muted); cursor: pointer; }
 .tl { display: grid; grid-template-columns: 96px 150px 1fr; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
 .tl-date { color: var(--muted); }
 .tl-kind { font-weight: 600; }

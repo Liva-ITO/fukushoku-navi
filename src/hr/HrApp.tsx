@@ -4,6 +4,7 @@ import InviteForm from "./InviteForm";
 import Accounts from "./Accounts";
 import ReportDoc from "./ReportDoc";
 import Analytics from "./Analytics";
+import HistorySummary, { tlId } from "./HistorySummary";
 import { daysSince } from "../data/demo";
 import { currentBossId, type Action, type HrAccount, type OccOpinion, type State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
@@ -399,9 +400,10 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
         <section className="hr-card">
           <h2>{HR.historyTitle}</h2>
           <p className="muted">{HR.historyNote}</p>
+          <HistorySummary events={row.events} audience="hr" rowId={row.id} />
           <ol className="timeline">
             {markNew(row).reverse().map(({ e, isNew }, i) => (
-              <li key={i} className={`tl tl-${e.kind}${isNew ? " tl-new" : ""}`}>
+              <li key={i} id={tlId("hr", row.events.length - 1 - i)} className={`tl tl-${e.kind}${isNew ? " tl-new" : ""}`}>
                 <span className="tl-date">{shortDate(e.date)}</span>
                 <span className="tl-kind">
                   {e.kind === "stage" ? HR.event.stage(e.body) : e.kind === "fromHr" && e.by ? BOSS.fromBoss : HR.event[e.kind]}
@@ -1666,9 +1668,10 @@ function BossDetail({ row, me, state, dispatch }: { row: HrRow; me: HrAccount } 
       <div className="hr-columns">
         <section className="hr-card">
           <h2>{BOSS.historyTitle}</h2>
+          <HistorySummary events={events} audience="boss" rowId={row.id} />
           <ol className="timeline">
             {[...events].reverse().map((e, i) => (
-              <li key={i} className={`tl tl-${e.kind}`}>
+              <li key={i} id={tlId("boss", events.length - 1 - i)} className={`tl tl-${e.kind}`}>
                 <span className="tl-date">{shortDate(e.date)}</span>
                 <span className="tl-kind">
                   {e.kind === "stage" ? HR.event.stage(e.body) : e.kind === "fromHr" && e.by ? BOSS.fromBoss : HR.event[e.kind]}

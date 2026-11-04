@@ -1,0 +1,17 @@
+// 経緯のまとめ（AI）の中継サーバー。Cloudflare Workers で動かす
+// AIの鍵（ANTHROPIC_API_KEY）はここには書かない。`npx wrangler secret put ANTHROPIC_API_KEY` で入れる
+{
+  "name": "fukushoku-navi-summary",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "vars": {
+    // 呼んでよい画面（公開版と、手元の開発用）
+    "ALLOWED_ORIGINS": "https://liva-ito.github.io,http://localhost:5173"
+  },
+  "ratelimits": [
+    // 同じ人（IP）からは1分に5回まで
+    { "name": "PER_IP", "namespace_id": "4801", "simple": { "limit": 5, "period": 60 } },
+    // 全体でも1分に30回まで（公開のデモなので、連打でクレジットを使い切られないように）
+    { "name": "ALL", "namespace_id": "4802", "simple": { "limit": 30, "period": 60 } }
+  ]
+}
