@@ -69,16 +69,16 @@ function todosOf(state: State): HrTodo[] {
 
 function doneEvents(state: State, personId: string): HrEvent[] {
   return [
-    ...state.hrDone.filter((d) => d.personId === personId).map((d) => ({ date: d.date, kind: "done" as const, body: d.text })),
-    ...state.regEdits.filter((d) => d.personId === personId).map((d) => ({ date: d.date, kind: "edit" as const, body: d.text, byHr: true })),
+    ...state.hrDone.filter((d) => d.personId === personId).map((d) => ({ date: d.date, at: d.at, kind: "done" as const, body: d.text })),
+    ...state.regEdits.filter((d) => d.personId === personId).map((d) => ({ date: d.date, at: (d as { at?: number }).at, kind: "edit" as const, body: d.text, byHr: true })),
   ];
 }
 
 const byDate = (events: HrEvent[]) =>
-  // 日付順（同じ日は、元の並びの順のまま）
+  // 日付順。同じ日は、画面で起きた順（時刻のないもの＝最初からあるものが先）。それも同じなら元の並びの順
   events
     .map((e, i) => ({ e, i }))
-    .sort((a, b) => a.e.date.localeCompare(b.e.date) || a.i - b.i)
+    .sort((a, b) => a.e.date.localeCompare(b.e.date) || (a.e.at ?? 0) - (b.e.at ?? 0) || a.i - b.i)
     .map((x) => x.e);
 
 function eventsOf(state: State): HrEvent[] {
@@ -90,6 +90,8 @@ function eventsOf(state: State): HrEvent[] {
     .filter((m) => !finished.has(m.status))
     .map((m) => ({
       date: today,
+      // 進んでいる面談は、いまの状態を表す行なので、その日のいちばん新しいところに置く
+      at: Number.MAX_SAFE_INTEGER,
       kind: "meeting",
       body: m.name,
       status: m.status,
@@ -97,6 +99,7 @@ function eventsOf(state: State): HrEvent[] {
     }));
   const logged: HrEvent[] = state.meetingLog.map((l) => ({
     date: l.date,
+    at: l.at,
     kind: "meeting",
     body:
       l.key === "coordinator"
@@ -106,28 +109,32 @@ function eventsOf(state: State): HrEvent[] {
     byHr: l.key === "occ" || l.key === "company",
   }));
 
+  // 休職が始まった段階（最初の1件）は、同じ日のどれよりも先
+  const [start, ...changes] = state.stageHistory;
   return byDate([
-    ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.by ? `${m.title}（${m.by}）` : m.title, noReply: m.noReplyNeeded, by: m.by })),
-    ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body, health: s.kind === "visit" })),
+    ...(start ? [{ date: start.date, kind: "stage" as const, body: STAGE_LABELS[start.stage] }] : []),
+    ...state.hrMessages.map((m) => ({ date: m.date, at: m.at, kind: "fromHr" as const, body: m.by ? `${m.title}（${m.by}）` : m.title, noReply: m.noReplyNeeded, by: m.by })),
+    ...state.sentToHr.map((s) => ({ date: s.date, at: s.at, kind: "fromPerson" as const, body: s.body, health: s.kind === "visit" })),
     ...logged,
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
-    ...state.reworkReports.map((r) => ({ date: r.date, kind: "submit" as const, body: HR.reportBody(r.month, r.days, r.rate) })),
-    ...state.selfReports.map((r, i) => ({ date: r.date, kind: "submit" as const, body: HR.selfReportBody(r.date.slice(5).replace("-", "/")), report: i })),
+    ...state.reworkReports.map((r) => ({ date: r.date, at: (r as { at?: number }).at, kind: "submit" as const, body: HR.reportBody(r.month, r.days, r.rate) })),
+    ...state.selfReports.map((r, i) => ({ date: r.date, at: (r as { at?: number }).at, kind: "submit" as const, body: HR.selfReportBody(r.date.slice(5).replace("-", "/")), report: i })),
     ...state.occOpinions.map((o) => ({
       date: o.date,
+      at: o.at,
       kind: "meeting" as const,
       body: HR.opinion.line(HR.opinion.options[o.verdict], o.note),
       byHr: true,
     })),
     ...state.returnDecisionLog.map((d) => ({
       date: d.date,
+      at: d.at,
       kind: "decision" as const,
       body: HR.decisionResult[d.result],
       byHr: true,
     })),
-    // 同じ日なら、段階の切り替えは面談や提出のあと
-    ...state.stageHistory.map((s) => ({ date: s.date, kind: "stage" as const, body: STAGE_LABELS[s.stage] })),
+    ...changes.map((s) => ({ date: s.date, at: s.at, kind: "stage" as const, body: STAGE_LABELS[s.stage] })),
     ...(state.sharedDate ? [{ date: state.sharedDate, kind: "done" as const, body: INVITE.shareEvent, byHr: true }] : []),
     ...doneEvents(state, PERSON.id),
   ]);

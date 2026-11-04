@@ -54,7 +54,7 @@ export type HrRole = "admin" | "staff" | "boss";
 export type HrAccount = { id: string; name: string; position: string; role: HrRole; email?: string };
 export type BossInput = { name: string; email: string };
 // 済んだ面談の記録（経緯に、面談の日付で1行ずつ残す。やり直しても前の面談は消えない）
-export type MeetingLog = { date: string; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
+export type MeetingLog = { date: string; at?: number; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
 export type RegPatch = Partial<Pick<Invited, "name" | "dept" | "leaveStart" | "leaveEnd" | "email" | "bossId">>;
 export type Torisetsu = { reason: string; signs: string; actions: string; help: string };
 export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
@@ -112,7 +112,7 @@ export type State = {
   reworkReports: { month: string; days: number; rate: number; date: string }[];
   occMeeting: { status: "scheduled" | "done"; date: string; opinion?: OccOpinion } | null;
   // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
-  occOpinions: (OccOpinion & { date: string })[];
+  occOpinions: (OccOpinion & { date: string; at?: number })[];
   meetingLog: MeetingLog[];
   // 会社の見立ての追記（人ごと・日付つき）。本人には見せない
   issueNotes: Record<string, { date: string; text: string }[]>;
@@ -126,7 +126,7 @@ export type State = {
   doctorNote: boolean;
   // 会社の復職判断（産業医との面談のあと）。見送りも経緯に残す
   returnDecision: "ok" | null;
-  returnDecisionLog: { date: string; result: "ok" | "notYet" }[];
+  returnDecisionLog: { date: string; at?: number; result: "ok" | "notYet" }[];
   returnPlan: { date: string; accommodation: string } | null;
   diary: Record<string, DiaryEntry>;
   sentToHr: SentItem[];
@@ -145,7 +145,7 @@ export type State = {
   // 本人が招待から始めたか（デモでは、最初の画面で個人アカウントのボタンを押したら始まる）
   personStarted: boolean;
   // 人事が対応済みにしたこと（経緯にも残す）
-  hrDone: { key: string; personId: string; text: string; date: string }[];
+  hrDone: { key: string; personId: string; text: string; date: string; at?: number }[];
   // 人事が詳しい画面で見た件数（新着を消すため）と、開く前に見ていた件数（どれが新着だったかを示すため）
   hrSeen: Record<string, number>;
   hrNewFrom: Record<string, number>;
@@ -316,11 +316,11 @@ function withHrMessage(state: State, t: { title: string; text: string; noReply: 
     ...state,
     hrMessages: [
       ...state.hrMessages,
-      { id: `m${state.hrMessages.length + 1}`, date: DEMO_TODAY, title: t.title, body: t.text, noReplyNeeded: t.noReply },
+      { id: `m${state.hrMessages.length + 1}`, date: DEMO_TODAY, at: Date.now(), title: t.title, body: t.text, noReplyNeeded: t.noReply },
     ],
   };
 }
-const logMeeting = (state: State, entry: MeetingLog): State => ({ ...state, meetingLog: [...state.meetingLog, entry] });
+const logMeeting = (state: State, entry: MeetingLog): State => ({ ...state, meetingLog: [...state.meetingLog, { ...entry, at: Date.now() }] });
 
 function withMessage(state: State, from: MeetingKind, body: string, options?: string[]): State {
   const id = `c${state.coordInbox.length + 1}`;
@@ -342,7 +342,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         stage: action.stage,
-        stageHistory: [...state.stageHistory, { date: DEMO_TODAY, stage: action.stage }],
+        stageHistory: [...state.stageHistory, { date: DEMO_TODAY, at: Date.now(), stage: action.stage }],
         restMode: restAllowed && state.restMode,
         tab: "home",
         // 急性期に戻したら、回復期に進むための面談はもう一度
@@ -376,7 +376,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         nextWish: action.wish,
-        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: "wish", body }],
+        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, at: Date.now(), kind: "wish", body }],
       };
     }
     case "markCoordSeen":
@@ -474,7 +474,7 @@ function reducer(state: State, action: Action): State {
         ? {
             ...state,
             occMeeting: { ...state.occMeeting, status: "done", opinion: action.opinion },
-            occOpinions: [...state.occOpinions, { ...action.opinion, date: state.occMeeting.date }],
+            occOpinions: [...state.occOpinions, { ...action.opinion, date: state.occMeeting.date, at: Date.now() }],
             meetingLog: [...state.meetingLog, { date: state.occMeeting.date, key: "occ", status: "done" }],
           }
         : state;
@@ -502,7 +502,7 @@ function reducer(state: State, action: Action): State {
       if (state.occMeeting?.status !== "done") return state;
       // 判断は面談のあと。デモで面談の日が先の日付なら、判断もその日にする（経緯の順番がくずれないように）
       const when = state.occMeeting.date > DEMO_TODAY ? state.occMeeting.date : DEMO_TODAY;
-      const log = [...state.returnDecisionLog, { date: when, result: action.result }];
+      const log = [...state.returnDecisionLog, { date: when, at: Date.now(), result: action.result }];
       // もう少し準備が必要なら、準備期のまま産業医との面談をもう一度にする（段階は戻さない）
       return action.result === "ok"
         ? { ...state, returnDecision: "ok", returnDecisionLog: log }
@@ -533,7 +533,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         sentToHr: [
           ...state.sentToHr,
-          { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: action.kind, body: action.body },
+          { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, at: Date.now(), kind: action.kind, body: action.body },
         ],
       };
     case "sendHrMessage": {
@@ -541,7 +541,7 @@ function reducer(state: State, action: Action): State {
         const list = state.hrMessagesOthers[action.personId] ?? [];
         const m: HrMessage = {
           id: `${action.personId}-m${list.length + 1}`,
-          date: DEMO_TODAY,
+          date: DEMO_TODAY, at: Date.now(),
           title: action.title,
           body: action.body,
           noReplyNeeded: action.noReplyNeeded,
@@ -556,7 +556,7 @@ function reducer(state: State, action: Action): State {
           ...state.hrMessages,
           {
             id: `m${state.hrMessages.length + 1}`,
-            date: DEMO_TODAY,
+            date: DEMO_TODAY, at: Date.now(),
             title: action.title,
             body: action.body,
             noReplyNeeded: action.noReplyNeeded,
@@ -591,7 +591,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         shareConsent: action.consent,
         sharedDate: action.consent ? state.sharedDate : null,
-        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, kind: "new", body }],
+        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, at: Date.now(), kind: "new", body }],
       };
     }
     case "recordShared":
@@ -606,7 +606,7 @@ function reducer(state: State, action: Action): State {
         base = { ...state, hrAccounts: accounts };
         patch = { ...patch, bossId };
       }
-      const log = [...state.regEdits, { personId: action.personId, date: DEMO_TODAY, text: action.text }];
+      const log = [...state.regEdits, { personId: action.personId, date: DEMO_TODAY, at: Date.now(), text: action.text }];
       if (action.personId === PERSON.id && base.live) {
         const state = base;
         const live = { ...state.live!, ...patch };
@@ -643,7 +643,7 @@ function reducer(state: State, action: Action): State {
       let accounts = state.hrAccounts;
       let bossId: string | undefined;
       if (action.boss && state.contactBy === "boss") [accounts, bossId] = ensureBoss(state.hrAccounts, action.boss);
-      const person = { ...action.person, bossId, date: DEMO_TODAY, resends: [] };
+      const person = { ...action.person, bossId, date: DEMO_TODAY, at: Date.now(), resends: [] };
       // 最初に登録した人が、デモの本人になる。段階は休職の開始日から急性期
       if (!state.live)
         return {

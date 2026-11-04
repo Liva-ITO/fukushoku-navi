@@ -8,6 +8,7 @@ export const DEMO_TODAY = "2026-11-04";
 export type HrMessage = {
   id: string;
   date: string;
+  at?: number; // 画面で作った時刻（同じ日の中の並び順に使う）
   title: string;
   body: string;
   noReplyNeeded: boolean;
@@ -18,6 +19,7 @@ export type HrMessage = {
 export type SentItem = {
   id: string;
   date: string;
+  at?: number;
   kind: "reply" | "visit" | "wish" | "new" | "accommodation";
   body: string;
 };
@@ -46,7 +48,7 @@ export const emptyEntry = (): DiaryEntry => ({
   note: "",
 });
 
-export type StageChange = { date: string; stage: Stage };
+export type StageChange = { date: string; stage: Stage; at?: number };
 
 // デモの本人。名前などは、人事が最初に登録したときに入れたものを使う（state.live）。ここでは id だけを決めておく
 export const PERSON = { id: "a" };
@@ -65,6 +67,7 @@ export type HrEvent = {
   report?: number; // 生活の記録のレポートなら、その番号（押すと開く）
   by?: string; // 上司が送った連絡
   health?: boolean; // 体調に関わる報告（通院など）。上司には出さない
+  at?: number; // 同じ日の中の並び順（画面で作った時刻）
 };
 // 人事が対応すること。due は期限（満了日など）があるときだけ
 export type HrTodo = { key: string; text: string; date: string; due?: string };
