@@ -34,15 +34,28 @@ export default function DiaryTab({ state, dispatch }: Props) {
     setEditing(false);
   };
 
+  // 記録を残したあと、下のナビを探さなくてもホームに戻れるようにする
+  const goHome = () => dispatch({ type: "setTab", tab: "home" });
+
   return (
     <div className="home">
-      <h1 className="page-title">{RECORD.title}</h1>
+      <div className="page-head">
+        <h1 className="page-title">{RECORD.title}</h1>
+        <button className="btn-quiet page-close" onClick={goHome} aria-label={RECORD.backHome}>
+          ✕ {RECORD.close}
+        </button>
+      </div>
       <p className="muted">{RECORD.privacy}</p>
 
       {!editing ? (
         <section className="card">
           {thanks && <p className="thanks">{thanks}</p>}
           <DiarySummary entry={state.diary[DEMO_TODAY] ?? entry} />
+          {thanks && (
+            <button className="btn-primary btn-wide" onClick={goHome}>
+              {RECORD.backHome}
+            </button>
+          )}
           <button className="btn-quiet" onClick={() => setEditing(true)}>
             {RECORD.edit}
           </button>

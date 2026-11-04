@@ -168,6 +168,8 @@ details[open] > summary::after { content: "▲"; }
 
 /* 日記 */
 .page-title { font-size: 18px; margin: 8px 0 2px; }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.page-close { padding-right: 0; white-space: nowrap; }
 .diary-form fieldset { border: 0; padding: 0; margin: 14px 0 0; }
 .diary-form legend, .field { font-size: 13px; color: var(--muted); }
 .field { display: flex; flex-direction: column; gap: 4px; margin-top: 14px; }

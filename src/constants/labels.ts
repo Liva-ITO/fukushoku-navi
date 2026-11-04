@@ -339,6 +339,8 @@ export const RECORD = {
   voiceListening: "聞いています…",
   save: "残す",
   saved: "今日の記録を見る",
+  close: "閉じる",
+  backHome: "ホームにもどる",
   edit: "書きなおす",
   thanks: [
     "記録できましたね。それだけで十分です",
