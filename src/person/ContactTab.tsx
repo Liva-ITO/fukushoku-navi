@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { COMMON, CONSULT, CONTACT, WATCH } from "../constants/labels";
+import { COMMON, CONSULT, BOSS, CONTACT, WATCH } from "../constants/labels";
 import type { Action, State } from "../state/store";
 import { SlotPicker, WishCard } from "./parts";
 
@@ -18,6 +18,8 @@ function addSentence(text: string, ex: string): string {
 // 会社に届くのは、ここで本人が送ったものだけ。コーディネーター・専門家からのお知らせは会社には見えない
 export default function ContactTab({ state, dispatch }: Props) {
   const messages = [...state.hrMessages].reverse();
+  // 窓口が上司の会社では、相手が誰か（上司と、見ている人）をはっきり出す
+  const boss = state.contactBy === "boss" ? state.hrAccounts.find((a) => a.id === state.live?.bossId) : undefined;
   // 開く前に見ていた件数。新しいお知らせがあれば、その枠を上に出す
   const [seenBefore] = useState(state.coordSeen);
   // 連絡タブを開いたら、新しいお知らせは見たことにする（人事からのも、支援機関からのも）
@@ -39,6 +41,7 @@ export default function ContactTab({ state, dispatch }: Props) {
   return (
     <div className="home">
       <h1 className="page-title">{CONTACT.title}</h1>
+      {boss && <p className="muted contact-who">{BOSS.personNote(boss.name)}</p>}
       {hasNew && support}
 
       {/* 件名の一覧。押すと本文が開き、返信はその下で書く（返信欄をいつも開いておかない） */}
@@ -57,6 +60,7 @@ export default function ContactTab({ state, dispatch }: Props) {
                   <span className="notice-title">{m.title}</span>
                   <span className="notice-meta">
                     {shortDate(m.date)}
+                    {m.by && <span className="tag-soft">{m.by}</span>}
                     {m.noReplyNeeded && <span className="tag-soft">{COMMON.noReplyNeeded}</span>}
                   </span>
                 </button>
@@ -74,7 +78,7 @@ export default function ContactTab({ state, dispatch }: Props) {
 
       {!hasNew && support}
 
-      <NewToHr stage={state.stage} dispatch={dispatch} />
+      <NewToHr stage={state.stage} note={boss ? BOSS.personNewNote(boss.name) : undefined} dispatch={dispatch} />
 
       <VisitReport dispatch={dispatch} />
 
@@ -224,7 +228,7 @@ function WriteReply({ dispatch }: { dispatch: Dispatch<Action> }) {
 type Topic = keyof typeof CONTACT.topics;
 
 // 本人から会社に連絡する。用件を選ぶ → 書く（急性期は例文を選ぶだけ）→ 届く文を見る → 送る
-function NewToHr({ stage, dispatch }: { stage: State["stage"]; dispatch: Dispatch<Action> }) {
+function NewToHr({ stage, note, dispatch }: { stage: State["stage"]; note?: string; dispatch: Dispatch<Action> }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -260,7 +264,7 @@ function NewToHr({ stage, dispatch }: { stage: State["stage"]; dispatch: Dispatc
         </>
       ) : !open ? (
         <>
-          <p className="muted">{CONTACT.newNote}</p>
+          <p className="muted">{note ?? CONTACT.newNote}</p>
           <button className="btn-outline" onClick={() => setOpen(true)}>
             {CONTACT.newOpen}
           </button>

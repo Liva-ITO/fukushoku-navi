@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 import type { SelfReport } from "./selfReport";
-import { ACUTE, CONSULT, HR, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
+import { ACUTE, BOSS, CONSULT, HR, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
   INITIAL_DIARY,
@@ -29,6 +29,7 @@ export type Invited = {
   email: string; // 本人の個人のメールアドレス（案内の送り先）
   date: string;
   resends: { date: string; email: string }[]; // 案内を送り直した記録
+  bossId?: string; // 担当の上司（窓口を上司にした会社だけ）
 };
 // 支援機関から本人に届くお知らせ（相談タブ）。会社には見えない
 export type CoordMessage = {
@@ -48,10 +49,13 @@ export const whoNow = (s: { stage: Stage; restMode: boolean }): Who => (s.stage 
 
 export type ReturnOrder = "occFirst" | "doctorFirst";
 // 会社側のアカウント（デモでは名前・立場・権限だけ）
-export type HrAccount = { id: string; name: string; position: string; role: "admin" | "staff"; email?: string };
+export type HrRole = "admin" | "staff" | "boss";
+// 上司（boss）は、休職者を登録するときに自動で作られる。担当する人だけを見る
+export type HrAccount = { id: string; name: string; position: string; role: HrRole; email?: string };
+export type BossInput = { name: string; email: string };
 // 済んだ面談の記録（経緯に、面談の日付で1行ずつ残す。やり直しても前の面談は消えない）
 export type MeetingLog = { date: string; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
-export type RegPatch = Partial<Pick<Invited, "name" | "dept" | "leaveStart" | "leaveEnd" | "email">>;
+export type RegPatch = Partial<Pick<Invited, "name" | "dept" | "leaveStart" | "leaveEnd" | "email" | "bossId">>;
 export type Torisetsu = { reason: string; signs: string; actions: string; help: string };
 export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
 
@@ -89,12 +93,14 @@ export type State = {
   coordInbox: CoordMessage[];
   coordSeen: number; // 本人が連絡タブで見た件数（①の印を消すため）
   personHrSeen: number;
-  hrRepliedAt: number; // 人事が最後に本人へ送ったとき、本人から届いていた件数（返信したら「本人からの連絡」は消える） // 本人が連絡タブで見た、人事からのお知らせの件数
+  hrRepliedAt: number;
+  bossRepliedAt: number; // 上司が最後に本人へ送ったとき、本人から届いていた件数 // 人事が最後に本人へ送ったとき、本人から届いていた件数（返信したら「本人からの連絡」は消える） // 本人が連絡タブで見た、人事からのお知らせの件数
   // 復職までの手順。順番は会社の設定（産業医との面談を先にするか、主治医の診断書を先にするか）
   returnOrder: ReturnOrder;
   // 会社の設定（見本）。いまは手順の順番だけが画面に反映される
   maxLeave: string;
   depts: string[]; // 部署（会社の設定）。登録ではここから選ぶ
+  contactBy: "hr" | "boss"; // 本人との連絡の窓口（会社の設定）
   sickLeave: boolean;
   sickLeaveDays: number;
   rehab: boolean;
@@ -129,7 +135,7 @@ export type State = {
   // 人事画面の上のタブ（休職者の一覧／データ分析）
   hrPage: "list" | "analytics" | "invite" | "settings" | "accounts";
   // デモで人事の画面を見るときの権限（管理者だけが会社の設定とアカウントを触れる）
-  hrRole: "admin" | "staff";
+  hrRole: HrRole;
   hrReport: number | null; // 人事の画面で開いているレポート（selfReports の番号）
   hrAccounts: HrAccount[];
   // 人事が招待した人（デモでは一覧に増えるだけ。本人はまだ始めていない）
@@ -177,9 +183,11 @@ export const initialState: State = {
   coordSeen: 0,
   personHrSeen: 0,
   hrRepliedAt: 0,
+  bossRepliedAt: 0,
   returnOrder: "occFirst",
   maxLeave: "1年6か月",
   depts: ["営業部", "開発部", "製造部", "総務部", "企画部"],
+  contactBy: "hr",
   sickLeave: true,
   sickLeaveDays: 30,
   rehab: true,
@@ -257,30 +265,43 @@ export type Action =
   | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
-  | { type: "sendHrMessage"; personId: string; title: string; body: string; noReplyNeeded: boolean }
+  | { type: "sendHrMessage"; personId: string; title: string; body: string; noReplyNeeded: boolean; by?: string }
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
   | { type: "hrPage"; page: State["hrPage"] }
-  | { type: "setHrRole"; role: "admin" | "staff" }
+  | { type: "setHrRole"; role: HrRole }
   | { type: "openReport"; index: number | null }
   | { type: "addAccount"; account: Omit<HrAccount, "id"> }
   | { type: "setAccountRole"; id: string; role: "admin" | "staff" }
   | { type: "removeAccount"; id: string }
-  | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "depts" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
+  | { type: "setCompany"; patch: Partial<Pick<State, "maxLeave" | "depts" | "contactBy" | "sickLeave" | "sickLeaveDays" | "rehab" | "prepConds">> }
   | { type: "reworkReport" }
   | { type: "addIssueNote"; personId: string; text: string }
-  | { type: "editRegistration"; personId: string; patch: RegPatch; text: string }
+  | { type: "editRegistration"; personId: string; patch: RegPatch; text: string; boss?: BossInput }
   | { type: "saveTorisetsu"; torisetsu: Torisetsu }
   | { type: "setShareConsent"; consent: boolean | null }
   | { type: "recordShared" }
   | { type: "sendSelfReport"; report: SelfReport }
   | { type: "demoSelfReport" }
-  | { type: "invite"; person: Omit<Invited, "id" | "date" | "resends"> }
+  | { type: "invite"; person: Omit<Invited, "id" | "date" | "resends" | "bossId">; boss?: BossInput }
   | { type: "resendInvite"; id: string; email: string }
   | { type: "sync"; state: State }
   | { type: "startPerson" }
   | { type: "hrMarkDone"; key: string; personId: string; text: string }
   | { type: "reset" };
+
+// 上司のアカウントを、会社のメールアドレスで探す。なければ作る（休職者の登録や、上司を替えたとき）
+function ensureBoss(accounts: HrAccount[], boss: BossInput): [HrAccount[], string] {
+  const email = boss.email.trim().toLowerCase();
+  const found = accounts.find((a) => a.role === "boss" && a.email?.toLowerCase() === email);
+  if (found) return [accounts, found.id];
+  const id = `b${accounts.length + 1}-${Date.now() % 1000}`;
+  return [[...accounts, { id, name: boss.name.trim(), position: BOSS.position, role: "boss", email: boss.email.trim() }], id];
+}
+// デモで上司の画面を見るときの上司：デモの本人の担当の上司（いなければ、最初の上司）
+export function currentBossId(state: State): string | null {
+  return state.live?.bossId ?? state.hrAccounts.find((a) => a.role === "boss")?.id ?? null;
+}
 
 // 日程の候補（「11月9日（月）11:00」）から日付を取り出す。取れなければ今日
 function slotDate(slot: string | null | undefined): string {
@@ -524,12 +545,13 @@ function reducer(state: State, action: Action): State {
           title: action.title,
           body: action.body,
           noReplyNeeded: action.noReplyNeeded,
+          by: action.by,
         };
         return { ...state, hrMessagesOthers: { ...state.hrMessagesOthers, [action.personId]: [...list, m] } };
       }
       return {
         ...state,
-        hrRepliedAt: state.sentToHr.length,
+        ...(action.by ? { bossRepliedAt: state.sentToHr.length } : { hrRepliedAt: state.sentToHr.length }),
         hrMessages: [
           ...state.hrMessages,
           {
@@ -538,6 +560,7 @@ function reducer(state: State, action: Action): State {
             title: action.title,
             body: action.body,
             noReplyNeeded: action.noReplyNeeded,
+            by: action.by,
           },
         ],
       };
@@ -576,16 +599,24 @@ function reducer(state: State, action: Action): State {
     case "saveTorisetsu":
       return { ...state, torisetsu: action.torisetsu };
     case "editRegistration": {
+      let base = state;
+      let patch: RegPatch = action.patch;
+      if (action.boss && state.contactBy === "boss") {
+        const [accounts, bossId] = ensureBoss(state.hrAccounts, action.boss);
+        base = { ...state, hrAccounts: accounts };
+        patch = { ...patch, bossId };
+      }
       const log = [...state.regEdits, { personId: action.personId, date: DEMO_TODAY, text: action.text }];
-      if (action.personId === PERSON.id && state.live) {
-        const live = { ...state.live, ...action.patch };
+      if (action.personId === PERSON.id && base.live) {
+        const state = base;
+        const live = { ...state.live!, ...patch };
         // 休職の開始日を直したら、段階の記録の最初の日も合わせる
         const hist = state.stageHistory.map((h, i) => (i === 0 ? { ...h, date: live.leaveStart } : h));
         return { ...state, live, stageHistory: hist, regEdits: log };
       }
       return {
-        ...state,
-        invited: state.invited.map((p) => (p.id === action.personId ? { ...p, ...action.patch } : p)),
+        ...base,
+        invited: base.invited.map((p) => (p.id === action.personId ? { ...p, ...patch } : p)),
         regEdits: log,
       };
     }
@@ -606,18 +637,27 @@ function reducer(state: State, action: Action): State {
       ][Math.min(n, 1)];
       return { ...state, reworkReports: [...state.reworkReports, { ...sample, date: DEMO_TODAY }] };
     }
-    case "invite":
+    case "invite": {
+      if (state.hrRole === "boss") return state;
+      // 窓口が上司の会社：上司のアカウントを自動で作る（すでにいれば、担当が増えるだけ）
+      let accounts = state.hrAccounts;
+      let bossId: string | undefined;
+      if (action.boss && state.contactBy === "boss") [accounts, bossId] = ensureBoss(state.hrAccounts, action.boss);
+      const person = { ...action.person, bossId, date: DEMO_TODAY, resends: [] };
       // 最初に登録した人が、デモの本人になる。段階は休職の開始日から急性期
       if (!state.live)
         return {
           ...state,
-          live: { ...action.person, id: PERSON.id, date: DEMO_TODAY, resends: [] },
+          hrAccounts: accounts,
+          live: { ...person, id: PERSON.id },
           stageHistory: [{ date: action.person.leaveStart, stage: "acute" }],
         };
       return {
         ...state,
-        invited: [...state.invited, { ...action.person, id: `inv${state.invited.length + 1}`, date: DEMO_TODAY, resends: [] }],
+        hrAccounts: accounts,
+        invited: [...state.invited, { ...person, id: `inv${state.invited.length + 1}` }],
       };
+    }
     case "resendInvite":
       if (action.id === PERSON.id && state.live)
         return {
@@ -633,8 +673,9 @@ function reducer(state: State, action: Action): State {
     case "startPerson":
       return { ...state, personStarted: true };
     case "hrPage":
-      // 会社の設定とアカウントは、管理者だけ
+      // 会社の設定とアカウントは、管理者だけ。上司は、担当している人の一覧だけ
       if ((action.page === "settings" || action.page === "accounts") && state.hrRole !== "admin") return state;
+      if (state.hrRole === "boss" && action.page !== "list") return state;
       return { ...state, hrPage: action.page, hrSelected: null };
     case "openReport":
       return { ...state, hrReport: action.index };
@@ -642,7 +683,10 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         hrRole: action.role,
-        hrPage: action.role === "staff" && (state.hrPage === "settings" || state.hrPage === "accounts") ? "list" : state.hrPage,
+        hrPage:
+          action.role === "boss" || (action.role === "staff" && (state.hrPage === "settings" || state.hrPage === "accounts")) ? "list" : state.hrPage,
+        // 上司の画面と行き来したら、開いている人を閉じる（見られる人が違うため）
+        hrSelected: action.role === "boss" || state.hrRole === "boss" ? null : state.hrSelected,
       };
     case "addAccount":
       if (state.hrRole !== "admin") return state;
@@ -656,7 +700,11 @@ function reducer(state: State, action: Action): State {
     case "removeAccount": {
       if (state.hrRole !== "admin") return state;
       const next = state.hrAccounts.filter((a) => a.id !== action.id);
-      return next.some((a) => a.role === "admin") ? { ...state, hrAccounts: next } : state;
+      // 上司を外したら、その人が担当していた休職者の担当も外す
+      const unassign = (p: Invited): Invited => (p.bossId === action.id ? { ...p, bossId: undefined } : p);
+      return next.some((a) => a.role === "admin")
+        ? { ...state, hrAccounts: next, live: state.live && unassign(state.live), invited: state.invited.map(unassign) }
+        : state;
     }
     case "hrMarkDone":
       return {

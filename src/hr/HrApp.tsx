@@ -1,13 +1,13 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ACUTE, ANALYTICS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
+import { ACUTE, ANALYTICS, BOSS, HR, INVITE, RECOVERY, STAGE_LABELS, type Stage } from "../constants/labels";
 import InviteForm from "./InviteForm";
 import Accounts from "./Accounts";
 import ReportDoc from "./ReportDoc";
 import Analytics from "./Analytics";
 import { daysSince } from "../data/demo";
-import type { Action, OccOpinion, State } from "../state/store";
+import { currentBossId, type Action, type HrAccount, type OccOpinion, type State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
-import { END_NOTICE_DAYS, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
+import { END_NOTICE_DAYS, bossEvents, bossTodos, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
 import { DEMO_TODAY, PERSON, type HrEvent, type HrTodo } from "../data/demo";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -27,6 +27,13 @@ export default function HrApp({ state, dispatch }: Props) {
     window.scrollTo(0, 0);
   }, [state.hrSelected, state.hrPage]);
 
+  // 上司の画面：担当している人だけ
+  if (state.hrRole === "boss")
+    return (
+      <div className="hr">
+        <BossApp state={state} dispatch={dispatch} />
+      </div>
+    );
   if (selected)
     return (
       <div className="hr">
@@ -53,7 +60,7 @@ export default function HrApp({ state, dispatch }: Props) {
       ) : state.hrPage === "accounts" && state.hrRole === "admin" ? (
         <Accounts state={state} dispatch={dispatch} />
       ) : state.hrPage === "invite" ? (
-        <InviteForm depts={state.depts} dispatch={dispatch} />
+        <InviteForm depts={state.depts} byBoss={state.contactBy === "boss"} dispatch={dispatch} />
       ) : (
         <HrList rows={rows} state={state} dispatch={dispatch} />
       )}
@@ -109,7 +116,7 @@ function TodoHere({ row, section, dispatch }: { row: HrRow; section: string; dis
           <li key={t.key}>
             <p>{t.text}</p>
             <p className="muted">
-              {t.key.startsWith("a-msg") ? HR.todoAckNote.msg : t.key.includes("-end-") ? (row.live ? HR.todoAckNote.end : HR.todoAckNote.endOther) : HR.todoAckNote.other}
+              {/^[ab]-msg/.test(t.key) ? HR.todoAckNote.msg : t.key.includes("-end-") ? (row.live ? HR.todoAckNote.end : HR.todoAckNote.endOther) : HR.todoAckNote.other}
             </p>
             <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "hrMarkDone", key: t.key, personId: row.id, text: t.text })}>
               {HR.todoAck}
@@ -397,7 +404,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
               <li key={i} className={`tl tl-${e.kind}${isNew ? " tl-new" : ""}`}>
                 <span className="tl-date">{shortDate(e.date)}</span>
                 <span className="tl-kind">
-                  {e.kind === "stage" ? HR.event.stage(e.body) : HR.event[e.kind]}
+                  {e.kind === "stage" ? HR.event.stage(e.body) : e.kind === "fromHr" && e.by ? BOSS.fromBoss : HR.event[e.kind]}
                   {isNew && <span className="new-tag">{HR.newTag}</span>}
                   <EventTags e={e} />
                 </span>
@@ -813,6 +820,21 @@ function CompanySettings({ state, dispatch }: Props) {
       <DeptSetting depts={state.depts} onChange={(depts) => set({ depts })} />
 
       <fieldset className="setting">
+        <legend>{BOSS.settingTitle}</legend>
+        <div className="setting-row">
+          <label className="check">
+            <input type="radio" name="contactBy" checked={state.contactBy === "hr"} onChange={() => set({ contactBy: "hr" })} />
+            {BOSS.settingHr}
+          </label>
+          <label className="check">
+            <input type="radio" name="contactBy" checked={state.contactBy === "boss"} onChange={() => set({ contactBy: "boss" })} />
+            {BOSS.settingBoss}
+          </label>
+        </div>
+        <p className="muted">{BOSS.settingNote}</p>
+      </fieldset>
+
+      <fieldset className="setting">
         <legend>{HR.maxLeaveLabel}</legend>
         <select className="hr-input" value={state.maxLeave} onChange={(e) => set({ maxLeave: e.target.value })}>
           {HR.maxLeaveOptions.map((o) => (
@@ -983,7 +1005,14 @@ function RegistrationCard({ row, state, dispatch }: { row: HrRow } & Props) {
   const src = row.id === PERSON.id ? state.live : state.invited.find((p) => p.id === row.id);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(src ?? null);
+  const byBoss = state.contactBy === "boss";
+  const boss = state.hrAccounts.find((a) => a.id === src?.bossId);
+  const [bName, setBName] = useState("");
+  const [bEmail, setBEmail] = useState("");
   if (!src || !draft) return null;
+  const bossTouched = byBoss && (bName.trim() !== (boss?.name ?? "") || bEmail.trim().toLowerCase() !== (boss?.email ?? "").toLowerCase());
+  const bossInvalid = bossTouched && (!bName.trim() || !/.+@.+\..+/.test(bEmail.trim()));
+  const bossChanged = bossTouched && !bossInvalid;
   const F = INVITE.regField;
   const keys = ["name", "dept", "leaveStart", "leaveEnd", "email"] as const;
   const show = (k: (typeof keys)[number], v: string) => (k === "leaveStart" || k === "leaveEnd" ? shortDate(v) : v);
@@ -1004,12 +1033,20 @@ function RegistrationCard({ row, state, dispatch }: { row: HrRow } & Props) {
                 <dd>{show(k, src[k]) || "—"}</dd>
               </div>
             ))}
+            {byBoss && (
+              <div>
+                <dt>{BOSS.regLabel}</dt>
+                <dd>{boss ? `${boss.name}（${boss.email ?? ""}）` : BOSS.regNone}</dd>
+              </div>
+            )}
           </dl>
           {row.stage !== "afterReturn" && (
             <button
               className="btn-outline btn-small"
               onClick={() => {
                 setDraft(src);
+                setBName(boss?.name ?? "");
+                setBEmail(boss?.email ?? "");
                 setOpen(true);
               }}
             >
@@ -1044,15 +1081,37 @@ function RegistrationCard({ row, state, dispatch }: { row: HrRow } & Props) {
             {F.email}
             <input className="hr-input" type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
           </label>
+          {byBoss && (
+            <>
+              <label className="hr-field">
+                {BOSS.name}
+                <input className="hr-input" value={bName} onChange={(e) => setBName(e.target.value)} />
+              </label>
+              <label className="hr-field">
+                {BOSS.email}
+                <input className="hr-input" type="email" value={bEmail} onChange={(e) => setBEmail(e.target.value)} />
+                {bossInvalid && <span className="field-error">{BOSS.email}</span>}
+              </label>
+              <p className="muted">{BOSS.regNote}</p>
+            </>
+          )}
           <p className="muted">{INVITE.regNote}</p>
           <div className="confirm-actions">
             <button
               className="btn-primary btn-small"
-              disabled={changes.length === 0 || endInvalid || emailInvalid || !draft.name.trim()}
+              disabled={(changes.length === 0 && !bossChanged) || endInvalid || emailInvalid || bossInvalid || !draft.name.trim()}
               onClick={() => {
                 const patch = Object.fromEntries(changes.map((k) => [k, draft[k].trim()]));
-                const text = INVITE.regEvent(changes.map((k) => INVITE.regChange(F[k], show(k, src[k]), show(k, draft[k].trim()))));
-                dispatch({ type: "editRegistration", personId: row.id, patch, text });
+                const list = changes.map((k) => INVITE.regChange(F[k], show(k, src[k]), show(k, draft[k].trim())));
+                if (bossChanged) list.push(BOSS.regChange(boss?.name ?? BOSS.regNone, bName.trim()));
+                const text = INVITE.regEvent(list);
+                dispatch({
+                  type: "editRegistration",
+                  personId: row.id,
+                  patch,
+                  text,
+                  boss: bossChanged ? { name: bName.trim(), email: bEmail.trim() } : undefined,
+                });
                 setOpen(false);
               }}
             >
@@ -1410,6 +1469,8 @@ function SendMessage({
   stage,
   occDate = null,
   row,
+  by,
+  ownTemplates,
   dispatch,
 }: {
   personId: string;
@@ -1417,10 +1478,13 @@ function SendMessage({
   stage: Stage;
   occDate?: string | null;
   row?: HrRow;
+  by?: string;
+  ownTemplates?: { title: string; text: string; noReply: boolean }[];
   dispatch: Dispatch<Action>;
 }) {
-  const templates =
-    stage === "acute"
+  const templates = ownTemplates
+    ? ownTemplates
+    : stage === "acute"
       ? HR.templates
       : stage === "preReturn"
         ? [...HR.templates, ...HR.templatesFromRecovery, ...HR.templatesPreReturn(occDate)]
@@ -1454,7 +1518,7 @@ function SendMessage({
             <button
               className="btn-primary"
               onClick={() => {
-                dispatch({ type: "sendHrMessage", personId, title: title.trim(), body: text.trim(), noReplyNeeded: noReply });
+                dispatch({ type: "sendHrMessage", personId, title: title.trim(), body: text.trim(), noReplyNeeded: noReply, by });
                 setTitle("");
                 setText("");
                 setNoReply(false);
@@ -1510,5 +1574,164 @@ function SendMessage({
         </>
       )}
     </section>
+  );
+}
+
+// ---------- 上司の画面 ----------
+// 上司が見るのは、自分が担当している休職者の、段階・本人とのやり取り・会社との面談の日程だけ。
+// 体調の記録や提出物、会社の見立ては出さない（人事・産業保健スタッフが受け取る）
+function BossApp({ state, dispatch }: Props) {
+  const me = state.contactBy === "boss" ? state.hrAccounts.find((a) => a.id === currentBossId(state)) : undefined;
+  // 復職・退職したら、上司も見られなくなる（hrRows は復職した人を含めない）
+  const rows = me ? hrRows(state).filter((r) => r.bossId === me.id) : [];
+  const selected = rows.find((r) => r.id === state.hrSelected);
+  if (!me)
+    return (
+      <section className="hr-card">
+        <p className="muted">{BOSS.noBoss}</p>
+      </section>
+    );
+  if (selected) return <BossDetail row={selected} me={me} state={state} dispatch={dispatch} />;
+  return (
+    <>
+      <div className="hr-head">
+        <h1 className="hr-title">{BOSS.listTitle}</h1>
+      </div>
+      <p className="muted">{BOSS.whoami(me.name)}</p>
+      <p className="muted">{BOSS.listNote}</p>
+      {rows.length === 0 ? (
+        <section className="hr-card">
+          <p className="muted">{BOSS.listEmpty}</p>
+        </section>
+      ) : (
+        <ul className="boss-list">
+          {rows.map((r) => {
+            const waiting = bossTodos(r).length;
+            return (
+              <li key={r.id}>
+                <button className="boss-row" onClick={() => dispatch({ type: "hrSelect", id: r.id, incoming: r.incoming, prevSeen: r.seen })}>
+                  <span className="boss-name">
+                    {r.name}
+                    <span className="muted">　{r.dept}</span>
+                  </span>
+                  <StageTag stage={r.stage} />
+                  {waiting > 0 && <span className="new-tag">{BOSS.todoCount(waiting)}</span>}
+                  <span aria-hidden="true">›</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
+  );
+}
+
+function BossDetail({ row, me, state, dispatch }: { row: HrRow; me: HrAccount } & Props) {
+  const todos = bossTodos(row);
+  const events = bossEvents(row);
+  // 会社との面談（準備期に進むための面談・産業医との面談）の日程だけ。支援機関との面談は出さない
+  const meetings = row.live ? meetingsOf(state).filter((m) => m.key === "company" || m.key === "occ") : [];
+  const by = BOSS.by(me.name);
+  // 連絡を取りすぎないように：急性期に、この30日で上司が送った回数
+  const recent = row.live ? state.hrMessages.filter((m) => m.by === by && daysSince(m.date) <= 30).length : 0;
+  const hints = BOSS.hints[row.stage];
+  return (
+    <>
+      <BackButton dispatch={dispatch} />
+      <div className="hr-head">
+        <h1 className="hr-title">
+          {row.name}　<span className="muted">{row.dept}</span>
+        </h1>
+        <StageTag stage={row.stage} />
+      </div>
+      <p className="muted boss-scope">{BOSS.scope}</p>
+
+      {todos.length > 0 && (
+        <section className="hr-card hr-card-todo">
+          <h2>{HR.todoTitle}</h2>
+          <ul className="todo-list">
+            {todos.map((todo) => (
+              <li key={todo.key} className="todo-detail">
+                <TodoText todo={todo} />
+                <button className="btn-outline btn-small" onClick={() => goTo("sec-send")}>
+                  {HR.todoGo} ›
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className="hr-columns">
+        <section className="hr-card">
+          <h2>{BOSS.historyTitle}</h2>
+          <ol className="timeline">
+            {[...events].reverse().map((e, i) => (
+              <li key={i} className={`tl tl-${e.kind}`}>
+                <span className="tl-date">{shortDate(e.date)}</span>
+                <span className="tl-kind">
+                  {e.kind === "stage" ? HR.event.stage(e.body) : e.kind === "fromHr" && e.by ? BOSS.fromBoss : HR.event[e.kind]}
+                  <EventTags e={e} />
+                </span>
+                {e.kind !== "stage" && <span className="tl-body">{e.body}</span>}
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div>
+          <section className="hr-card">
+            <h2>
+              {HR.stageTitle}　<StageTag stage={row.stage} />
+            </h2>
+            {row.pending ? (
+              <p className="muted">{BOSS.pending}</p>
+            ) : (
+              hints.length > 0 && (
+                <div className="boss-hints">
+                  <p className="boss-hints-title">{BOSS.hintTitle}</p>
+                  <ul>
+                    {hints.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                  {row.stage === "acute" && recent >= 2 && <p className="boss-too-many">{BOSS.tooMany(recent)}</p>}
+                  <p className="muted">{BOSS.hintNote}</p>
+                </div>
+              )
+            )}
+          </section>
+
+          {meetings.length > 0 && (
+            <section className="hr-card">
+              <h2>{BOSS.meetingTitle}</h2>
+              <ul className="meeting-list">
+                {meetings.map((m) => (
+                  <li key={m.key}>
+                    <span>{m.name}</span>
+                    <span className="status-tag">{m.status}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {!row.pending && row.stage !== "afterReturn" && (
+            <SendMessage
+              key={row.id}
+              personId={row.id}
+              name={row.name}
+              stage={row.stage}
+              row={{ ...row, todos }}
+              by={by}
+              ownTemplates={BOSS.templates[row.stage]}
+              dispatch={dispatch}
+            />
+          )}
+        </div>
+      </div>
+      <BackButton dispatch={dispatch} bottom />
+    </>
   );
 }

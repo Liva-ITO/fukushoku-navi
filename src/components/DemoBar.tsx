@@ -56,7 +56,7 @@ export default function DemoBar({ state, dispatch: rawDispatch }: Props) {
       {state.view === "hr" && (
         <div className="seg" role="group" aria-label={DEMO_BAR.hrRole}>
           <span className="seg-label">{DEMO_BAR.hrRole}</span>
-          {(["admin", "staff"] as const).map((r) => (
+          {(state.contactBy === "boss" ? (["admin", "staff", "boss"] as const) : (["admin", "staff"] as const)).map((r) => (
             <button key={r} aria-pressed={state.hrRole === r} onClick={() => dispatch({ type: "setHrRole", role: r })}>
               {DEMO_BAR.hrRoles[r]}
             </button>

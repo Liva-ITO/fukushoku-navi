@@ -1,11 +1,16 @@
 import { useState, type Dispatch } from "react";
-import { INVITE } from "../constants/labels";
+import { BOSS, INVITE } from "../constants/labels";
 import { DEMO_TODAY } from "../data/demo";
 import type { Action } from "../state/store";
 
 // 休職者の登録（見本）。本番では、ここで入れる本人の個人のメールアドレスに案内が届き、本人は自分のアカウントで始める。
 // デモでは何も送らず、一覧に「「まだ始めていません」」の行が増えるだけ
-export default function InviteForm({ depts, dispatch }: { depts: string[]; dispatch: Dispatch<Action> }) {
+export default function InviteForm({ depts, byBoss, dispatch }: { depts: string[]; byBoss: boolean; dispatch: Dispatch<Action> }) {
+  // 窓口を上司にした会社：担当の上司も一緒に登録する
+  const [bossName, setBossName] = useState("");
+  const [bossEmail, setBossEmail] = useState("");
+  const [sentBoss, setSentBoss] = useState("");
+  const bossOk = !byBoss || (bossName.trim() !== "" && /.+@.+\..+/.test(bossEmail.trim()));
   const [name, setName] = useState("");
   const [dept, setDept] = useState("");
   const [age, setAge] = useState(INVITE.ages[1]);
@@ -17,13 +22,14 @@ export default function InviteForm({ depts, dispatch }: { depts: string[]; dispa
   const [sent, setSent] = useState<string | null>(null);
   // 満了日は開始日より後（同じ日や前の日は、入れまちがい）
   const endInvalid = leaveEnd !== "" && leaveEnd <= leaveStart;
-  const ready = name.trim() && dept.trim() && leaveStart && leaveEnd && !endInvalid && /.+@.+\..+/.test(email.trim());
+  const ready = name.trim() && dept.trim() && leaveStart && leaveEnd && !endInvalid && /.+@.+\..+/.test(email.trim()) && bossOk;
 
   if (sent)
     return (
       <section className="hr-card invite">
         <h1 className="hr-title">{INVITE.title}</h1>
         <p className="done-note">{INVITE.sent(sent)}</p>
+        {sentBoss && <p className="done-note">{BOSS.sent(sentBoss)}</p>}
         <button className="btn-outline" onClick={() => dispatch({ type: "hrPage", page: "list" })}>
           {INVITE.back}
         </button>
@@ -81,6 +87,22 @@ export default function InviteForm({ depts, dispatch }: { depts: string[]; dispa
           {endInvalid && <span className="field-error">{INVITE.leaveEndInvalid}</span>}
         </label>
       </div>
+      {byBoss && (
+        <fieldset className="setting boss-invite">
+          <legend>{BOSS.inviteTitle}</legend>
+          <div className="invite-grid">
+            <label className="hr-field">
+              {BOSS.name}
+              <input className="hr-input" value={bossName} onChange={(e) => setBossName(e.target.value)} />
+            </label>
+            <label className="hr-field">
+              {BOSS.email}
+              <input className="hr-input" type="email" value={bossEmail} onChange={(e) => setBossEmail(e.target.value)} />
+            </label>
+          </div>
+          <p className="muted">{BOSS.inviteNote}</p>
+        </fieldset>
+      )}
       <label className="hr-field">
         {INVITE.issues}
         <textarea
@@ -97,8 +119,13 @@ export default function InviteForm({ depts, dispatch }: { depts: string[]; dispa
           className="btn-primary"
           disabled={!ready}
           onClick={() => {
-            dispatch({ type: "invite", person: { name: name.trim(), dept: dept.trim(), age, job, leaveStart, leaveEnd, issues: issues.trim(), email: email.trim() } });
+            dispatch({
+              type: "invite",
+              person: { name: name.trim(), dept: dept.trim(), age, job, leaveStart, leaveEnd, issues: issues.trim(), email: email.trim() },
+              boss: byBoss ? { name: bossName.trim(), email: bossEmail.trim() } : undefined,
+            });
             setSent(name.trim());
+            setSentBoss(byBoss ? bossName.trim() : "");
           }}
         >
           {INVITE.send}

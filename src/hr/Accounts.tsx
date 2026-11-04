@@ -1,6 +1,6 @@
 import { useState, type Dispatch } from "react";
 import { ACCOUNTS } from "../constants/labels";
-import type { Action, HrAccount, State } from "../state/store";
+import type { Action, State } from "../state/store";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -33,12 +33,18 @@ export default function Accounts({ state, dispatch }: Props) {
                 <td>{a.name}</td>
                 <td>{a.position}</td>
                 <td>
+                  {a.role === "boss" ? (
+                    <span>
+                      {ACCOUNTS.roles.boss}
+                      <span className="muted">　{assignedOf(state, a.id)}</span>
+                    </span>
+                  ) : (
                   <select
                     className="hr-input"
                     value={a.role}
                     disabled={locked}
                     title={locked ? ACCOUNTS.lastAdmin : undefined}
-                    onChange={(e) => dispatch({ type: "setAccountRole", id: a.id, role: e.target.value as HrAccount["role"] })}
+                    onChange={(e) => dispatch({ type: "setAccountRole", id: a.id, role: e.target.value as "admin" | "staff" })}
                   >
                     {(["admin", "staff"] as const).map((r) => (
                       <option key={r} value={r}>
@@ -46,6 +52,7 @@ export default function Accounts({ state, dispatch }: Props) {
                       </option>
                     ))}
                   </select>
+                  )}
                 </td>
                 <td>
                   <button className="btn-quiet btn-small" disabled={locked} onClick={() => dispatch({ type: "removeAccount", id: a.id })}>
@@ -70,10 +77,16 @@ export default function Accounts({ state, dispatch }: Props) {
   );
 }
 
+// 上司が担当している休職者の名前
+function assignedOf(state: State, id: string): string {
+  const names = [...(state.live ? [state.live] : []), ...state.invited].filter((p) => p.bossId === id).map((p) => p.name);
+  return names.length ? ACCOUNTS.assigned(names.join("、")) : ACCOUNTS.assignedNone;
+}
+
 function AddAccount({ dispatch, onClose }: { dispatch: Dispatch<Action>; onClose: () => void }) {
   const [name, setName] = useState("");
   const [position, setPosition] = useState(ACCOUNTS.positions[0]);
-  const [role, setRole] = useState<HrAccount["role"]>("staff");
+  const [role, setRole] = useState<"admin" | "staff">("staff");
   const [email, setEmail] = useState("");
   const ready = name.trim() !== "" && /.+@.+\..+/.test(email.trim());
   return (
@@ -94,7 +107,7 @@ function AddAccount({ dispatch, onClose }: { dispatch: Dispatch<Action>; onClose
         </label>
         <label className="hr-field">
           {ACCOUNTS.role}
-          <select className="hr-input" value={role} onChange={(e) => setRole(e.target.value as HrAccount["role"])}>
+          <select className="hr-input" value={role} onChange={(e) => setRole(e.target.value as "admin" | "staff")}>
             {(["staff", "admin"] as const).map((r) => (
               <option key={r} value={r}>
                 {ACCOUNTS.roles[r]}

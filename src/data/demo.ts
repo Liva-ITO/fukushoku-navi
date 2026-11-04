@@ -11,6 +11,7 @@ export type HrMessage = {
   title: string;
   body: string;
   noReplyNeeded: boolean;
+  by?: string; // 送った人（上司が送ったとき「上司 ◯◯」）。なければ人事
 };
 
 // 本人から会社に届いたもの（返信・通院の報告・提出物）。会社に見えるのはこれだけ
@@ -62,6 +63,8 @@ export type HrEvent = {
   noReply?: boolean;
   byHr?: boolean; // 人事が自分で記録したもの（新着にしない）
   report?: number; // 生活の記録のレポートなら、その番号（押すと開く）
+  by?: string; // 上司が送った連絡
+  health?: boolean; // 体調に関わる報告（通院など）。上司には出さない
 };
 // 人事が対応すること。due は期限（満了日など）があるときだけ
 export type HrTodo = { key: string; text: string; date: string; due?: string };

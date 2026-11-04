@@ -23,7 +23,26 @@ export type HrRow = {
   issueNotes: { date: string; text: string }[]; // あとから書き足した見立て
   invite?: { date: string; email: string; resends: { date: string; email: string }[] }; // まだ始めていない人の案内
   rework_?: boolean; // リワークを使っている（見立ての共有の同意を出す）
+  bossId?: string; // 担当の上司
+  bossTodo?: HrTodo; // 上司に出す「本人から連絡が届いています」（体調の報告は除く）
 };
+
+// 上司の画面に出すもの：段階・やり取り（体調の報告は除く）。返事を待っている連絡だけを「対応が必要なこと」にする
+export const bossEvents = (r: HrRow) =>
+  r.events.filter((e) => e.kind === "stage" || e.kind === "fromHr" || (e.kind === "fromPerson" && !e.health));
+export const bossTodos = (r: HrRow): HrTodo[] => (r.bossTodo ? [r.bossTodo] : []);
+
+// 上司に出す連絡の項目：返信のあとに届いたもののうち、体調の報告（通院）でないもの
+function bossTodoOf(state: State): HrTodo | undefined {
+  const notHealth = (s: State["sentToHr"][number]) => s.kind !== "visit";
+  const since = state.sentToHr.slice(Math.max(state.hrRepliedAt, state.bossRepliedAt)).filter(notHealth);
+  if (since.length === 0) return undefined;
+  return {
+    key: `b-msg-${state.sentToHr.length}`, // 上司が「確認した」を押しても、人事の項目は消さない
+    text: HR.todoA.newFromPerson(state.sentToHr.filter(notHealth).length, since[since.length - 1].body),
+    date: DEMO_TODAY,
+  };
+}
 
 function reworkOf(state: State): string {
   if (state.prepPath === null) return HR.reworkNone;
@@ -42,7 +61,9 @@ function todosOf(state: State): HrTodo[] {
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
   if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested(CONSULT.who[state.coordWho]));
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
-  if (state.sentToHr.length > state.hrRepliedAt) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length, state.sentToHr[state.sentToHr.length - 1].body));
+  // 上司が返信した連絡は、人事には残さない（体調の報告は、上司には見えないので人事に残す）
+  const pendingHr = state.sentToHr.filter((s, i) => i >= state.hrRepliedAt && (s.kind === "visit" || i >= state.bossRepliedAt));
+  if (pendingHr.length > 0) at(`a-msg-${state.sentToHr.length}`, HR.todoA.newFromPerson(state.sentToHr.length, pendingHr[pendingHr.length - 1].body));
   return t;
 }
 
@@ -86,8 +107,8 @@ function eventsOf(state: State): HrEvent[] {
   }));
 
   return byDate([
-    ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.title, noReply: m.noReplyNeeded })),
-    ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body })),
+    ...state.hrMessages.map((m) => ({ date: m.date, kind: "fromHr" as const, body: m.by ? `${m.title}（${m.by}）` : m.title, noReply: m.noReplyNeeded, by: m.by })),
+    ...state.sentToHr.map((s) => ({ date: s.date, kind: "fromPerson" as const, body: s.body, health: s.kind === "visit" })),
     ...logged,
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),
@@ -187,6 +208,7 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     invite: { date: p.date, email: p.email, resends: p.resends },
     live: false,
     pending: true,
+    bossId: p.bossId,
     issues: p.issues,
     issueNotes: state.issueNotes[p.id] ?? [],
   });
@@ -214,6 +236,8 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     issues: live.issues,
     issueNotes: state.issueNotes[PERSON.id] ?? [],
     rework_: state.prepPath === "rivabiz" || state.prepPath === "rivatore",
+    bossId: live.bossId,
+    bossTodo: open([bossTodoOf(state)].filter((t): t is HrTodo => !!t))[0],
   };
   const others: HrRow[] = OTHER_PEOPLE.map((p) => ({
     id: p.id,

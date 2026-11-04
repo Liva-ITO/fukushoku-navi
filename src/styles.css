@@ -756,3 +756,16 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .consent-box, .share-box { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
 .consent-title, .share-title { margin: 0 0 4px; font-weight: 700; font-size: 14px; }
 .consent-box p, .share-box p { margin: 0 0 6px; }
+
+/* 上司の画面 */
+.boss-list { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 8px; }
+.boss-row { width: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card, #fff); text-align: left; font: inherit; cursor: pointer; }
+.boss-row .boss-name { flex: 1 1 auto; font-weight: 700; }
+.boss-scope { margin: 0 0 12px; }
+.boss-hints { padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); }
+.boss-hints-title { margin: 0 0 4px; font-weight: 700; font-size: 14px; }
+.boss-hints ul { margin: 0 0 6px; padding-left: 1.2em; }
+.boss-hints li { margin: 2px 0; }
+.boss-too-many { margin: 6px 0; font-weight: 700; color: #8a5a1a; }
+.boss-invite { margin: 12px 0; }
+.contact-who { margin: -4px 0 12px; }
