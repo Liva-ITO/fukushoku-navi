@@ -619,7 +619,7 @@ export const HR = {
 
   back: "一覧に戻る",
   historyTitle: "これまでの経緯",
-  historyNote: "担当が変わっても流れが分かるよう、段階の切り替え・やり取り・提出物・申し込みを日付順に並べています",
+  historyNote: "担当が変わっても流れが分かるよう、段階の切り替え・やり取り・提出物・申し込みを、新しい順に並べています",
   event: {
     stage: (label: string) => `段階：${label}`,
     fromHr: "人事から",
@@ -630,6 +630,9 @@ export const HR = {
     decision: "会社の判断",
     edit: "登録の変更",
   },
+  // 経緯は新しいほうから10件ずつ出す
+  historyPage: 10,
+  historyMore: (n: number) => `前の経緯を見る（あと${n}件）`,
   hidden: "本人の日記の中身・気分・休息モードかどうか・支援機関との面談で話した内容は、この画面には出ません",
 
   stageTitle: "段階",

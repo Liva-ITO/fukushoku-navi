@@ -312,6 +312,7 @@ details[open] > summary::after { content: "▲"; }
 .tl-date { color: var(--muted); }
 .tl-kind { font-weight: 600; }
 .tl-stage .tl-kind { color: var(--accent); }
+.tl-more { margin-top: 8px; }
 .hidden-note { margin-top: 12px !important; }
 .stage-guide { margin: 6px 0 12px !important; }
 .stage-control { display: grid; gap: 10px; }

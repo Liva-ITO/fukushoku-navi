@@ -328,7 +328,18 @@ function sortRows(rows: HrRow[], col: SortCol, asc: boolean): HrRow[] {
   });
 }
 
+// 経緯が10件を超えたら、前の経緯を出すボタンを置く
+function MoreButton({ total, shown, onMore }: { total: number; shown: number; onMore: () => void }) {
+  if (total <= shown) return null;
+  return (
+    <button className="btn-quiet btn-small tl-more" onClick={onMore}>
+      {HR.historyMore(total - shown)}
+    </button>
+  );
+}
+
 function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
+  const [shown, setShown] = useState<number>(HR.historyPage);
   // 一覧の［対応する］から来たときは、対応する場所まで移る（画面の切り替えでいちばん上に戻したあとに）
   useEffect(() => {
     if (!pendingTarget) return;
@@ -400,9 +411,9 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
         <section className="hr-card">
           <h2>{HR.historyTitle}</h2>
           <p className="muted">{HR.historyNote}</p>
-          <HistorySummary events={row.events} audience="hr" rowId={row.id} />
+          <HistorySummary events={row.events} audience="hr" rowId={row.id} reveal={(n) => setShown((s) => Math.max(s, n))} />
           <ol className="timeline">
-            {markNew(row).reverse().map(({ e, isNew }, i) => (
+            {markNew(row).reverse().slice(0, shown).map(({ e, isNew }, i) => (
               <li key={i} id={tlId("hr", row.events.length - 1 - i)} className={`tl tl-${e.kind}${isNew ? " tl-new" : ""}`}>
                 <span className="tl-date">{shortDate(e.date)}</span>
                 <span className="tl-kind">
@@ -421,6 +432,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
               </li>
             ))}
           </ol>
+          <MoreButton total={row.events.length} shown={shown} onMore={() => setShown((s) => s + HR.historyPage)} />
           <p className="muted hidden-note">{HR.hidden}</p>
         </section>
 
@@ -1632,6 +1644,7 @@ function BossApp({ state, dispatch }: Props) {
 function BossDetail({ row, me, state, dispatch }: { row: HrRow; me: HrAccount } & Props) {
   const todos = bossTodos(row);
   const events = bossEvents(row);
+  const [shown, setShown] = useState<number>(HR.historyPage);
   // 会社との面談（準備期に進むための面談・産業医との面談）の日程だけ。支援機関との面談は出さない
   const meetings = row.live ? meetingsOf(state).filter((m) => m.key === "company" || m.key === "occ") : [];
   const by = BOSS.by(me.name);
@@ -1668,9 +1681,9 @@ function BossDetail({ row, me, state, dispatch }: { row: HrRow; me: HrAccount } 
       <div className="hr-columns">
         <section className="hr-card">
           <h2>{BOSS.historyTitle}</h2>
-          <HistorySummary events={events} audience="boss" rowId={row.id} />
+          <HistorySummary events={events} audience="boss" rowId={row.id} reveal={(n) => setShown((s) => Math.max(s, n))} />
           <ol className="timeline">
-            {[...events].reverse().map((e, i) => (
+            {[...events].reverse().slice(0, shown).map((e, i) => (
               <li key={i} id={tlId("boss", events.length - 1 - i)} className={`tl tl-${e.kind}`}>
                 <span className="tl-date">{shortDate(e.date)}</span>
                 <span className="tl-kind">
@@ -1681,6 +1694,7 @@ function BossDetail({ row, me, state, dispatch }: { row: HrRow; me: HrAccount } 
               </li>
             ))}
           </ol>
+          <MoreButton total={events.length} shown={shown} onMore={() => setShown((s) => s + HR.historyPage)} />
         </section>
 
         <div>

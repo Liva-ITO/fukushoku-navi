@@ -6,7 +6,8 @@ import type { HrEvent } from "../data/demo";
 type Item = { text: string; refs: number[] };
 type Summary = { flow: Item[]; fromPerson: Item[]; fromCompany: Item[]; open: Item[] };
 type Audience = "hr" | "boss";
-type Props = { events: HrEvent[]; audience: Audience; rowId: string };
+// reveal(n)：経緯の一覧で、新しいほうから n 件を出す（まとめの日付から、隠れている経緯に移るため）
+type Props = { events: HrEvent[]; audience: Audience; rowId: string; reveal?: (n: number) => void };
 
 const MAX_EVENTS = 200;
 const MAX_BODY = 600;
@@ -25,7 +26,7 @@ export default function HistorySummary(props: Props) {
   return <Inner key={key} cacheKey={key} {...props} />;
 }
 
-function Inner({ events, audience, cacheKey }: Props & { cacheKey: string }) {
+function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: string }) {
   const [summary, setSummary] = useState<Summary | null>(() => cache.get(cacheKey) ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,8 +68,15 @@ function Inner({ events, audience, cacheKey }: Props & { cacheKey: string }) {
     }
   };
 
-  const jump = (ref: number) => {
-    const el = document.getElementById(tlId(audience, ref + offset));
+  const jump = (ref: number, retried = false) => {
+    const index = ref + offset;
+    // 隠れている（前の経緯の）ときは、そこまで出してから移る
+    if (!retried && !document.getElementById(tlId(audience, index))) {
+      reveal?.(events.length - index);
+      setTimeout(() => jump(ref, true), 50);
+      return;
+    }
+    const el = document.getElementById(tlId(audience, index));
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.classList.add("tl-flash");
