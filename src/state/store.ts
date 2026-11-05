@@ -374,7 +374,8 @@ function reducer(state: State, action: Action): State {
         ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false, psychSchedule: null, nextWish: null } : {}),
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
-          ? { occMeeting: null, doctorNote: false, returnPlan: null, returnDecision: null }
+          ? // 会社との面談（準備期に進むための面談）も、もう一度申し込むところから。済んだ記録は経緯に残る
+            { occMeeting: null, doctorNote: false, returnPlan: null, returnDecision: null, companyMeeting: null, offers: {} }
           : {}),
       };
     }
