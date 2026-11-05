@@ -163,6 +163,9 @@ export type State = {
   // 人事が詳しい画面で見た件数（新着を消すため）と、開く前に見ていた件数（どれが新着だったかを示すため）
   hrSeen: Record<string, number>;
   hrNewFrom: Record<string, number>;
+  // 見たものを、件数ではなく1件ずつ覚える（並び順が変わったり、面談の状態が変わったりしても、ずれない）
+  hrSeenKeys: Record<string, string[]>;
+  hrNewFromKeys: Record<string, string[]>;
 };
 
 const DEMO_TICKETS = 3;
@@ -242,6 +245,8 @@ export const initialState: State = {
   hrDone: [],
   hrSeen: {},
   hrNewFrom: {},
+  hrSeenKeys: {},
+  hrNewFromKeys: {},
 };
 
 export type Action =
@@ -292,7 +297,7 @@ export type Action =
   | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
   | { type: "sendHrMessage"; personId: string; title: string; body: string; noReplyNeeded: boolean; by?: string }
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
-  | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number }
+  | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number; keys?: string[]; prevKeys?: string[] }
   | { type: "hrPage"; page: State["hrPage"] }
   | { type: "setHrRole"; role: HrRole }
   | { type: "openReport"; index: number | null }
@@ -648,6 +653,8 @@ function reducer(state: State, action: Action): State {
         hrSelected: action.id,
         hrSeen: { ...state.hrSeen, [action.id]: action.incoming ?? 0 },
         hrNewFrom: { ...state.hrNewFrom, [action.id]: action.prevSeen ?? 0 },
+        ...(action.keys ? { hrSeenKeys: { ...state.hrSeenKeys, [action.id]: action.keys } } : {}),
+        ...(action.prevKeys ? { hrNewFromKeys: { ...state.hrNewFromKeys, [action.id]: action.prevKeys } } : {}),
       };
     case "setCompany":
       if (state.hrRole !== "admin") return state;

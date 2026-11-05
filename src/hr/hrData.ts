@@ -15,6 +15,8 @@ export type HrRow = {
   incoming: number; // 本人から届いたもの（連絡・提出・申し込み）の数
   seen: number; // そのうち人事が見た数
   newFrom: number; // 開く前に見ていた数。経緯でこれより後のものに「新着」をつける
+  seenKeys?: string[]; // 見たもの（1件ずつ）。あれば件数より優先する
+  newFromKeys?: string[]; // 開く前に見ていたもの（1件ずつ）
   todos: HrTodo[];
   events: HrEvent[];
   live: boolean; // 本人画面と連動しているか
@@ -243,6 +245,8 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     incoming: 0,
     seen: state.hrSeen[PERSON.id] ?? 0,
     newFrom: state.hrNewFrom[PERSON.id] ?? 0,
+    seenKeys: state.hrSeenKeys[PERSON.id],
+    newFromKeys: state.hrNewFromKeys[PERSON.id],
     todos: open(todosOf(state)),
     events: eventsOf(state),
     live: true,
@@ -264,6 +268,8 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
     incoming: 0,
     seen: state.hrSeen[p.id] ?? p.seen,
     newFrom: state.hrNewFrom[p.id] ?? p.seen,
+    seenKeys: state.hrSeenKeys[p.id],
+    newFromKeys: state.hrNewFromKeys[p.id],
     todos: open(p.todo ? [p.todo] : []),
     issueNotes: state.issueNotes[p.id] ?? [],
     events: byDate([
@@ -289,9 +295,19 @@ export function hrRows(state: State, includeReturned = false): HrRow[] {
   // 復職を確定した人は、休職者の一覧に出さない
   const people = [...(!a || (a.stage === "afterReturn" && !includeReturned) ? others : [a, ...others]), ...invited];
   return people.map(withEnd).map((r) => {
-    const incoming = r.events.filter(isIncoming).length;
-    return { ...r, incoming, news: Math.max(0, incoming - r.seen) };
+    const inc = r.events.filter(isIncoming);
+    const news = r.seenKeys ? inc.filter((e) => !r.seenKeys?.includes(eventKey(e))).length : Math.max(0, inc.length - r.seen);
+    return { ...r, incoming: inc.length, news };
   });
+}
+
+// 届いたものを1件ずつ見分ける印。面談の状態が変わったら、別のもの（新着）として扱う
+export const eventKey = (e: HrEvent) => [e.date, e.kind, e.body, e.status ?? "", e.at ?? ""].join("|");
+
+// 本人から届いたもののうち、見たものの印。1件ずつの記録がまだない人は、件数（はじめから n 件見た）から作る
+export function seenKeysOf(r: HrRow): string[] {
+  const inc = r.events.filter(isIncoming).map(eventKey);
+  return r.seenKeys ?? inc.slice(0, r.seen);
 }
 
 // 期限が近いもの → 新しく届いたもの、の順

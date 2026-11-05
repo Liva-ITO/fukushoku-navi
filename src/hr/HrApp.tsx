@@ -8,7 +8,7 @@ import HistorySummary, { tlId } from "./HistorySummary";
 import { daysSince } from "../data/demo";
 import { currentBossId, slotLabel, whenOf, type Action, type HrAccount, type OccOpinion, type OfferKey, type Slot, type State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
-import { END_NOTICE_DAYS, bossEvents, bossTodos, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
+import { END_NOTICE_DAYS, bossEvents, bossTodos, daysUntil, eventKey, hrRows, isIncoming, meetingsOf, seenKeysOf, sortTodos, type HrRow } from "./hrData";
 import { DEMO_TODAY, PERSON, type HrEvent, type HrTodo } from "../data/demo";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -153,9 +153,20 @@ function markNew(row: HrRow) {
   return row.events.map((e) => {
     if (!isIncoming(e)) return { e, isNew: false };
     n += 1;
-    return { e, isNew: n > row.newFrom };
+    // 開く前に見ていたものを1件ずつ覚えていれば、それにないものが新着
+    return { e, isNew: row.newFromKeys ? !row.newFromKeys.includes(eventKey(e)) : n > row.newFrom };
   });
 }
+
+// 詳しい画面を開くとき：いま届いているものを「見た」にし、開く前に見ていたものを新着の目印に残す
+const selectRow = (r: HrRow): Action => ({
+  type: "hrSelect",
+  id: r.id,
+  incoming: r.incoming,
+  prevSeen: r.seen,
+  keys: r.events.filter(isIncoming).map(eventKey),
+  prevKeys: seenKeysOf(r),
+});
 
 function StageTag({ stage }: { stage: Stage }) {
   return <span className={`stage-tag stage-${stage}`}>{STAGE_LABELS[stage]}</span>;
@@ -180,7 +191,7 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
     );
   };
   const todos = sortTodos(rows.flatMap((r) => r.todos.map((todo) => ({ row: r, todo }))));
-  const open = (r: HrRow) => dispatch({ type: "hrSelect", id: r.id, incoming: r.incoming, prevSeen: r.seen });
+  const open = (r: HrRow) => dispatch(selectRow(r));
 
   return (
     <>
@@ -1648,7 +1659,7 @@ function BossApp({ state, dispatch }: Props) {
             const waiting = bossTodos(r).length;
             return (
               <li key={r.id}>
-                <button className="boss-row" onClick={() => dispatch({ type: "hrSelect", id: r.id, incoming: r.incoming, prevSeen: r.seen })}>
+                <button className="boss-row" onClick={() => dispatch(selectRow(r))}>
                   <span className="boss-name">
                     {r.name}
                     <span className="muted">　{r.dept}</span>
