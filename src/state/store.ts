@@ -886,13 +886,34 @@ function load(): State {
   return BROWSE ? withSampleBoss(s) : s;
 }
 
+// 項目の並びを無視して、中身が同じかを比べる
+function sortKeys(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(sortKeys);
+  if (v && typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    return Object.fromEntries(Object.keys(o).sort().map((k) => [k, sortKeys(o[k])]));
+  }
+  return v;
+}
+function sameContent(a: string | null, b: string): boolean {
+  if (a === null) return false;
+  try {
+    return JSON.stringify(sortKeys(JSON.parse(a))) === JSON.stringify(sortKeys(JSON.parse(b)));
+  } catch {
+    return false;
+  }
+}
+
 export function useDemoStore() {
   const [state, dispatch] = useReducer(reducer, undefined, load);
   useEffect(() => {
     try {
       // 共有するのは中身だけ。同じ中身なら書かない
       const json = JSON.stringify(shared(state));
-      if (localStorage.getItem(STORAGE_KEY) !== json) localStorage.setItem(STORAGE_KEY, json);
+      // 中身が同じなら、項目の並びが違っても書かない。
+      // 並びの違いで書くと、古い版のウィンドウが開いたままのときなどに、2つのウィンドウが書き換え合って止まらなくなる
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved !== json && !sameContent(saved, json)) localStorage.setItem(STORAGE_KEY, json);
       sessionStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(pick(state, LOCAL_KEYS)));
     } catch {
       // 保存できなくても動作は続ける
