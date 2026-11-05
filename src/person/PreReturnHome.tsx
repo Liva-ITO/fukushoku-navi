@@ -28,12 +28,6 @@ export default function PreReturnHome({ state, dispatch }: Props) {
 
       <ReturnSteps state={state} dispatch={dispatch} />
 
-      <section className="card">
-        <h2>{PREP.occPrepTitle}</h2>
-        <p className="muted">{state.prepPath === "self" ? PREP.occPrepSelf : PREP.occPrepRework}</p>
-        {state.prepPath === "self" && <SelfReportCard state={state} dispatch={dispatch} />}
-      </section>
-
       <TorisetsuCard state={state} dispatch={dispatch} />
 
       <AccommodationCard state={state} dispatch={dispatch} />
@@ -47,11 +41,25 @@ export default function PreReturnHome({ state, dispatch }: Props) {
 // 復職までの手順。順番は会社の設定に合わせる。本人がすることと、会社がすることを分けて書く
 function ReturnSteps({ state, dispatch }: Props) {
   const occ = state.occMeeting;
+  // 取説 → レポートの見直し がそろってから、産業医との面談を申し込める
+  const canApply = state.torisetsu !== null && state.prepReviewed;
+  const reviewing = state.torisetsu !== null && !state.prepReviewed;
   const steps = {
     torisetsu: {
       name: PREP.steps.torisetsu,
       done: state.torisetsu !== null,
       note: state.torisetsu ? PREP.torisetsuDone : PREP.torisetsuWait,
+    },
+    review: {
+      name: PREP.steps.review,
+      done: state.prepReviewed,
+      note: state.prepReviewed
+        ? PREP.reviewDone
+        : !state.torisetsu
+          ? PREP.reviewWait
+          : state.prepPath === "self"
+            ? PREP.reviewSelf
+            : PREP.reviewRework,
     },
     occ: {
       name: PREP.steps.occ,
@@ -65,7 +73,9 @@ function ReturnSteps({ state, dispatch }: Props) {
               ? PREP.occOffered
               : state.occApplied
                 ? PREP.occWait
-                : PREP.occApplyNote,
+                : canApply
+                  ? PREP.occApplyReady
+                  : PREP.occApplyNote,
     },
     decision: {
       name: PREP.steps.decision,
@@ -83,13 +93,12 @@ function ReturnSteps({ state, dispatch }: Props) {
       note: state.returnPlan ? PREP.planDone(japaneseDate(state.returnPlan.date)) : PREP.planWait,
     },
   };
-  // 取説はいつもいちばん先。ただし必須ではないので、申し込んだあとは「いまここ」を取説に残さない
+  // 取説とレポートの見直しは、いつもいちばん先
   const order =
     state.returnOrder === "occFirst"
-      ? [steps.torisetsu, steps.occ, steps.decision, steps.doctor, steps.plan]
-      : [steps.torisetsu, steps.doctor, steps.occ, steps.decision, steps.plan];
-  const skipTorisetsu = state.occApplied || occ !== null;
-  const now = order.findIndex((s) => !s.done && !(skipTorisetsu && s === steps.torisetsu));
+      ? [steps.torisetsu, steps.review, steps.occ, steps.decision, steps.doctor, steps.plan]
+      : [steps.torisetsu, steps.review, steps.doctor, steps.occ, steps.decision, steps.plan];
+  const now = order.findIndex((s) => !s.done);
 
   return (
     <section className="card">
@@ -102,7 +111,15 @@ function ReturnSteps({ state, dispatch }: Props) {
             {s.done && <span className="tag-soft">{PREP.doneTag}</span>}
             {i === now && <span className="tag-soft">{PREP.hereTag}</span>}
             <span className="step-sub">{s.note}</span>
-            {s === steps.occ && !occ && !state.occApplied && (
+            {s === steps.review && reviewing && (
+              <div className="step-action">
+                {state.prepPath === "self" && <SelfReportCard state={state} dispatch={dispatch} />}
+                <button className="btn-outline btn-small" onClick={() => dispatch({ type: "markPrepReviewed" })}>
+                  {state.prepPath === "self" ? PREP.reviewKeep : PREP.reviewReworkDone}
+                </button>
+              </div>
+            )}
+            {s === steps.occ && !occ && !state.occApplied && canApply && (
               <ConfirmButton
                 quiet
                 modal

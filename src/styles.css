@@ -633,6 +633,7 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .home-acute .card-quiet > summary { color: var(--text); font-weight: 600; font-size: 15px; }
 
 /* 次の段階へ：日程が決まったときの一文 */
+.next-steps .step-action { display: grid; gap: 8px; justify-items: start; margin: 8px 0 4px; font-weight: 400; }
 .next-steps .step-sub { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
 
 /* 連絡タブ：お知らせの下で希望を送る */

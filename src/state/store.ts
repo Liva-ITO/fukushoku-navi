@@ -124,6 +124,7 @@ export type State = {
   reworkReports: { month: string; days: number; rate: number; date: string }[];
   occMeeting: { status: "scheduled" | "done"; date: string; time?: string; opinion?: OccOpinion } | null;
   occApplied: boolean; // 本人が産業医との面談を申し込んだ
+  prepReviewed: boolean; // 準備期に、産業医との面談に向けてレポートを見直した
   // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
   occOpinions: (OccOpinion & { date: string; at?: number })[];
   meetingLog: MeetingLog[];
@@ -211,6 +212,7 @@ export const initialState: State = {
   reworkReports: [],
   occMeeting: null,
   occApplied: false,
+  prepReviewed: false,
   occOpinions: [],
   meetingLog: [],
   issueNotes: {},
@@ -275,6 +277,7 @@ export type Action =
   | { type: "setReturnOrder"; order: ReturnOrder }
   | { type: "scheduleOccMeeting"; date: string; time?: string }
   | { type: "applyOccMeeting" }
+  | { type: "markPrepReviewed" }
   | { type: "finishOccMeeting"; opinion: OccOpinion }
   | { type: "receiveDoctorNote" }
   | { type: "undoDoctorNote" }
@@ -378,7 +381,7 @@ function reducer(state: State, action: Action): State {
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
           ? // 会社との面談（準備期に進むための面談）も、もう一度申し込むところから。済んだ記録は経緯に残る
-            { occMeeting: null, occApplied: false, doctorNote: false, returnPlan: null, returnDecision: null, companyMeeting: null, offers: {} }
+            { occMeeting: null, occApplied: false, prepReviewed: false, doctorNote: false, returnPlan: null, returnDecision: null, companyMeeting: null, offers: {} }
           : {}),
       };
     }
@@ -533,7 +536,11 @@ function reducer(state: State, action: Action): State {
     case "setReturnOrder":
       return { ...state, returnOrder: action.order };
     case "applyOccMeeting":
+      // 取説をつくり、レポートを見直してから申し込める（画面だけでなくここでも止める）
+      if (!state.torisetsu || !state.prepReviewed) return state;
       return { ...state, occApplied: true };
+    case "markPrepReviewed":
+      return { ...state, prepReviewed: true };
     case "scheduleOccMeeting":
       return withHrMessage({ ...state, occMeeting: { status: "scheduled", date: action.date, time: action.time } }, HR.templatesPreReturn(whenOf(action.date, action.time))[0]);
     case "finishOccMeeting":
@@ -646,7 +653,8 @@ function reducer(state: State, action: Action): State {
       if (state.hrRole !== "admin") return state;
       return { ...state, ...action.patch };
     case "sendSelfReport":
-      return { ...state, selfReports: [...state.selfReports, action.report] };
+      // 準備期に新しく送ったら、面談に向けた見直しも済んだことにする
+      return { ...state, selfReports: [...state.selfReports, action.report], prepReviewed: state.prepReviewed || state.stage === "preReturn" };
     case "demoSelfReport":
       // デモ：人事の画面で、本人からレポートが届いたことにする（準備期の本人画面はスタッフが作る）
       return { ...state, selfReports: [...state.selfReports, { ...SAMPLE_SELF_REPORT, date: DEMO_TODAY }] };
