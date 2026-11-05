@@ -123,6 +123,7 @@ export type State = {
   // リワークの施設から会社に届く月次レポート（出席の事実だけ）
   reworkReports: { month: string; days: number; rate: number; date: string }[];
   occMeeting: { status: "scheduled" | "done"; date: string; time?: string; opinion?: OccOpinion } | null;
+  occApplied: boolean; // 本人が産業医との面談を申し込んだ
   // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
   occOpinions: (OccOpinion & { date: string; at?: number })[];
   meetingLog: MeetingLog[];
@@ -209,6 +210,7 @@ export const initialState: State = {
   selfReports: [],
   reworkReports: [],
   occMeeting: null,
+  occApplied: false,
   occOpinions: [],
   meetingLog: [],
   issueNotes: {},
@@ -272,6 +274,7 @@ export type Action =
   | { type: "askCoordinator" }
   | { type: "setReturnOrder"; order: ReturnOrder }
   | { type: "scheduleOccMeeting"; date: string; time?: string }
+  | { type: "applyOccMeeting" }
   | { type: "finishOccMeeting"; opinion: OccOpinion }
   | { type: "receiveDoctorNote" }
   | { type: "undoDoctorNote" }
@@ -375,7 +378,7 @@ function reducer(state: State, action: Action): State {
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
           ? // 会社との面談（準備期に進むための面談）も、もう一度申し込むところから。済んだ記録は経緯に残る
-            { occMeeting: null, doctorNote: false, returnPlan: null, returnDecision: null, companyMeeting: null, offers: {} }
+            { occMeeting: null, occApplied: false, doctorNote: false, returnPlan: null, returnDecision: null, companyMeeting: null, offers: {} }
           : {}),
       };
     }
@@ -529,6 +532,8 @@ function reducer(state: State, action: Action): State {
         : { ...state, coordWho: whoNow(state), coordinatorMeeting: "requested", coordinatorReport: null, coordSchedule: null };
     case "setReturnOrder":
       return { ...state, returnOrder: action.order };
+    case "applyOccMeeting":
+      return { ...state, occApplied: true };
     case "scheduleOccMeeting":
       return withHrMessage({ ...state, occMeeting: { status: "scheduled", date: action.date, time: action.time } }, HR.templatesPreReturn(whenOf(action.date, action.time))[0]);
     case "finishOccMeeting":

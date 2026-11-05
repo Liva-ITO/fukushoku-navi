@@ -1,7 +1,7 @@
 import { useState, type Dispatch } from "react";
 import { PREP, STAGE_LABELS, greeting } from "../constants/labels";
 import { whenOf, type Action, type State } from "../state/store";
-import { CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
+import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import { SelfReportCard } from "./SelfReportCard";
 import { TorisetsuCard } from "./Torisetsu";
 
@@ -26,7 +26,7 @@ export default function PreReturnHome({ state, dispatch }: Props) {
       <NewNoticeLink state={state} dispatch={dispatch} />
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
-      <ReturnSteps state={state} />
+      <ReturnSteps state={state} dispatch={dispatch} />
 
       <section className="card">
         <h2>{PREP.occPrepTitle}</h2>
@@ -45,13 +45,27 @@ export default function PreReturnHome({ state, dispatch }: Props) {
 }
 
 // 復職までの手順。順番は会社の設定に合わせる。本人がすることと、会社がすることを分けて書く
-function ReturnSteps({ state }: { state: State }) {
+function ReturnSteps({ state, dispatch }: Props) {
   const occ = state.occMeeting;
   const steps = {
+    torisetsu: {
+      name: PREP.steps.torisetsu,
+      done: state.torisetsu !== null,
+      note: state.torisetsu ? PREP.torisetsuDone : PREP.torisetsuWait,
+    },
     occ: {
       name: PREP.steps.occ,
       done: occ?.status === "done",
-      note: occ?.status === "done" ? PREP.occDone : occ ? PREP.occDate(whenOf(occ.date, occ.time)) : PREP.occWait,
+      note:
+        occ?.status === "done"
+          ? PREP.occDone
+          : occ
+            ? PREP.occDate(whenOf(occ.date, occ.time))
+            : state.offers.occ && !state.offers.occ.declined
+              ? PREP.occOffered
+              : state.occApplied
+                ? PREP.occWait
+                : PREP.occApplyNote,
     },
     decision: {
       name: PREP.steps.decision,
@@ -69,11 +83,13 @@ function ReturnSteps({ state }: { state: State }) {
       note: state.returnPlan ? PREP.planDone(japaneseDate(state.returnPlan.date)) : PREP.planWait,
     },
   };
+  // 取説はいつもいちばん先。ただし必須ではないので、申し込んだあとは「いまここ」を取説に残さない
   const order =
     state.returnOrder === "occFirst"
-      ? [steps.occ, steps.decision, steps.doctor, steps.plan]
-      : [steps.doctor, steps.occ, steps.decision, steps.plan];
-  const now = order.findIndex((s) => !s.done);
+      ? [steps.torisetsu, steps.occ, steps.decision, steps.doctor, steps.plan]
+      : [steps.torisetsu, steps.doctor, steps.occ, steps.decision, steps.plan];
+  const skipTorisetsu = state.occApplied || occ !== null;
+  const now = order.findIndex((s) => !s.done && !(skipTorisetsu && s === steps.torisetsu));
 
   return (
     <section className="card">
@@ -86,6 +102,17 @@ function ReturnSteps({ state }: { state: State }) {
             {s.done && <span className="tag-soft">{PREP.doneTag}</span>}
             {i === now && <span className="tag-soft">{PREP.hereTag}</span>}
             <span className="step-sub">{s.note}</span>
+            {s === steps.occ && !occ && !state.occApplied && (
+              <ConfirmButton
+                quiet
+                modal
+                label={PREP.occApply}
+                confirm={PREP.occApplyConfirm}
+                yes={PREP.occApplyYes}
+                no={PREP.occApplyNo}
+                onConfirm={() => dispatch({ type: "applyOccMeeting" })}
+              />
+            )}
           </li>
         ))}
       </ol>

@@ -85,12 +85,13 @@ function TodoText({ todo }: { todo: HrTodo }) {
 // 対応が必要なことの、対応する場所（詳しい画面の中の枠）
 function todoTarget(key: string, live: boolean): string {
   if (key === "a-company") return "sec-meetings";
+  if (key === "a-occ") return "sec-stage";
   if (key.startsWith("a-wish") || key === "a-psych-done") return "sec-stage";
   if (key.includes("-end-")) return live ? "sec-reg" : "sec-send";
   return "sec-send";
 }
 // 自分で「確認した」にするもの（それ以外は、対応すると自動で消える）
-const manualTodo = (key: string) => !(key === "a-company" || key.startsWith("a-wish") || key === "a-psych-done");
+const manualTodo = (key: string) => !(key === "a-company" || key === "a-occ" || key.startsWith("a-wish") || key === "a-psych-done");
 
 // 一覧の［対応する］から開いたとき、詳しい画面を開いたあとで移る場所
 let pendingTarget: string | null = null;
@@ -588,7 +589,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
       <p className="muted">{HR.stepOccNote}</p>
       <OccMaterial state={state} dispatch={dispatch} />
       <IssuesRef row={row} />
-      {!occ && <OfferSlots offerKey="occ" state={state} dispatch={dispatch} />}
+      {!occ && (state.occApplied ? <OfferSlots offerKey="occ" state={state} dispatch={dispatch} /> : <p className="muted">{HR.offer.waitApply}</p>)}
       {occ?.status === "scheduled" && <OccNotify name={row.name} date={occ.date} time={occ.time} state={state} dispatch={dispatch} />}
       {occ?.status === "scheduled" && (
         <div className="meeting-action">

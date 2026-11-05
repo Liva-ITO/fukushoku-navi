@@ -57,7 +57,10 @@ function todosOf(state: State): HrTodo[] {
   if (state.stage === "acute" && state.psychMeetingDone && state.nextWish) at(`a-wish-${state.sentToHr.length}`, HR.todoA.wishArrived);
   else if (state.stage === "acute" && state.psychMeetingDone) at("a-psych-done", HR.todoA.psychDone);
   // 回復期に進むための面談の申し込みは、人事がすることがないので出さない（段階の欄に状態が出る）
-  if (state.companyMeeting?.status === "applied") at("a-company", HR.todoA.companyMeeting);
+  // 面談の申し込みは、候補を送るまで（どれも難しいと返ってきたら、また）出す
+  const needOffer = (k: "company" | "occ") => !state.offers[k] || state.offers[k]?.declined;
+  if (state.companyMeeting?.status === "applied" && needOffer("company")) at("a-company", HR.todoA.companyMeeting);
+  if (state.stage === "preReturn" && state.occApplied && !state.occMeeting && needOffer("occ")) at("a-occ", HR.todoA.occMeeting);
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
   if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested(CONSULT.who[state.coordWho]));
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）
@@ -168,6 +171,8 @@ export function meetingsOf(state: State): Meeting[] {
       status: c.status === "done" ? st.done : c.status === "scheduled" ? st.scheduled(monthDay(c.date ?? "")) : state.offers.company ? st.adjusting : st.applied,
     });
   const o = state.occMeeting;
+  // 申し込みがあって、まだ日が決まっていないとき（候補を送ったら「日程を調整中」）
+  if (!o && state.occApplied) m.push({ key: "occ", name: HR.meetingName.occ, status: state.offers.occ ? st.adjusting : st.applied });
   if (o) m.push({ key: "occ", name: HR.meetingName.occ, status: o.status === "done" ? st.done : st.scheduled(monthDay(o.date)) });
   if (state.coordinatorMeeting === "applied")
     m.push({
