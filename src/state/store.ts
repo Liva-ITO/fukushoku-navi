@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from "react";
 import type { SelfReport } from "./selfReport";
+import { INITIAL_PLAN, AFTER_REST_DAYS, answerPlan, decideUp, planToday, type Plan, type PlanCat, type PlanResult } from "../data/recoveryPlan";
 import { ACUTE, BOSS, CONSULT, HR, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
@@ -72,6 +73,7 @@ export type State = {
   stage: Stage;
   stageHistory: StageChange[];
   restMode: boolean;
+  plan: Plan; // 回復期の「きょうのひとつ」
   tab: Tab;
   introSeen: boolean;
   hrMessages: HrMessage[];
@@ -176,6 +178,7 @@ export const initialState: State = {
   stage: "acute",
   stageHistory: INITIAL_STAGE_HISTORY,
   restMode: false,
+  plan: INITIAL_PLAN,
   tab: "home",
   introSeen: false,
   hrMessages: [],
@@ -261,6 +264,10 @@ export type Action =
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
   | { type: "sendWish"; wish: "go" | "rest" }
+  | { type: "planPickCat"; cat: PlanCat }
+  | { type: "planAnswer"; result: PlanResult; easy: boolean }
+  | { type: "planDecideUp"; up: boolean }
+  | { type: "planNextDay" }
   | { type: "markCoordSeen" }
   | { type: "closeRecoveryIntro" }
   | { type: "markRecoveryJourneySeen" }
@@ -391,7 +398,23 @@ function reducer(state: State, action: Action): State {
       };
     }
     case "setRestMode":
-      return { ...state, restMode: action.on, tab: "home" };
+      // 休息モードを終えたら、しばらくは「きょうのひとつ」を、しんどい日の分だけにする
+      return {
+        ...state,
+        restMode: action.on,
+        tab: "home",
+        plan: state.restMode && !action.on ? { ...state.plan, afterRest: AFTER_REST_DAYS } : state.plan,
+      };
+    case "planPickCat":
+      return { ...state, plan: { ...state.plan, cat: action.cat } };
+    case "planAnswer":
+      if (state.plan.doneToday) return state;
+      return { ...state, plan: answerPlan(state.plan, planToday(state.plan), action.result, action.easy, DEMO_TODAY) };
+    case "planDecideUp":
+      return { ...state, plan: decideUp(state.plan, action.up) };
+    case "planNextDay":
+      // デモは日付が進まないので、次の日にする操作を置く
+      return { ...state, plan: { ...state.plan, doneToday: false } };
     case "closeCelebrate":
       return { ...state, celebrate: null, tab: "home" };
     case "setTab":

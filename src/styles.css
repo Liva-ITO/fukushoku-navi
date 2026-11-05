@@ -828,3 +828,16 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .send-hint-title { margin: 0; font-weight: 700; font-size: 14px; }
 .send-hint .ai-box { width: 100%; }
 .send-hint-example { margin: 4px 0; }
+
+/* 回復期の「きょうのひとつ」 */
+.plan-head { margin: 0 0 8px; padding: 8px 12px; border-radius: 8px; background: var(--accent-soft); }
+.plan-step { margin: 10px 0 2px; font-size: 13px; }
+.plan-task { margin: 0 0 6px; font-size: 18px; font-weight: 700; line-height: 1.5; }
+.plan-easy-label { display: block; font-size: 13px; font-weight: 400; }
+.plan-easy { margin: 0 0 8px; padding: 6px 10px; border-left: 3px solid var(--line); color: var(--muted, #666); }
+.plan-ask { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.plan-results { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.plan-tomorrow { margin: 8px 0 4px; font-weight: 700; }
+.plan-tomorrow .muted { font-weight: 400; }
+.plan-up { margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); }
+.plan-demo { display: block; margin-top: 12px; }

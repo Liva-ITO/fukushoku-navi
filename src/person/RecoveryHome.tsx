@@ -2,6 +2,7 @@ import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import { whenOf, type Action, type State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
+import PlanCard from "./PlanCard";
 import { SelfReportAbout, SelfReportCard } from "./SelfReportCard";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -68,6 +69,9 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       )}
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
+
+      {/* リワークを使う人は、プログラムの中で負荷を上げていくので出さない */}
+      {(path === null || path === "self") && <PlanCard state={state} dispatch={dispatch} />}
 
       <section className="card">
         <h2>{RECOVERY.pathTitle}</h2>
