@@ -114,6 +114,7 @@ function AddAccount({ dispatch, onClose }: { dispatch: Dispatch<Action>; onClose
               </option>
             ))}
           </select>
+          <span className="muted">{ACCOUNTS.roleNote}</span>
         </label>
         <label className="hr-field">
           {ACCOUNTS.email}
