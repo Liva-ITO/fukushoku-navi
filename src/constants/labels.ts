@@ -1174,6 +1174,23 @@ export const AI_SUMMARY = {
   },
 };
 
+// 連絡を送る前の、伝え方のヒント（会社の画面）。AIは代わりに書かない
+export const AI_HINT = {
+  title: "なんて送ればいいか迷ったら",
+  scenes: { none: "とくになし", noReply: "返信がない", checkIn: "体調をうかがう", admin: "事務の連絡", report: "レポートを受け取った" },
+  button: "AIにヒントをもらう",
+  again: "もう一度ヒントをもらう",
+  loading: "考えています…",
+  note: "AI（Claude）に送るのは、段階・場面・返信がない日数と、いま書いている件名と本文だけです。本人の名前や、本人から届いた文は送りません。本文に、本人の体調のことなどを書きこみすぎないでください",
+  example: "例：",
+  after: "AIのヒントです。書くのは、送る人自身です",
+  errors: {
+    busy: "混み合っています。1分ほどおいて、もう一度押してください",
+    not_configured: "AIとの接続を準備しています",
+    failed: "ヒントを出せませんでした。少しおいて、もう一度押してください",
+  },
+};
+
 export const BOSS = {
   settingTitle: "本人との連絡の窓口",
   settingHr: "人事・産業保健スタッフ",

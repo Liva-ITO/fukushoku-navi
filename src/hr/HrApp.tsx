@@ -5,6 +5,7 @@ import Accounts from "./Accounts";
 import ReportDoc from "./ReportDoc";
 import Analytics from "./Analytics";
 import HistorySummary, { tlId } from "./HistorySummary";
+import { SendHint } from "./SendHint";
 import { daysSince } from "../data/demo";
 import { currentBossId, slotLabel, whenOf, type Action, type HrAccount, type OccOpinion, type OfferKey, type Slot, type State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
@@ -1616,6 +1617,7 @@ function SendMessage({
             <input type="checkbox" checked={noReply} onChange={(e) => setNoReply(e.target.checked)} />
             {HR.noReply}
           </label>
+          <SendHint stage={stage} boss={Boolean(by)} events={row?.events ?? []} title={title} text={text} />
           <button
             className="btn-primary send-row"
             disabled={!text.trim() || !title.trim()}

@@ -822,3 +822,9 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .ai-lead { margin: 4px 0 12px; line-height: 1.8; }
 .ai-todo { margin: 4px 0 8px; padding-left: 1.2em; }
 .ai-todo li { padding: 2px 0; }
+
+/* 連絡を送る前のヒント（AI） */
+.send-hint { margin: 12px 0; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 12px; display: grid; gap: 8px; justify-items: start; }
+.send-hint-title { margin: 0; font-weight: 700; font-size: 14px; }
+.send-hint .ai-box { width: 100%; }
+.send-hint-example { margin: 4px 0; }
