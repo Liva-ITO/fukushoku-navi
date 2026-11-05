@@ -6,7 +6,7 @@ import ReportDoc from "./ReportDoc";
 import Analytics from "./Analytics";
 import HistorySummary, { tlId } from "./HistorySummary";
 import { daysSince } from "../data/demo";
-import { currentBossId, type Action, type HrAccount, type OccOpinion, type State } from "../state/store";
+import { currentBossId, slotLabel, whenOf, type Action, type HrAccount, type OccOpinion, type OfferKey, type Slot, type State } from "../state/store";
 import { ConfirmButton } from "../person/parts";
 import { END_NOTICE_DAYS, bossEvents, bossTodos, daysUntil, hrRows, isIncoming, meetingsOf, sortTodos, type HrRow } from "./hrData";
 import { DEMO_TODAY, PERSON, type HrEvent, type HrTodo } from "../data/demo";
@@ -489,7 +489,6 @@ function EventTags({ e }: { e: HrEvent }) {
 
 // 面談の状態。会社との面談は人事が日程と実施を記録し、コーディネーターとの面談は支援機関からの報告で変わる
 function Meetings({ state, dispatch }: Props) {
-  const [date, setDate] = useState("");
   const list = meetingsOf(state);
   if (list.length === 0) return null;
   const c = state.companyMeeting;
@@ -509,19 +508,9 @@ function Meetings({ state, dispatch }: Props) {
         ))}
       </ul>
 
-      {c?.status === "applied" && (
-        <div className="meeting-action">
-          <label className="muted">
-            {HR.companyDate}
-            <input type="date" min={DEMO_TODAY} value={date} onChange={(e) => setDate(e.target.value)} />
-          </label>
-          <button className="btn-outline btn-small" disabled={!date} onClick={() => dispatch({ type: "scheduleCompanyMeeting", date })}>
-            {HR.companySchedule}
-          </button>
-        </div>
-      )}
+      {c?.status === "applied" && <OfferSlots offerKey="company" state={state} dispatch={dispatch} />}
       {c?.status === "scheduled" && c.date && state.live && (
-        <OccNotify name={state.live.name} date={c.date} state={state} dispatch={dispatch} company />
+        <OccNotify name={state.live.name} date={c.date} time={c.time} state={state} dispatch={dispatch} company />
       )}
       {c?.status === "scheduled" && (
         <div className="meeting-action">
@@ -530,10 +519,7 @@ function Meetings({ state, dispatch }: Props) {
           </button>
           <button
             className="btn-quiet btn-small"
-            onClick={() => {
-              setDate(c.date ?? "");
-              dispatch({ type: "rescheduleCompanyMeeting" });
-            }}
+            onClick={() => dispatch({ type: "rescheduleCompanyMeeting" })}
           >
             {HR.reschedule}
           </button>
@@ -570,7 +556,6 @@ function Meetings({ state, dispatch }: Props) {
 
 // 準備期：復職までの手順。順番は会社の設定で並べ替えるだけで、どこからでも押せる
 function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
-  const [occDate, setOccDate] = useState("");
   const [planDate, setPlanDate] = useState(state.returnPlan?.date ?? "");
   const [accommodation, setAccommodation] = useState(state.returnPlan?.accommodation ?? "");
   const occ = state.occMeeting;
@@ -603,27 +588,14 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
       <p className="muted">{HR.stepOccNote}</p>
       <OccMaterial state={state} dispatch={dispatch} />
       <IssuesRef row={row} />
-      {!occ && (
-        <div className="meeting-action">
-          <label className="muted">
-            {HR.companyDate}
-            <input type="date" min={DEMO_TODAY} value={occDate} onChange={(e) => setOccDate(e.target.value)} />
-          </label>
-          <button className="btn-outline btn-small" disabled={!occDate} onClick={() => dispatch({ type: "scheduleOccMeeting", date: occDate })}>
-            {HR.companySchedule}
-          </button>
-        </div>
-      )}
-      {occ?.status === "scheduled" && <OccNotify name={row.name} date={occ.date} state={state} dispatch={dispatch} />}
+      {!occ && <OfferSlots offerKey="occ" state={state} dispatch={dispatch} />}
+      {occ?.status === "scheduled" && <OccNotify name={row.name} date={occ.date} time={occ.time} state={state} dispatch={dispatch} />}
       {occ?.status === "scheduled" && (
         <div className="meeting-action">
           <OccDone dispatch={dispatch} />
           <button
             className="btn-quiet btn-small"
-            onClick={() => {
-              setOccDate(occ.date);
-              dispatch({ type: "rescheduleOccMeeting" });
-            }}
+            onClick={() => dispatch({ type: "rescheduleOccMeeting" })}
           >
             {HR.reschedule}
           </button>
@@ -1276,11 +1248,63 @@ function OccMaterial({ state, dispatch }: Props) {
 }
 
 // 産業医との面談の日を、本人に知らせる（例文を確かめてから送る）。本人の「連絡」タブに届く
-function OccNotify({ date, state, company = false }: { name: string; date: string; company?: boolean } & Props) {
+function OccNotify({ date, time, state, company = false }: { name: string; date: string; time?: string; company?: boolean } & Props) {
   // 日を決めると、本人の「連絡」に日程のお知らせが自動で届く。ここでは届いたことだけを出す
-  const t = company ? HR.companyNotifyTemplate(jpDate(date)) : HR.templatesPreReturn(jpDate(date))[0];
+  const t = company ? HR.companyNotifyTemplate(whenOf(date, time)) : HR.templatesPreReturn(whenOf(date, time))[0];
   const done = state.hrMessages.some((m) => m.title === t.title && m.body === t.text);
   return done ? <p className="done-note">{HR.occNotified}</p> : null;
+}
+
+// 面談の日程の候補を3つまで送る。本人が「連絡」で選ぶと、日程が決まる。どれも難しいときは、送り直す
+function OfferSlots({ offerKey, state, dispatch }: { offerKey: OfferKey } & Props) {
+  const L = HR.offer;
+  const empty: Slot = { date: "", time: L.times[3] };
+  const [slots, setSlots] = useState<Slot[]>([empty, empty, empty]);
+  const offer = state.offers[offerKey];
+  const ready = slots.filter((s) => s.date !== "");
+  const set = (i: number, s: Partial<Slot>) => setSlots(slots.map((x, j) => (j === i ? { ...x, ...s } : x)));
+
+  if (offer && !offer.declined)
+    return (
+      <div className="offer-box">
+        <p className="done-note">{L.sent}</p>
+        <ul className="list-dot">
+          {offer.slots.map((s) => (
+            <li key={s.date + s.time}>{slotLabel(s)}</li>
+          ))}
+        </ul>
+        <button className="btn-quiet btn-small" onClick={() => dispatch({ type: "cancelOffer", key: offerKey })}>
+          {L.cancel}
+        </button>
+      </div>
+    );
+  return (
+    <div className="offer-box">
+      {offer?.declined && <p className="offer-declined">{L.declined}</p>}
+      <p className="muted">{L.lead}</p>
+      {slots.map((s, i) => (
+        <div key={i} className="offer-row">
+          <span className="muted offer-label">{L.slot(i + 1)}</span>
+          <input type="date" min={DEMO_TODAY} value={s.date} onChange={(e) => set(i, { date: e.target.value })} aria-label={`${L.slot(i + 1)}の日`} />
+          <select value={s.time} onChange={(e) => set(i, { time: e.target.value })} aria-label={`${L.slot(i + 1)}の時間`}>
+            {L.times.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+      ))}
+      <button
+        className="btn-outline btn-small"
+        disabled={ready.length === 0}
+        onClick={() => {
+          dispatch({ type: "offerMeeting", key: offerKey, slots: ready });
+          setSlots([empty, empty, empty]);
+        }}
+      >
+        {L.send}
+      </button>
+    </div>
+  );
 }
 
 // 産業医との面談を実施済みにする。そのとき、産業医の意見を短く残す

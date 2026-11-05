@@ -382,6 +382,10 @@ details[open] > summary::after { content: "▲"; }
 .meeting-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
 .meeting-action { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
 .meeting-action input { margin-left: 6px; }
+.offer-box { margin: 8px 0; display: grid; gap: 6px; justify-items: start; }
+.offer-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.offer-label { min-width: 3em; }
+.offer-declined { margin: 0; font-weight: 700; }
 .demo-report { padding: 6px 8px; border: 1px dashed var(--line); border-radius: 8px; }
 
 /* 準備期：復職までの手順 */

@@ -57,6 +57,14 @@ export type BossInput = { name: string; email: string };
 export type MeetingLog = { date: string; at?: number; key: "psych" | "company" | "coordinator" | "occ"; who?: Who; status: "done" | "declined" };
 export type RegPatch = Partial<Pick<Invited, "name" | "dept" | "leaveStart" | "leaveEnd" | "email" | "bossId">>;
 export type Torisetsu = { reason: string; signs: string; actions: string; help: string };
+export type OfferKey = "company" | "occ";
+export type Slot = { date: string; time: string };
+export type MeetingOffer = { slots: Slot[]; msgId: string; declined: boolean };
+// 2026-11-12 + 14:00 → 11月12日（木）14:00
+export const slotLabel = (s: Slot) => {
+  const w = "日月火水木金土"[new Date(`${s.date}T00:00:00`).getDay()];
+  return `${Number(s.date.slice(5, 7))}月${Number(s.date.slice(8, 10))}日（${w}）${s.time}`;
+};
 export type OccOpinion = { verdict: "ok" | "conditional" | "notYet"; note: string };
 
 export type State = {
@@ -82,7 +90,9 @@ export type State = {
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
   // 会社との面談。人事が日程を決め、実施を記録する（産業医やほかの担当者とも共有するため）
-  companyMeeting: { status: "applied" | "scheduled" | "done"; date?: string } | null;
+  companyMeeting: { status: "applied" | "scheduled" | "done"; date?: string; time?: string } | null;
+  // 会社が送った面談の日程の候補（本人が選ぶ）。msgId は候補を送ったお知らせ
+  offers: Partial<Record<OfferKey, MeetingOffer>>;
   // 面談チケットの残り（会社全体）。人事が管理し、本人には数を見せない
   ticketsLeft: number;
   coordinatorMeeting: "applied" | "requested" | null;
@@ -110,7 +120,7 @@ export type State = {
   selfReports: SelfReport[];
   // リワークの施設から会社に届く月次レポート（出席の事実だけ）
   reworkReports: { month: string; days: number; rate: number; date: string }[];
-  occMeeting: { status: "scheduled" | "done"; date: string; opinion?: OccOpinion } | null;
+  occMeeting: { status: "scheduled" | "done"; date: string; time?: string; opinion?: OccOpinion } | null;
   // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
   occOpinions: (OccOpinion & { date: string; at?: number })[];
   meetingLog: MeetingLog[];
@@ -174,6 +184,7 @@ export const initialState: State = {
   recoveryJourneySeen: false,
   prepPath: null,
   companyMeeting: null,
+  offers: {},
   ticketsLeft: DEMO_TICKETS,
   coordinatorMeeting: null,
   coordWho: "coord",
@@ -242,7 +253,11 @@ export type Action =
   | { type: "markRecoveryJourneySeen" }
   | { type: "setPrepPath"; path: PrepPath | null }
   | { type: "applyCompanyMeeting" }
-  | { type: "scheduleCompanyMeeting"; date: string }
+  | { type: "scheduleCompanyMeeting"; date: string; time?: string }
+  | { type: "offerMeeting"; key: OfferKey; slots: Slot[] }
+  | { type: "cancelOffer"; key: OfferKey }
+  | { type: "pickOfferSlot"; key: OfferKey; index: number }
+  | { type: "declineOffer"; key: OfferKey }
   | { type: "finishCompanyMeeting" }
   | { type: "coordinatorReport"; report: "done" | "declined" }
   | { type: "offerSlots"; kind: MeetingKind }
@@ -252,7 +267,7 @@ export type Action =
   | { type: "refillTickets" }
   | { type: "askCoordinator" }
   | { type: "setReturnOrder"; order: ReturnOrder }
-  | { type: "scheduleOccMeeting"; date: string }
+  | { type: "scheduleOccMeeting"; date: string; time?: string }
   | { type: "finishOccMeeting"; opinion: OccOpinion }
   | { type: "receiveDoctorNote" }
   | { type: "undoDoctorNote" }
@@ -311,6 +326,8 @@ function slotDate(slot: string | null | undefined): string {
 }
 // 人事から本人へのお知らせを足す（面談の日程を決めたときなどに、自動で届く）
 const jpDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
+// 時間まで決まっているときは「11月12日（木）14:00」。日だけのときは「11月12日」
+export const whenOf = (date: string, time?: string) => (time ? slotLabel({ date, time }) : jpDate(date));
 function withHrMessage(state: State, t: { title: string; text: string; noReply: boolean }): State {
   return {
     ...state,
@@ -400,7 +417,41 @@ function reducer(state: State, action: Action): State {
       return { ...state, companyMeeting: { status: "applied" } };
     case "scheduleCompanyMeeting":
       // 日を決めたら、本人の「連絡」に日程のお知らせが届く
-      return withHrMessage({ ...state, companyMeeting: { status: "scheduled", date: action.date } }, HR.companyNotifyTemplate(jpDate(action.date)));
+      return withHrMessage(
+        { ...state, companyMeeting: { status: "scheduled", date: action.date, time: action.time } },
+        HR.companyNotifyTemplate(whenOf(action.date, action.time)),
+      );
+    case "offerMeeting": {
+      // 候補を送ると、本人の「連絡」に候補のお知らせが届き、そこで選べる
+      const next = withHrMessage(state, { title: HR.offer.title[action.key], text: HR.offer.text, noReply: false });
+      const msgId = next.hrMessages[next.hrMessages.length - 1].id;
+      return { ...next, offers: { ...state.offers, [action.key]: { slots: action.slots, msgId, declined: false } } };
+    }
+    case "cancelOffer":
+      return { ...state, offers: { ...state.offers, [action.key]: undefined } };
+    case "pickOfferSlot": {
+      const o = state.offers[action.key];
+      const slot = o?.slots[action.index];
+      if (!o || o.declined || !slot) return state;
+      // 選んだことが会社に届き、日程が決まる（決まったお知らせも本人に届く）
+      const picked = {
+        ...state,
+        offers: { ...state.offers, [action.key]: undefined },
+        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, at: Date.now(), kind: "reply" as const, body: CONSULT.pickedToHr(slotLabel(slot)) }],
+      };
+      return reducer(picked, action.key === "company"
+        ? { type: "scheduleCompanyMeeting", date: slot.date, time: slot.time }
+        : { type: "scheduleOccMeeting", date: slot.date, time: slot.time });
+    }
+    case "declineOffer": {
+      const o = state.offers[action.key];
+      if (!o || o.declined) return state;
+      return {
+        ...state,
+        offers: { ...state.offers, [action.key]: { ...o, declined: true } },
+        sentToHr: [...state.sentToHr, { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, at: Date.now(), kind: "reply" as const, body: CONSULT.noneToHr }],
+      };
+    }
     case "finishCompanyMeeting":
       return state.companyMeeting
         ? logMeeting(
@@ -468,7 +519,7 @@ function reducer(state: State, action: Action): State {
     case "setReturnOrder":
       return { ...state, returnOrder: action.order };
     case "scheduleOccMeeting":
-      return withHrMessage({ ...state, occMeeting: { status: "scheduled", date: action.date } }, HR.templatesPreReturn(jpDate(action.date))[0]);
+      return withHrMessage({ ...state, occMeeting: { status: "scheduled", date: action.date, time: action.time } }, HR.templatesPreReturn(whenOf(action.date, action.time))[0]);
     case "finishOccMeeting":
       return state.occMeeting
         ? {

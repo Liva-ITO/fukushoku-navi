@@ -1,6 +1,6 @@
 import { useState, type Dispatch } from "react";
 import { PREP, STAGE_LABELS, greeting } from "../constants/labels";
-import type { Action, State } from "../state/store";
+import { whenOf, type Action, type State } from "../state/store";
 import { CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import { SelfReportCard } from "./SelfReportCard";
 import { TorisetsuCard } from "./Torisetsu";
@@ -51,7 +51,7 @@ function ReturnSteps({ state }: { state: State }) {
     occ: {
       name: PREP.steps.occ,
       done: occ?.status === "done",
-      note: occ?.status === "done" ? PREP.occDone : occ ? PREP.occDate(japaneseDate(occ.date)) : PREP.occWait,
+      note: occ?.status === "done" ? PREP.occDone : occ ? PREP.occDate(whenOf(occ.date, occ.time)) : PREP.occWait,
     },
     decision: {
       name: PREP.steps.decision,

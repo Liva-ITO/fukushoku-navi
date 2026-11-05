@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch } from "react";
 import { COMMON, CONSULT, BOSS, CONTACT, WATCH } from "../constants/labels";
-import type { Action, State } from "../state/store";
+import { slotLabel, type Action, type OfferKey, type State } from "../state/store";
 import { SlotPicker, WishCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -67,7 +67,11 @@ export default function ContactTab({ state, dispatch }: Props) {
                 {open && (
                   <div className="notice-body">
                     <p>{m.body}</p>
-                    <ReplyArea key={m.id} stage={state.stage} dispatch={dispatch} />
+                    {offerOf(state, m.id) ? (
+                      <OfferPicker offerKey={offerOf(state, m.id) as OfferKey} state={state} dispatch={dispatch} />
+                    ) : (
+                      <ReplyArea key={m.id} stage={state.stage} dispatch={dispatch} />
+                    )}
                   </div>
                 )}
               </li>
@@ -97,6 +101,53 @@ export default function ContactTab({ state, dispatch }: Props) {
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+// このお知らせが、いま選べる会社からの日程の候補なら、その種類（会社との面談／産業医との面談）
+const offerOf = (state: State, msgId: string): OfferKey | null =>
+  (["company", "occ"] as const).find((k) => state.offers[k]?.msgId === msgId) ?? null;
+
+// 会社から届いた日程の候補を選ぶ。選ぶと会社に届き、日程が決まる
+function OfferPicker({ offerKey, state, dispatch }: { offerKey: OfferKey; state: State; dispatch: Dispatch<Action> }) {
+  const [picked, setPicked] = useState<number | null>(null);
+  const [none, setNone] = useState(false);
+  const offer = state.offers[offerKey];
+  if (!offer) return null;
+  if (offer.declined) return <p className="done-note">{CONSULT.noneSent}</p>;
+  if (picked !== null || none)
+    return (
+      <div className="confirm slot-confirm">
+        <p>{picked !== null ? CONSULT.pickConfirm(slotLabel(offer.slots[picked])) : CONSULT.noneFitConfirm}</p>
+        <div className="confirm-actions">
+          <button
+            className="btn-primary"
+            onClick={() => {
+              if (picked !== null) dispatch({ type: "pickOfferSlot", key: offerKey, index: picked });
+              else dispatch({ type: "declineOffer", key: offerKey });
+              setPicked(null);
+              setNone(false);
+            }}
+          >
+            {picked !== null ? CONSULT.pickYes : CONSULT.noneFitYes}
+          </button>
+          <button className="btn-quiet" onClick={() => { setPicked(null); setNone(false); }}>
+            {CONSULT.no}
+          </button>
+        </div>
+      </div>
+    );
+  return (
+    <div className="slots">
+      {offer.slots.map((s, i) => (
+        <button key={s.date + s.time} className="btn-outline slot" onClick={() => setPicked(i)}>
+          {slotLabel(s)}
+        </button>
+      ))}
+      <button className="btn-outline slot slot-none" onClick={() => setNone(true)}>
+        {CONSULT.noneFit}
+      </button>
     </div>
   );
 }

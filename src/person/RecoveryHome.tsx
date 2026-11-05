@@ -1,6 +1,6 @@
 import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
-import type { Action, State } from "../state/store";
+import { whenOf, type Action, type State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import { SelfReportAbout, SelfReportCard } from "./SelfReportCard";
 
@@ -63,7 +63,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
             dispatch({ type: "openHrMessage", id: m?.id ?? null, goContact: true });
           }}
         >
-          {RECOVERY.meetCompanyTop(japaneseDate(state.companyMeeting.date))} ›
+          {RECOVERY.meetCompanyTop(whenOf(state.companyMeeting.date, state.companyMeeting.time))} ›
         </button>
       )}
 
@@ -197,7 +197,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
                 {state.companyMeeting.status === "done"
                   ? RECOVERY.meetCompanyDone
                   : state.companyMeeting.status === "scheduled" && state.companyMeeting.date
-                    ? RECOVERY.meetCompanyScheduled(japaneseDate(state.companyMeeting.date))
+                    ? RECOVERY.meetCompanyScheduled(whenOf(state.companyMeeting.date, state.companyMeeting.time))
                     : RECOVERY.meetCompanyApplied}
               </p>
             ) : needReport ? null : (

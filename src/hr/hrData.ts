@@ -164,7 +164,8 @@ export function meetingsOf(state: State): Meeting[] {
     m.push({
       key: "company",
       name: HR.meetingName.company,
-      status: c.status === "done" ? st.done : c.status === "scheduled" ? st.scheduled(monthDay(c.date ?? "")) : st.applied,
+      // 候補を送ったあとは「日程を調整中」
+      status: c.status === "done" ? st.done : c.status === "scheduled" ? st.scheduled(monthDay(c.date ?? "")) : state.offers.company ? st.adjusting : st.applied,
     });
   const o = state.occMeeting;
   if (o) m.push({ key: "occ", name: HR.meetingName.occ, status: o.status === "done" ? st.done : st.scheduled(monthDay(o.date)) });
