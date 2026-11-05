@@ -645,7 +645,8 @@ export const HR = {
     stage: "段階",
     days: "休職日数",
     end: "休職期間の満了日",
-    rework: "リワーク",
+    // 「リワークあり／なし」に見えないよう、2つの道を同じ重さで並べる
+    rework: "準備の進め方",
     news: "新着",
   },
   sortHint: "見出しを押すと並び替えられます",
@@ -655,7 +656,7 @@ export const HR = {
   newTag: "新着",
   newTitle: "新しく届いたもの",
   reworkNone: "未定",
-  reworkSelf: "自分で準備",
+  reworkSelf: "自分で準備する",
 
 
   // デモの本人（本人画面と連動）の「対応が必要なこと」

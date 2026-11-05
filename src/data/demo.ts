@@ -127,7 +127,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     stage: "recovery",
     leaveStart: "2026-07-13",
     leaveEnd: "2027-01-12",
-    rework: "自分で準備",
+    rework: "自分で準備する",
     todo: { key: "d-company", text: "会社との面談の申し込みがありました（準備期への切り替えの相談）", date: "2026-11-02" },
     seen: 1,
     events: [
