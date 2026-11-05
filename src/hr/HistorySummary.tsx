@@ -1,28 +1,27 @@
 import { useState } from "react";
-import { AI_SUMMARY } from "../constants/labels";
+import { AI_SUMMARY, STAGE_LABELS, type Stage } from "../constants/labels";
 import { SUMMARY_URL } from "../constants/ai";
-import type { HrEvent } from "../data/demo";
+import { DEMO_TODAY, type HrEvent } from "../data/demo";
 
 type Item = { text: string; refs: number[] };
-type Summary = { flow: Item[]; fromPerson: Item[]; fromCompany: Item[]; open: Item[] };
+type Summary = { summary: string; todo: Item[] };
 type Audience = "hr" | "boss";
 // reveal(n)：経緯の一覧で、新しいほうから n 件を出す（まとめの日付から、隠れている経緯に移るため）
 type Props = { events: HrEvent[]; audience: Audience; rowId: string; reveal?: (n: number) => void };
 
 const MAX_EVENTS = 200;
 const MAX_BODY = 600;
-const SECTIONS = ["flow", "fromPerson", "fromCompany", "open"] as const;
 
 // 同じ経緯なら、作り直さずに使い回す（新しいやり取りが届いたら作り直せる）
 const cache = new Map<string, Summary>();
 
 export const tlId = (audience: Audience, index: number) => `tl-${audience}-${index}`;
 
-// 経緯のまとめ（AI）。見ている人が、もうこの画面で見られる経緯だけを送る。
-// 本人の日記や、上司に見せないもの（体調の報告など）は、もとの一覧に入っていないので送られない
+// 経緯の要約。段階の流れと期間はデータから計算し（AIは使わない）、要約といま会社がすることだけをAIに頼む。
+// AIに送るのは、見ている人が、もうこの画面で見られる経緯だけ。本人の日記や、上司に見せないものは、もとの一覧に入っていないので送られない
 export default function HistorySummary(props: Props) {
   const last = props.events[props.events.length - 1];
-  const key = `${props.audience}:${props.rowId}:${props.events.length}:${last?.date ?? ""}:${last?.body ?? ""}`;
+  const key = `${props.audience}:${props.rowId}:${props.events.length}:${last?.date ?? ""}:${last?.body ?? ""}:${last?.status ?? ""}`;
   return <Inner key={key} cacheKey={key} {...props} />;
 }
 
@@ -32,8 +31,11 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
   const [error, setError] = useState<string | null>(null);
   if (events.length === 0) return null;
 
-  // 多すぎるときは新しいほうから送る。番号は、もとの一覧の番号に戻して使う
-  const offset = Math.max(0, events.length - MAX_EVENTS);
+  // 会社が「確認した」を押した記録は、要約には要らないので送らない。番号は、もとの一覧の番号に戻して使う
+  const sent = events
+    .map((e, i) => ({ e, i }))
+    .filter(({ e }) => e.kind !== "done")
+    .slice(-MAX_EVENTS);
 
   const run = async () => {
     setLoading(true);
@@ -45,7 +47,7 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
         body: JSON.stringify({
           audience,
           // 人の名前は送らない（上司が送った連絡は「上司」とだけ送る）
-          events: events.slice(offset).map((e) => ({
+          events: sent.map(({ e }) => ({
             date: e.date,
             kind: e.kind,
             body: (e.by ? e.body.replace(`（${e.by}）`, "") : e.body).slice(0, MAX_BODY),
@@ -55,7 +57,7 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { summary?: Summary; error?: string };
-      if (!res.ok || !data.summary) {
+      if (!res.ok || !data.summary || typeof data.summary.summary !== "string") {
         setError(AI_SUMMARY.errors[data.error as keyof typeof AI_SUMMARY.errors] ?? AI_SUMMARY.errors.failed);
         return;
       }
@@ -68,12 +70,11 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
     }
   };
 
-  const jump = (ref: number, retried = false) => {
-    const index = ref + offset;
+  const jump = (index: number, retried = false) => {
     // 隠れている（前の経緯の）ときは、そこまで出してから移る
     if (!retried && !document.getElementById(tlId(audience, index))) {
       reveal?.(events.length - index);
-      setTimeout(() => jump(ref, true), 50);
+      setTimeout(() => jump(index, true), 50);
       return;
     }
     const el = document.getElementById(tlId(audience, index));
@@ -87,6 +88,7 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
 
   return (
     <div className="ai-summary">
+      <StageLine events={events} />
       {!summary && (
         <>
           <button className="btn-outline btn-small" onClick={run} disabled={!ready || loading}>
@@ -99,30 +101,32 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
       {summary && (
         <div className="ai-box">
           <p className="ai-title">{AI_SUMMARY.title}</p>
-          {SECTIONS.map((s) => (
-            <div key={s} className="ai-sec">
-              <p className="ai-sec-title">{AI_SUMMARY.sections[s]}</p>
-              {summary[s].length === 0 ? (
-                <p className="muted">{AI_SUMMARY.none}</p>
-              ) : (
-                <ul>
-                  {summary[s].map((it, i) => (
-                    <li key={i}>
-                      {it.text}
-                      {it.refs.map((r) => {
-                        const e = events[r + offset];
-                        return e ? (
-                          <button key={r} className="ai-ref" onClick={() => jump(r)} aria-label={AI_SUMMARY.refLabel(e.date)}>
-                            {Number(e.date.slice(5, 7))}/{Number(e.date.slice(8, 10))}
-                          </button>
-                        ) : null;
-                      })}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
+          <p className="ai-lead">{summary.summary}</p>
+          <p className="ai-sec-title">{AI_SUMMARY.todoTitle}</p>
+          {summary.todo.length === 0 ? (
+            <p className="muted">{AI_SUMMARY.none}</p>
+          ) : (
+            <ul className="ai-todo">
+              {summary.todo.map((it, i) => {
+                // 根拠は、いちばん新しいものを1つだけ出す（日付が並ぶと読みにくいため）
+                const ref = it.refs
+                  .map((r) => sent[r]?.i)
+                  .filter((x): x is number => x !== undefined)
+                  .sort((a, b) => b - a)[0];
+                const e = ref === undefined ? undefined : events[ref];
+                return (
+                  <li key={i}>
+                    {it.text}
+                    {e && ref !== undefined && (
+                      <button className="ai-ref" onClick={() => jump(ref)} aria-label={AI_SUMMARY.refLabel(e.date)}>
+                        {Number(e.date.slice(5, 7))}/{Number(e.date.slice(8, 10))}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           <p className="muted ai-note">{AI_SUMMARY.after}</p>
           <button className="btn-quiet btn-small" onClick={run} disabled={loading}>
             {loading ? AI_SUMMARY.loading : AI_SUMMARY.redo}
@@ -130,5 +134,40 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
         </div>
       )}
     </div>
+  );
+}
+
+// 段階の流れと、それぞれの期間（データから計算する）。戻ったときは「戻り」と出す
+const ORDER: Stage[] = ["acute", "recovery", "preReturn", "afterReturn"];
+const stageOf = (label: string): Stage | undefined => ORDER.find((s) => STAGE_LABELS[s] === label);
+const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00`) - Date.parse(`${a}T00:00:00`)) / 86_400_000);
+
+function StageLine({ events }: { events: HrEvent[] }) {
+  // 同じ日に何度も切り替えたときは、その日の最後の段階だけを使う
+  const raw = events.filter((e) => e.kind === "stage" && stageOf(e.body));
+  const list = raw.filter((e, i) => raw[i + 1]?.date !== e.date);
+  if (list.length === 0) return null;
+  return (
+    <p className="stage-line">
+      <span className="ai-sec-title">{AI_SUMMARY.stageTitle}</span>
+      {list.map((e, i) => {
+        const now = i === list.length - 1;
+        const end = now ? DEMO_TODAY : list[i + 1].date;
+        const d = Math.max(now ? 1 : 0, daysBetween(e.date, end));
+        const back = i > 0 && ORDER.indexOf(stageOf(e.body) as Stage) < ORDER.indexOf(stageOf(list[i - 1].body) as Stage);
+        return (
+          <span key={i} className={now ? "stage-seg stage-seg-now" : "stage-seg"}>
+            {i > 0 && (
+              <span className="stage-arrow" aria-hidden="true">
+                →
+              </span>
+            )}
+            {e.body}
+            {back && <span className="stage-back">{AI_SUMMARY.back}</span>}
+            <span className="muted">（{now ? AI_SUMMARY.elapsed(d) : AI_SUMMARY.span(d)}）</span>
+          </span>
+        );
+      })}
+    </p>
   );
 }
