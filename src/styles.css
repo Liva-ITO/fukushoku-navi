@@ -45,7 +45,8 @@ button { font: inherit; cursor: pointer; }
   display: flex; flex-direction: column;
   background: var(--surface); border-radius: 28px;
   box-shadow: 0 8px 30px rgba(60, 50, 30, .08);
-  overflow: hidden;
+  /* hidden だと下のナビの sticky が効かないので clip（角を丸く切るだけ） */
+  overflow: clip;
 }
 .phone-header { padding: 16px 20px 4px; }
 .app-name { font-size: 13px; color: var(--muted); }
@@ -53,6 +54,9 @@ button { font: inherit; cursor: pointer; }
 .tab-bar {
   display: grid; grid-template-columns: repeat(5, 1fr);
   border-top: 1px solid var(--line);
+  /* パソコンで見るときも、スクロールせずに押せるよう、画面の下に張りつける（スマホ幅は下で fixed にする） */
+  position: sticky; bottom: 0; z-index: 4;
+  background: var(--surface);
 }
 .tab-bar button {
   border: 0; background: none; padding: 12px 0; font-size: 12px; color: var(--muted);
@@ -163,6 +167,7 @@ details[open] > summary::after { content: "▲"; }
 
 /* 休息モード：色を落として静かにする */
 .phone-rest { background: #f7f5f1; }
+.phone-rest .tab-bar { background: #f7f5f1; }
 .rest-note { color: var(--muted); margin: 0 0 20px; }
 .btn-back { display: block; margin: 8px auto 0; }
 
