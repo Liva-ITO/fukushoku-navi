@@ -7,7 +7,37 @@ import type { Action, State } from "../state/store";
 const L = RECOVERY.report;
 const shortDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
 
-// 会社に出すレポート（自分で準備する人）。睡眠と外出は日記から自動でまとめ、残りは本人が書く。
+// 会社に出すレポートの説明（自分で準備するときに の中）。なぜ出すのかと、何を書くのか。作るのは「次の段階へ」から
+export function SelfReportAbout({ state }: { state: State }) {
+  const last = state.selfReports[state.selfReports.length - 1];
+  return (
+    <div className="self-report">
+      <p className="path-group">{L.title}</p>
+      {last && <p className="done-note">{L.sent(shortDate(last.date))}</p>}
+      <details className="rework-about">
+        <summary>{L.aboutOpen}</summary>
+        {L.aboutWhy.map((l) => (
+          <p key={l}>{l}</p>
+        ))}
+        <p className="path-group">{L.aboutAuto}</p>
+        <ul className="list-dot">
+          {L.aboutAutoItems.map((l) => (
+            <li key={l}>{l}</li>
+          ))}
+        </ul>
+        <p className="path-group">{L.aboutWrite}</p>
+        <ul className="list-dot">
+          {L.aboutWriteItems.map((l) => (
+            <li key={l}>{l}</li>
+          ))}
+        </ul>
+        <p className="muted">{L.aboutWhere}</p>
+      </details>
+    </div>
+  );
+}
+
+// 会社に出すレポートを作る（次の段階へ の中）。睡眠と外出は日記から自動でまとめ、残りは本人が書く。
 // 書く → 会社に届く内容を見る → 送る。送ったものだけが会社に届く
 export function SelfReportCard({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
   const last = state.selfReports[state.selfReports.length - 1];
@@ -22,8 +52,6 @@ export function SelfReportCard({ state, dispatch }: { state: State; dispatch: Di
 
   return (
     <div className="self-report" id="self-report">
-      <p className="path-group">{L.title}</p>
-      <p className="muted">{L.note}</p>
       {last && !open && <p className="done-note">{L.sent(shortDate(last.date))}</p>}
       {!open ? (
         <button className="btn-outline" onClick={() => setOpen(true)}>

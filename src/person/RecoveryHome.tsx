@@ -2,7 +2,7 @@ import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import type { Action, State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
-import { SelfReportCard } from "./SelfReportCard";
+import { SelfReportAbout, SelfReportCard } from "./SelfReportCard";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -15,11 +15,17 @@ const japaneseDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice
 export default function RecoveryHome({ state, dispatch }: Props) {
   const path = state.prepPath;
   // 会社がレポートを準備期に進む条件にしているときは、送るまで会社との面談を申し込めない
-  const needReport = state.prepConds.selfReport && state.selfReports.length === 0;
+  const reportRequired = state.prepConds.selfReport;
+  const needReport = reportRequired && state.selfReports.length === 0;
+  // 「レポートを書けそう」にチェックがついたら、レポートを作るボタンを出す
+  const canWriteReport = state.recoveryChecks.includes(RECOVERY.reportItem);
   const nextItems =
     path === null ? RECOVERY.next.none : path === "self" ? RECOVERY.next.self : RECOVERY.next.rework;
   const noteKey = path === null ? "none" : path === "self" ? "self" : "rework";
   const allChecked = nextItems.every((i) => state.recoveryChecks.includes(i));
+  // 道すじの「いまここ」：チェックがそろう → （会社がレポートを求めていれば）レポートを送る → 会社と面談
+  const steps = reportRequired ? RECOVERY.nextSteps.withReport : RECOVERY.nextSteps.noReport;
+  const stepNow = !allChecked ? 0 : needReport ? 1 : steps.length - 1;
   // 準備の進め方は2段階：まず「リワークを使う／自分で準備する」の2つ。リワークを押したら、通う／オンラインを開く
   const [reworkOpen, setReworkOpen] = useState(false);
 
@@ -135,7 +141,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
               ),
             )}
           </ul>
-          <SelfReportCard state={state} dispatch={dispatch} />
+          <SelfReportAbout state={state} />
           <div className="next-step">
             <p className="muted">{RECOVERY.selfConsult}</p>
             <button className="btn-outline" onClick={() => dispatch({ type: "setTab", tab: "consult" })}>
@@ -150,6 +156,15 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       {path === "self" && (
       <details className="card card-quiet" open={state.companyMeeting !== null || undefined}>
         <summary>{RECOVERY.nextTitle}</summary>
+        <p className="muted">{RECOVERY.nextLead}</p>
+        <ol className="next-steps">
+          {steps.map((s, i) => (
+            <li key={s} className={i === stepNow ? "step-now" : i < stepNow ? "step-done" : undefined}>
+              {s}
+              {i === stepNow && <span className="tag-soft">{RECOVERY.nextHere}</span>}
+            </li>
+          ))}
+        </ol>
         <ul className="list-plain">
           {nextItems.map((item) => (
             <li key={item}>
@@ -164,7 +179,14 @@ export default function RecoveryHome({ state, dispatch }: Props) {
             </li>
           ))}
         </ul>
-        {allChecked && RECOVERY.nextAllDone[noteKey] && <p className="next-note">{RECOVERY.nextAllDone[noteKey]}</p>}
+        {/* レポートを書けそうになったら、ここで作れる */}
+        {path === "self" && canWriteReport && !state.companyMeeting && (
+          <div className="next-step">
+            <p className="path-group">{RECOVERY.report.title}</p>
+            <SelfReportCard state={state} dispatch={dispatch} />
+          </div>
+        )}
+        {allChecked && !needReport && RECOVERY.nextAllDone[noteKey] && <p className="next-note">{RECOVERY.nextAllDone[noteKey]}</p>}
         <p className="muted next-note">{RECOVERY.nextNote[noteKey]}</p>
 
         {/* 自分で準備する人は、ここから会社との面談を申し込む */}
@@ -178,15 +200,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
                     ? RECOVERY.meetCompanyScheduled(japaneseDate(state.companyMeeting.date))
                     : RECOVERY.meetCompanyApplied}
               </p>
-            ) : needReport ? (
-              // 会社がレポートを条件にしているときは、送ってからでないと申し込めない
-              <>
-                <p className="muted">{RECOVERY.report.needFirst}</p>
-                <button className="btn-outline" onClick={() => document.getElementById("self-report")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
-                  {RECOVERY.report.goReport}
-                </button>
-              </>
-            ) : (
+            ) : needReport ? null : (
               <>
                 <p className="muted">{RECOVERY.meetCompanyNote}</p>
                 <ConfirmButton
