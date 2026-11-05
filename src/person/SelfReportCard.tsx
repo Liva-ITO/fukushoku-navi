@@ -15,10 +15,13 @@ export function SelfReportAbout({ state }: { state: State }) {
       <p className="path-group">{L.title}</p>
       {last && <p className="done-note">{L.sent(shortDate(last.date))}</p>}
       <details className="rework-about">
-        <summary>{L.aboutOpen}</summary>
+        <summary>{L.aboutWhyTitle}</summary>
         {L.aboutWhy.map((l) => (
           <p key={l}>{l}</p>
         ))}
+      </details>
+      <details className="rework-about">
+        <summary>{L.aboutWhatTitle}</summary>
         <p className="path-group">{L.aboutAuto}</p>
         <ul className="list-dot">
           {L.aboutAutoItems.map((l) => (
@@ -31,8 +34,16 @@ export function SelfReportAbout({ state }: { state: State }) {
             <li key={l}>{l}</li>
           ))}
         </ul>
-        <p className="muted">{L.aboutWhere}</p>
       </details>
+      <details className="rework-about">
+        <summary>{L.aboutTipsTitle}</summary>
+        <ul className="list-dot">
+          {L.aboutTips.map((l) => (
+            <li key={l}>{l}</li>
+          ))}
+        </ul>
+      </details>
+      <p className="muted">{L.aboutWhere}</p>
     </div>
   );
 }
