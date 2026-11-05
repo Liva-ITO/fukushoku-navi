@@ -25,7 +25,8 @@ export default function Accounts({ state, dispatch }: Props) {
           </tr>
         </thead>
         <tbody>
-          {state.hrAccounts.map((a) => {
+          {/* 窓口が人事の会社では、上司のアカウントは使わないので出さない */}
+          {state.hrAccounts.filter((a) => a.role !== "boss" || state.contactBy === "boss").map((a) => {
             // 最後の管理者は、スタッフにしたり外したりできない
             const locked = a.role === "admin" && admins <= 1;
             return (

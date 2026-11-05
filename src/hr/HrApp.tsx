@@ -1037,7 +1037,7 @@ function RegistrationCard({ row, state, dispatch }: { row: HrRow } & Props) {
             {byBoss && (
               <div>
                 <dt>{BOSS.regLabel}</dt>
-                <dd>{boss ? `${boss.name}（${boss.email ?? ""}）` : BOSS.regNone}</dd>
+                <dd>{boss ? (boss.email ? `${boss.name}（${boss.email}）` : boss.name) : BOSS.regNone}</dd>
               </div>
             )}
           </dl>

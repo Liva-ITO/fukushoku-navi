@@ -807,11 +807,18 @@ function reducer(state: State, action: Action): State {
 }
 
 // 見本のモードでは、最初から本人（社員A）が登録済みで始めた状態にする。段階はデモ操作で自由に切り替えられる
+// 見本の上司（架空）。窓口を「直属の上司」に切り替えたら、すぐ上司の画面も見られるように、見本の本人の担当にしておく
+const SAMPLE_BOSS: HrAccount = { id: "bs1", name: "上司A", position: BOSS.position, role: "boss" };
+function withSampleBoss(s: State): State {
+  if (!s.live || s.live.bossId || s.hrAccounts.some((a) => a.role === "boss")) return s;
+  return { ...s, hrAccounts: [...s.hrAccounts, SAMPLE_BOSS], live: { ...s.live, bossId: SAMPLE_BOSS.id } };
+}
 function startState(): State {
   if (!BROWSE) return initialState;
   return {
     ...initialState,
-    live: SAMPLE_PERSON,
+    hrAccounts: [...initialState.hrAccounts, SAMPLE_BOSS],
+    live: { ...SAMPLE_PERSON, bossId: SAMPLE_BOSS.id },
     personStarted: true,
     stageHistory: [{ date: SAMPLE_PERSON.leaveStart, stage: "acute" }],
     hrMessages: INITIAL_HR_MESSAGES,
@@ -852,7 +859,8 @@ function load(): State {
   } catch {
     // 保存できない環境でも、最初の状態で動かす
   }
-  return s;
+  // 見本の上司を足す前に保存した見本にも、上司を足す
+  return BROWSE ? withSampleBoss(s) : s;
 }
 
 export function useDemoStore() {
