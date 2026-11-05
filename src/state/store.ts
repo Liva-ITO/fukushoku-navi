@@ -522,6 +522,8 @@ function reducer(state: State, action: Action): State {
         coordSchedule: null,
       };
     case "refillTickets": {
+      // 補充できるのは管理者だけ（画面だけでなくここでも止める）
+      if (state.hrRole !== "admin") return state;
       // 待っているリクエストは、補充したら受け付ける（チケットを1枚使う）
       const waiting = state.coordinatorMeeting === "requested" && state.coordinatorReport === null;
       return waiting

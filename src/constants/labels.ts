@@ -617,6 +617,7 @@ export const HR = {
   ticketsUnit: (n: number) => `${n}枚`,
   refill: "5枚補充する",
   refillTodo: "チケットを補充する",
+  refillAdminOnly: "補充できるのは管理者です",
   refillConfirm: "面談チケットを5枚補充します。待っているリクエストがあれば、受け付けられます",
   refillYes: "補充する",
   ticketsNote: "本人には枚数を見せていません。残りがないときは、本人からは「リクエスト」として届きます",

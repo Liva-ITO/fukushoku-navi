@@ -134,7 +134,9 @@ function TodoHere({ row, section, dispatch }: { row: HrRow; section: string; dis
 // リクエストに人事ができるのは、チケットを補充することだけ（補充すると受け付けられる）
 const REQUEST_KEY = "a-coord-req";
 
-function RefillButton({ label, dispatch }: { label: string; dispatch: Dispatch<Action> }) {
+// チケットの補充は費用がかかるので、管理者だけ。スタッフには、管理者に頼むよう出す
+function RefillButton({ label, state, dispatch }: { label: string } & Props) {
+  if (state.hrRole !== "admin") return <span className="muted refill-admin">{HR.refillAdminOnly}</span>;
   return (
     <ConfirmButton
       quiet
@@ -213,7 +215,7 @@ function HrList({ rows: unsorted, state, dispatch }: { rows: HrRow[] } & Props) 
           <p className="tile-label">{HR.tickets}</p>
           <div className="tile-row">
             <p className="tile-value">{HR.ticketsUnit(state.ticketsLeft)}</p>
-            <RefillButton label={HR.refill} dispatch={dispatch} />
+            <RefillButton label={HR.refill} state={state} dispatch={dispatch} />
           </div>
           <p className="muted">{HR.ticketsNote}</p>
         </div>
@@ -407,7 +409,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
               <li key={todo.key} className="todo-detail">
                 <TodoText todo={todo} />
                 {todo.key === REQUEST_KEY ? (
-                  <RefillButton label={HR.refillTodo} dispatch={dispatch} />
+                  <RefillButton label={HR.refillTodo} state={state} dispatch={dispatch} />
                 ) : (
                   <button className="btn-outline btn-small" onClick={() => goTo(todoTarget(todo.key, row.live))}>
                     {HR.todoGo} ›
