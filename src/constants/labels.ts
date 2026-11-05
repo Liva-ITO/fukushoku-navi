@@ -1154,8 +1154,8 @@ export const AI_SUMMARY = {
   title: "要約（AI）",
   // 段階の流れと期間は、データから計算して出す（AIは使わない）
   stageTitle: "段階",
-  span: (d: number) => (d < 30 ? `${d}日` : `${(d / 30.4).toFixed(1)}か月`),
-  elapsed: (d: number) => `${((d: number) => (d < 30 ? `${d}日` : `${(d / 30.4).toFixed(1)}か月`))(d)}経過`,
+  span: (d: number) => (d === 0 ? "1日未満" : d < 30 ? `${d}日` : `${(d / 30.4).toFixed(1)}か月`),
+  elapsed: (d: number) => `${((d: number) => (d === 0 ? "1日未満" : d < 30 ? `${d}日` : `${(d / 30.4).toFixed(1)}か月`))(d)}経過`,
   back: "（戻り）",
   todoTitle: "いま会社がすること",
   none: "とくにありません",

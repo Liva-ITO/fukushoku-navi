@@ -143,9 +143,8 @@ const stageOf = (label: string): Stage | undefined => ORDER.find((s) => STAGE_LA
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00`) - Date.parse(`${a}T00:00:00`)) / 86_400_000);
 
 function StageLine({ events }: { events: HrEvent[] }) {
-  // 同じ日に何度も切り替えたときは、その日の最後の段階だけを使う
-  const raw = events.filter((e) => e.kind === "stage" && stageOf(e.body));
-  const list = raw.filter((e, i) => raw[i + 1]?.date !== e.date);
+  // 同じ日に切り替えた段階も、通った段階として残す（期間は「1日未満」）
+  const list = events.filter((e) => e.kind === "stage" && stageOf(e.body));
   if (list.length === 0) return null;
   return (
     <p className="stage-line">
