@@ -794,3 +794,19 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .boss-too-many { margin: 6px 0; font-weight: 700; color: #8a5a1a; }
 .boss-invite { margin: 12px 0; }
 .contact-who { margin: -4px 0 12px; }
+
+/* 段階が進んだときのお祝い。段階ごとに明るさを変える（回復期はやわらかく、準備期は明るく、復職はいちばん華やかに） */
+.celebrate {
+  margin: 12px 0; padding: 32px 22px 24px; border-radius: 20px; text-align: center;
+  display: grid; gap: 4px; animation: celebrate-in .5s ease-out;
+}
+.celebrate p { margin: 0 0 10px; line-height: 1.8; }
+.celebrate .btn-wide { margin-top: 12px; }
+.celebrate-mark { font-size: 56px; margin: 0 0 4px !important; line-height: 1.2 !important; }
+.celebrate-title { font-size: 21px; margin: 0 0 14px; line-height: 1.5; white-space: pre-line; }
+.celebrate-recovery { background: #eef5ee; }
+.celebrate-preReturn { background: #fdf4dc; }
+.celebrate-afterReturn { background: linear-gradient(160deg, #fde9d6, #fdf4dc 55%, #eef5ee); }
+.celebrate-afterReturn .celebrate-title { font-size: 23px; }
+@keyframes celebrate-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .celebrate { animation: none; } }

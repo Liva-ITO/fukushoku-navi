@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ABOUT, APP_NAME, COMMON, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
+import { ABOUT, APP_NAME, CELEBRATE, COMMON, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
 import JourneySheet from "./JourneySheet";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
@@ -106,6 +106,10 @@ export default function PersonApp({ state, dispatch }: Props) {
         <div className="phone-body">
           <Welcome name={state.live.name} dispatch={dispatch} />
         </div>
+      ) : state.celebrate ? (
+        <div className="phone-body">
+          <Celebrate stage={state.celebrate} onClose={() => dispatch({ type: "closeCelebrate" })} />
+        </div>
       ) : (
       <>
       <div className="phone-body">
@@ -132,6 +136,27 @@ export default function PersonApp({ state, dispatch }: Props) {
       </nav>
       </>
       )}
+    </div>
+  );
+}
+
+// 段階が進んだときのお祝い。閉じると、その段階のホームになる
+function Celebrate({ stage, onClose }: { stage: keyof typeof CELEBRATE; onClose: () => void }) {
+  const c = CELEBRATE[stage];
+  return (
+    <div className={`celebrate celebrate-${stage}`} role="dialog" aria-modal="true" aria-labelledby="celebrate-title">
+      <p className="celebrate-mark" aria-hidden="true">
+        {c.mark}
+      </p>
+      <h1 id="celebrate-title" className="celebrate-title">
+        {c.title}
+      </h1>
+      {c.lines.map((l) => (
+        <p key={l}>{l}</p>
+      ))}
+      <button className="btn-primary btn-wide" onClick={onClose}>
+        {c.close}
+      </button>
     </div>
   );
 }

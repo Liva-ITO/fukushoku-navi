@@ -87,6 +87,8 @@ export type State = {
   // 面談のあと、本人が会社に伝えた希望（回復期に進みたい／もう少し休みたい）
   nextWish: "go" | "rest" | null;
   recoveryIntroSeen: boolean;
+  // 段階が進んだときに一度だけ出すお祝いの画面（閉じるまで出す）
+  celebrate: Exclude<Stage, "acute"> | null;
   recoveryJourneySeen: boolean;
   prepPath: PrepPath | null;
   // 会社との面談。人事が日程を決め、実施を記録する（産業医やほかの担当者とも共有するため）
@@ -181,6 +183,7 @@ export const initialState: State = {
   psychSchedule: null,
   nextWish: null,
   recoveryIntroSeen: false,
+  celebrate: null,
   recoveryJourneySeen: false,
   prepPath: null,
   companyMeeting: null,
@@ -241,6 +244,7 @@ export type Action =
   | { type: "setView"; view: View }
   | { type: "setStage"; stage: Stage }
   | { type: "setRestMode"; on: boolean }
+  | { type: "closeCelebrate" }
   | { type: "setTab"; tab: Tab }
   | { type: "closeIntro" }
   | { type: "toggleAcuteCheck"; index: number }
@@ -356,9 +360,13 @@ function reducer(state: State, action: Action): State {
       if (action.stage === state.stage) return state;
       // 休息モードは回復期・準備期だけ
       const restAllowed = action.stage === "recovery" || action.stage === "preReturn";
+      // 先の段階に進んだときだけ、お祝いの画面を出す（戻したときは出さない）
+      const order: Stage[] = ["acute", "recovery", "preReturn", "afterReturn"];
+      const forward = order.indexOf(action.stage) > order.indexOf(state.stage);
       return {
         ...state,
         stage: action.stage,
+        celebrate: forward && action.stage !== "acute" ? action.stage : null,
         stageHistory: [...state.stageHistory, { date: DEMO_TODAY, at: Date.now(), stage: action.stage }],
         restMode: restAllowed && state.restMode,
         tab: "home",
@@ -372,6 +380,8 @@ function reducer(state: State, action: Action): State {
     }
     case "setRestMode":
       return { ...state, restMode: action.on, tab: "home" };
+    case "closeCelebrate":
+      return { ...state, celebrate: null, tab: "home" };
     case "setTab":
       return { ...state, tab: action.tab };
     case "closeIntro":
