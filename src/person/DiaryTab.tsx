@@ -7,7 +7,6 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 
 const SLEEP: SleepQuality[] = ["good", "normal", "poor"];
 const MEALS: Meal[] = ["morning", "noon", "night"];
-const MOOD_SCORES = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
 const FOCUS = [1, 2, 3, 4, 5];
 
 // 今日の記録。段階ごとに目的と項目を変える。どれも任意
@@ -196,43 +195,26 @@ export default function DiaryTab({ state, dispatch }: Props) {
             </fieldset>
           )}
 
-          {acute ? (
-            <fieldset>
-              <legend>{RECORD.mood}</legend>
-              <div className="faces">
-                {RECORD.moodFaces.map((f, i) => (
-                  <button
-                    key={f}
-                    className="face"
-                    aria-pressed={entry.mood === i}
-                    aria-label={`${RECORD.mood} ${i + 1}`}
-                    onClick={() => toggle("mood", i)}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-              <div className="face-ends" aria-hidden="true">
-                <span>{RECORD.moodEnds[0]}</span>
-                <span>{RECORD.moodEnds[1]}</span>
-              </div>
-            </fieldset>
-          ) : (
-            <fieldset>
-              <legend>{RECORD.moodScore}</legend>
-              <div className="scale scale-11">
-                {MOOD_SCORES.map((n) => (
-                  <button key={n} className="scale-btn" aria-pressed={entry.moodScore === n} onClick={() => toggle("moodScore", n)}>
-                    {n > 0 ? `+${n}` : n}
-                  </button>
-                ))}
-              </div>
-              <div className="face-ends" aria-hidden="true">
-                <span>{RECORD.moodScoreEnds[0]}</span>
-                <span>{RECORD.moodScoreEnds[1]}</span>
-              </div>
-            </fieldset>
-          )}
+          <fieldset>
+            <legend>{RECORD.mood}</legend>
+            <div className="faces">
+              {RECORD.moodFaces.map((f, i) => (
+                <button
+                  key={f}
+                  className="face"
+                  aria-pressed={entry.mood === i}
+                  aria-label={`${RECORD.mood} ${i + 1}`}
+                  onClick={() => toggle("mood", i)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="face-ends" aria-hidden="true">
+              <span>{RECORD.moodEnds[0]}</span>
+              <span>{RECORD.moodEnds[1]}</span>
+            </div>
+          </fieldset>
 
           {!acute && (
             <fieldset>
@@ -320,7 +302,6 @@ function DiarySummary({ entry }: { entry: DiaryEntry }) {
       `${RECORD.activity}：${entry.activity ? RECORD.activityYes : RECORD.activityNo}${entry.activityMinutes ? `（${RECORD.minutes(entry.activityMinutes)}）` : ""}`,
     entry.activeHours !== null && `${RECORD.active}：${RECORD.activeHours(entry.activeHours)}`,
     entry.focus != null && `${RECORD.focus}：${entry.focus}／5`,
-    entry.moodScore != null && `${RECORD.mood}：${entry.moodScore > 0 ? `+${entry.moodScore}` : entry.moodScore}`,
     entry.stress && entry.stress.length > 0 && `${RECORD.stress.replace(/（.*）/, "")}：${entry.stress.join("・")}`,
   ].filter(Boolean) as string[];
   const writings = [

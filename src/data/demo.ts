@@ -32,14 +32,13 @@ export type DiaryEntry = {
   activity: boolean | null;
   activityMinutes: number | null;
   activeHours: number | null; // 日中、横にならずに過ごした時間（生活記録表の活動時間）
-  mood: number | null; // 0〜4（急性期：顔5つ）
+  mood: number | null; // 0〜4（顔5つ。どの段階も同じ）
   note: string; // 今日のひとこと（回復期）／今日のまとめ（準備期）
   // ここから回復期・準備期だけの項目（前に保存した記録にはないので、どれも省略できる）
-  moodScore?: number | null; // -5〜+5
   nap?: number | null; // 昼寝（分）。0 はしなかった
   focus?: number | null; // 活動の集中度 1〜5
   stress?: string[]; // ストレスの種類
-  moodReason?: string; // 気分の点をつけた理由
+  moodReason?: string; // その気分だった理由
   stressCoping?: string; // ストレスへの対応と、その結果
   workIdea?: string; // 職場で活かせそうなこと
 };
