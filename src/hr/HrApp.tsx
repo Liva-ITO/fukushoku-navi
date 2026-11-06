@@ -707,6 +707,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
             {HR.returnDate}
             <input type="date" min={DEMO_TODAY} value={planDate} onChange={(e) => setPlanDate(e.target.value)} />
           </label>
+          {planDate && planDate > row.leaveEnd && <p className="field-warn">{HR.returnAfterEnd(shortDate(row.leaveEnd))}</p>}
           <label className="muted">
             {HR.accommodation}
             <textarea
@@ -732,6 +733,7 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
         plan && (
           <div className="return-info">
             <p>{HR.afterReturnDate(shortDate(plan.date))}</p>
+            {plan.date > row.leaveEnd && <p className="field-warn">{HR.returnAfterEnd(shortDate(row.leaveEnd))}</p>}
             {plan.accommodation && <p>{HR.afterReturnAccommodation(plan.accommodation)}</p>}
             <button className="btn-outline btn-small" onClick={() => setEditing(true)}>
               {HR.editPlan}

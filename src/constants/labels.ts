@@ -847,6 +847,8 @@ export const HR = {
   stepPlan: "復職日と配慮",
   accFromPerson: (b: string) => `本人から：${b.replace("【配慮のお願い】", "")}`,
   returnDate: "復職日",
+  // 満了日を過ぎた日を復職日にしようとしたとき。止めはしない（延長が別に済んでいることもあるため。決めるのは人）
+  returnAfterEnd: (end: string) => `休職期間の満了日（${end}）を過ぎています。休職期間の延長の手続きを先に済ませてください`,
   accommodation: "就業上の配慮（書かなくてもかまいません）",
   accommodationExample: "例：最初の1か月は残業なし",
   savePlan: "決める",
