@@ -29,7 +29,7 @@ export function SendHint({
   if (stage === "afterReturn" || SUMMARY_URL === "") return null;
 
   // 上司はレポートを見られないので、レポートの場面は出さない
-  const scenes = (Object.keys(AI_HINT.scenes) as Scene[]).filter((s) => !(boss && s === "report"));
+  const scenes = (Object.keys(AI_HINT.scenes) as Scene[]).filter((s) => !(boss && (s === "report" || s === "admin")));
 
   const run = async () => {
     setLoading(true);
@@ -95,9 +95,10 @@ export function SendHint({
   );
 }
 
-// 会社から最後に送った連絡のあと、本人から何も届いていなければ、その日数。届いていれば null
+// 会社から最後に送った（返信を求める）連絡のあと、本人から何も届いていなければ、その日数。届いていれば null
+// 「返信は不要です」をつけた連絡は、返信待ちに数えない
 function noReplyDays(events: HrEvent[]): number | null {
-  const lastHr = [...events].reverse().find((e) => e.kind === "fromHr");
+  const lastHr = [...events].reverse().find((e) => e.kind === "fromHr" && !e.noReply);
   if (!lastHr) return null;
   // 本人からの連絡や提出物があれば、返信があったものとして扱う
   const after = events.slice(events.lastIndexOf(lastHr) + 1).some((e) => e.kind === "fromPerson" || (e.kind === "submit" && !e.byHr));

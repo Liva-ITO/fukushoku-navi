@@ -145,7 +145,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     leaveStart: "2026-04-13",
     leaveEnd: "2027-04-12",
     rework: "オンラインのリワーク",
-    todo: { key: "e-return", text: "主治医の診断書が提出されました。復職日の確定を待っています", date: "2026-10-28" },
+    todo: { key: "e-return", text: "主治医の診断書が提出されました。復職日を決めて、復職を確定してください", date: "2026-10-28" },
     seen: 1,
     events: [
       { date: "2026-04-13", kind: "stage", body: "急性期" },

@@ -841,3 +841,7 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .plan-tomorrow .muted { font-weight: 400; }
 .plan-up { margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); }
 .plan-demo { display: block; margin-top: 12px; }
+
+.boss-intro ul { margin: 0; padding-left: 1.2em; }
+.boss-intro li { margin: 0.2em 0; }
+.boss-stage-meaning { margin: 0 0 0.6em; }

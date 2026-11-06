@@ -426,6 +426,7 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
         <section className="hr-card">
           <h2>{HR.historyTitle}</h2>
           <p className="muted">{HR.historyNote}</p>
+          <p className="muted">{HR.privateNote}</p>
           <HistorySummary events={row.events} audience="hr" rowId={row.id} reveal={(n) => setShown((s) => Math.max(s, n))} />
           <ol className="timeline">
             {markNew(row).reverse().slice(0, shown).map(({ e, isNew }, i) => (
@@ -1551,6 +1552,7 @@ function SendMessage({
   return (
     <section className="hr-card" id="sec-send">
       <h2>{HR.sendTitle(name)}</h2>
+      {by && <p className="muted">{BOSS.sendNote}</p>}
       {row && <TodoHere row={row} section="sec-send" dispatch={dispatch} />}
       {sent ? (
         <>
@@ -1652,6 +1654,14 @@ function BossApp({ state, dispatch }: Props) {
         <h1 className="hr-title">{BOSS.listTitle}</h1>
       </div>
       <p className="muted">{BOSS.whoami(me.name)}</p>
+      <section className="hr-card boss-intro">
+        <h2>{BOSS.introTitle}</h2>
+        <ul>
+          {BOSS.intro.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      </section>
       <p className="muted">{BOSS.listNote}</p>
       {rows.length === 0 ? (
         <section className="hr-card">
@@ -1742,6 +1752,12 @@ function BossDetail({ row, me, state, dispatch }: { row: HrRow; me: HrAccount } 
             <h2>
               {HR.stageTitle}　<StageTag stage={row.stage} />
             </h2>
+            {BOSS.stageMeaning[row.stage] && (
+              <p className="boss-stage-meaning">
+                {BOSS.stageMeaning[row.stage]}
+                <span className="muted">　{BOSS.stageSpan}</span>
+              </p>
+            )}
             {row.pending ? (
               <p className="muted">{BOSS.pending}</p>
             ) : (
@@ -1763,6 +1779,7 @@ function BossDetail({ row, me, state, dispatch }: { row: HrRow; me: HrAccount } 
           {meetings.length > 0 && (
             <section className="hr-card">
               <h2>{BOSS.meetingTitle}</h2>
+              <p className="muted">{BOSS.meetingNote}</p>
               <ul className="meeting-list">
                 {meetings.map((m) => (
                   <li key={m.key}>
