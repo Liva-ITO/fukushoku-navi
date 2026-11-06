@@ -133,6 +133,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
     events: [
       { date: "2026-07-13", kind: "stage", body: "急性期" },
       { date: "2026-09-14", kind: "stage", body: "回復期" },
+      { date: "2026-09-28", kind: "fromHr", body: "その後、いかがお過ごしですか。返信は急ぎません。" },
       { date: "2026-10-05", kind: "fromPerson", body: "通院してきました。少し様子を見ることになりました" },
       { date: "2026-11-02", kind: "meeting", body: "会社との面談の申し込み" },
     ],
@@ -152,6 +153,7 @@ export const OTHER_PEOPLE: OtherPerson[] = [
       { date: "2026-06-08", kind: "stage", body: "回復期" },
       { date: "2026-09-01", kind: "stage", body: "準備期" },
       { date: "2026-10-15", kind: "submit", body: "記録のまとめ（直近4週間）" },
+      { date: "2026-10-16", kind: "fromHr", body: "記録のまとめを受け取りました。主治医の診断書が出たら、送ってください。" },
       { date: "2026-10-28", kind: "submit", body: "主治医の診断書（復職可）" },
     ],
   },

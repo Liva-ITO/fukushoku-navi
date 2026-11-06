@@ -1529,6 +1529,20 @@ function StageControl({ row, state, dispatch }: { row: HrRow } & Props) {
 }
 
 // 送る前に、宛先と本文をもう一度見せる
+// 会社から最後に送った連絡と、そのあと本人から何か届いたか
+function LastSent({ events }: { events: HrEvent[] }) {
+  const i = events.map((e) => e.kind).lastIndexOf("fromHr");
+  if (i < 0) return <p className="last-sent">{HR.lastSent.none}</p>;
+  const last = events[i];
+  const replied = events.slice(i + 1).some((e) => e.kind === "fromPerson" || (e.kind === "submit" && !e.byHr));
+  return (
+    <p className="last-sent">
+      {HR.lastSent.when(shortDate(last.date), Math.max(0, daysSince(last.date)))}
+      <span className="muted">　{replied ? HR.lastSent.replied : last.noReply ? HR.lastSent.noReply : HR.lastSent.waiting}</span>
+    </p>
+  );
+}
+
 function SendMessage({
   personId,
   name,
@@ -1565,6 +1579,7 @@ function SendMessage({
     <section className="hr-card" id="sec-send">
       <h2>{HR.sendTitle(name)}</h2>
       {by && <p className="muted">{BOSS.sendNote}</p>}
+      {row && <LastSent events={by ? bossEvents(row) : row.events} />}
       {row && <TodoHere row={row} section="sec-send" dispatch={dispatch} />}
       {sent ? (
         <>

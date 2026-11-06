@@ -847,3 +847,4 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .boss-stage-meaning { margin: 0 0 0.6em; }
 .field-warn { color: #8a5a00; background: #fff6e0; border-radius: 6px; padding: 6px 10px; font-size: 13px; margin: 4px 0; }
 .hr-period { margin: -4px 0 12px; font-size: 14px; }
+.last-sent { font-size: 14px; background: var(--bg-soft, #f6f3ee); border-radius: 6px; padding: 6px 10px; margin: 4px 0 10px; }
