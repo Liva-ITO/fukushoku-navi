@@ -39,13 +39,16 @@ export default function PersonApp({ state, dispatch }: Props) {
   }, [state.tab, state.stage, state.restMode, state.personStarted]);
   const unread = state.coordInbox.length - state.coordSeen + (state.hrMessages.length - state.personHrSeen);
 
-  // 回復期に入ったときに一度だけ、復職までの流れを見せる（急性期の人には自動では出さない）
+  // 回復期・準備期に入ったときに一度だけ、ようこその画面を閉じたあとに、復職までの流れを見せる
+  // （ようこそ → 流れのグラフ → その段階のホーム。急性期の人には自動では出さない）
   useEffect(() => {
-    if (state.stage === "recovery" && !state.recoveryJourneySeen) {
+    if (state.celebrate) return;
+    const stage = state.stage;
+    if ((stage === "recovery" && !state.recoveryJourneySeen) || (stage === "preReturn" && !state.preReturnJourneySeen)) {
       setJourneyOpen(true);
-      dispatch({ type: "markRecoveryJourneySeen" });
+      dispatch({ type: "markJourneySeen", stage });
     }
-  }, [state.stage, state.recoveryJourneySeen, dispatch]);
+  }, [state.stage, state.celebrate, state.recoveryJourneySeen, state.preReturnJourneySeen, dispatch]);
 
   // デモ：申し込んだら、数秒後に支援機関から日程の候補が届く（本番では支援機関が送る）
   // 「どれも難しい」を選んだときも、数秒後に別の候補が届く

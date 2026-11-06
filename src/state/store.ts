@@ -92,6 +92,7 @@ export type State = {
   // 段階が進んだときに一度だけ出すお祝いの画面（閉じるまで出す）
   celebrate: Exclude<Stage, "acute"> | null;
   recoveryJourneySeen: boolean;
+  preReturnJourneySeen: boolean; // 準備期に入って、復職までの流れを見たか
   prepPath: PrepPath | null;
   // 会社との面談。人事が日程を決め、実施を記録する（産業医やほかの担当者とも共有するため）
   companyMeeting: { status: "applied" | "scheduled" | "done"; date?: string; time?: string } | null;
@@ -193,6 +194,7 @@ export const initialState: State = {
   recoveryIntroSeen: false,
   celebrate: null,
   recoveryJourneySeen: false,
+  preReturnJourneySeen: false,
   prepPath: null,
   companyMeeting: null,
   offers: {},
@@ -270,7 +272,7 @@ export type Action =
   | { type: "planNextDay" }
   | { type: "markCoordSeen" }
   | { type: "closeRecoveryIntro" }
-  | { type: "markRecoveryJourneySeen" }
+  | { type: "markJourneySeen"; stage: "recovery" | "preReturn" }
   | { type: "setPrepPath"; path: PrepPath | null }
   | { type: "applyCompanyMeeting" }
   | { type: "scheduleCompanyMeeting"; date: string; time?: string }
@@ -458,8 +460,8 @@ function reducer(state: State, action: Action): State {
       };
     case "closeRecoveryIntro":
       return { ...state, recoveryIntroSeen: true };
-    case "markRecoveryJourneySeen":
-      return { ...state, recoveryJourneySeen: true };
+    case "markJourneySeen":
+      return action.stage === "recovery" ? { ...state, recoveryJourneySeen: true } : { ...state, preReturnJourneySeen: true };
     case "setPrepPath":
       return { ...state, prepPath: action.path };
     case "applyCompanyMeeting":
