@@ -849,3 +849,12 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .hr-period { margin: -4px 0 12px; font-size: 14px; }
 .last-sent { font-size: 14px; background: var(--bg-soft, #f6f3ee); border-radius: 6px; padding: 6px 10px; margin: 4px 0 10px; }
 .boss-returned { border-left: 4px solid #6a9a6a; }
+.diary-aim { margin: 4px 0; font-size: 14px; }
+.diary-skip { margin-bottom: 8px; }
+.scale { display: flex; gap: 4px; margin-top: 6px; }
+.scale-btn { flex: 1; min-height: 44px; border: 1px solid var(--line, #ddd); border-radius: 8px; background: transparent; font-size: 14px; padding: 0; }
+.scale-11 .scale-btn { font-size: 12px; min-width: 0; }
+.scale-btn[aria-pressed="true"] { background: var(--accent, #3b6e8f); color: #fff; border-color: transparent; }
+.diary-more { margin-top: 14px; }
+.diary-more .field { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+.diary-more textarea { width: 100%; box-sizing: border-box; }
