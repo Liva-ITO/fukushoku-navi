@@ -93,18 +93,21 @@ function PlanRow({ cat, state, dispatch }: { cat: PlanCat } & Props) {
       <p className="plan-step muted">{PLAN.step(name, today.step)}</p>
       {today.mode === "gentle" && <p className="plan-head">{PLAN.head.gentle}</p>}
       {today.mode === "afterRest" ? (
-        <p className="plan-task">
-          <span className="muted plan-easy-label">{PLAN.easyOnly}</span>
-          {today.easy}
-        </p>
+        <div className="plan-opt">
+          <span className="plan-opt-label">{PLAN.easyOnly}</span>
+          <p className="plan-task">{today.easy}</p>
+        </div>
       ) : (
-        <>
-          <p className="plan-task">{today.task}</p>
-          <p className="plan-easy">
-            {PLAN.easy}
-            {today.easy}
-          </p>
-        </>
+        <div className="plan-opts">
+          <div className="plan-opt">
+            <span className="plan-opt-label">{PLAN.usualLabel}</span>
+            <p className="plan-task">{today.task}</p>
+          </div>
+          <div className="plan-opt plan-opt-easy">
+            <span className="plan-opt-label">{PLAN.easy}</span>
+            <p className="plan-easy-task">{today.easy}</p>
+          </div>
+        </div>
       )}
       <div className="plan-ask">
         <p className="path-group">{PLAN.ask}</p>

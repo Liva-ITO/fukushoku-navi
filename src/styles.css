@@ -867,3 +867,9 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .flow li:not(:last-child)::after { content: "›"; align-self: center; margin-left: 2px; color: var(--muted); }
 .flow-detail { background: var(--accent-soft); border-radius: 8px; padding: 8px 12px; }
 .flow-detail p { margin: 4px 0; }
+.plan-opts { display: grid; gap: 6px; margin-bottom: 8px; }
+.plan-opt { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.plan-opt .plan-task { margin: 2px 0 0; }
+.plan-opt-label { display: block; font-size: 12px; color: var(--muted); }
+.plan-opt-easy { background: var(--accent-soft); border-color: transparent; }
+.plan-easy-task { margin: 2px 0 0; font-weight: 600; }
