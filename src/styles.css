@@ -875,3 +875,11 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .plan-easy-task { margin: 2px 0 0; font-weight: 600; }
 .step-toggle { background: none; border: 0; padding: 4px 0; font: inherit; color: inherit; text-align: left; min-height: 32px; cursor: pointer; }
 .step-caret { margin-left: 6px; font-size: 10px; color: var(--muted); }
+.flow-6 { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.flow-6 li::after { content: none !important; }
+.flow-6 .flow-step { font-size: 11px; padding: 6px 0; }
+.flow-6 .flow-num { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.flow-6 .flow-done .flow-num { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.flow-6 .flow-now .flow-num { background: var(--accent); color: #fff; border-color: var(--accent); }
+.flow-6 .flow-now { border-color: var(--accent); font-weight: 700; }
+.flow-detail .step-action { display: grid; gap: 8px; justify-items: start; margin-top: 6px; }

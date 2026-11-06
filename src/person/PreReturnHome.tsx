@@ -96,58 +96,67 @@ function ReturnSteps({ state, dispatch }: Props) {
     },
   };
   // 取説とレポートの見直しは、いつもいちばん先
-  const order =
+  type Key = keyof typeof steps;
+  const keys: Key[] =
     state.returnOrder === "occFirst"
-      ? [steps.torisetsu, steps.review, steps.occ, steps.decision, steps.doctor, steps.plan]
-      : [steps.torisetsu, steps.review, steps.doctor, steps.occ, steps.decision, steps.plan];
-  const now = order.findIndex((s) => !s.done);
-  const [open, setOpen] = useState<string | null>(null);
+      ? ["torisetsu", "review", "occ", "decision", "doctor", "plan"]
+      : ["torisetsu", "review", "doctor", "occ", "decision", "plan"];
+  const now = keys.findIndex((k) => !steps[k].done);
+  // 本人が押すボタンがある手順（レポートの見直し・面談の申し込み）
+  const hasAction = (k: Key) => (k === "review" && reviewing) || (k === "occ" && !occ && !state.occApplied && canApply);
+  // はじめは、ボタンのある手順か「いまここ」の説明を出す。番号を押すと、その手順の説明に替わる
+  const [picked, setPicked] = useState<Key | null>(null);
+  const sel: Key | undefined = picked ?? keys.find(hasAction) ?? keys[now];
+  const s = sel ? steps[sel] : undefined;
 
   return (
     <section className="card">
       <h2>{PREP.stepsTitle}</h2>
       <p className="muted">{PREP.stepsNote}</p>
-      <ol className="next-steps prep-steps">
-        {order.map((s, i) => (
-          <li key={s.name} className={i === now ? "step-now" : s.done ? "step-done" : undefined}>
-            {i === now ? (
-              <>
-                {s.name}
-                <span className="tag-soft">{PREP.hereTag}</span>
-                <span className="step-sub">{s.note}</span>
-              </>
-            ) : (
-              <>
-                <button className="step-toggle" aria-expanded={open === s.name} onClick={() => setOpen(open === s.name ? null : s.name)}>
-                  {s.name}
-                  {s.done && <span className="tag-soft">{PREP.doneTag}</span>}
-                  <span className="step-caret" aria-hidden="true">{open === s.name ? "▲" : "▼"}</span>
-                </button>
-                {open === s.name && <span className="step-sub">{s.note}</span>}
-              </>
-            )}
-            {s === steps.review && reviewing && (
-              <div className="step-action">
-                {state.prepPath === "self" && <SelfReportCard state={state} dispatch={dispatch} />}
-                <button className="btn-outline btn-small" onClick={() => dispatch({ type: "markPrepReviewed" })}>
-                  {state.prepPath === "self" ? PREP.reviewKeep : PREP.reviewReworkDone}
-                </button>
-              </div>
-            )}
-            {s === steps.occ && !occ && !state.occApplied && canApply && (
-              <ConfirmButton
-                quiet
-                modal
-                label={PREP.occApply}
-                confirm={PREP.occApplyConfirm}
-                yes={PREP.occApplyYes}
-                no={PREP.occApplyNo}
-                onConfirm={() => dispatch({ type: "applyOccMeeting" })}
-              />
-            )}
+      <ol className="flow flow-6">
+        {keys.map((k, i) => (
+          <li key={k}>
+            <button
+              className={`flow-step${i === now ? " flow-now" : steps[k].done ? " flow-done" : ""}`}
+              aria-expanded={sel === k}
+              aria-label={`${i + 1} ${steps[k].name}${i === now ? ` ${PREP.hereTag}` : steps[k].done ? ` ${PREP.doneTag}` : ""}`}
+              onClick={() => setPicked(k)}
+            >
+              <span className="flow-num">{steps[k].done && i !== now ? "✓" : i + 1}</span>
+              <span className="flow-name">{PREP.stepsShort[k]}</span>
+            </button>
           </li>
         ))}
       </ol>
+      {sel && s && (
+        <div className="flow-detail">
+          <p className="self-step-name">
+            {keys.indexOf(sel) + 1}. {s.name}
+            {keys.indexOf(sel) === now && <span className="tag-soft">{PREP.hereTag}</span>}
+            {s.done && keys.indexOf(sel) !== now && <span className="tag-soft">{PREP.doneTag}</span>}
+          </p>
+          <p>{s.note}</p>
+          {sel === "review" && reviewing && (
+            <div className="step-action">
+              {state.prepPath === "self" && <SelfReportCard state={state} dispatch={dispatch} />}
+              <button className="btn-outline btn-small" onClick={() => dispatch({ type: "markPrepReviewed" })}>
+                {state.prepPath === "self" ? PREP.reviewKeep : PREP.reviewReworkDone}
+              </button>
+            </div>
+          )}
+          {sel === "occ" && !occ && !state.occApplied && canApply && (
+            <ConfirmButton
+              quiet
+              modal
+              label={PREP.occApply}
+              confirm={PREP.occApplyConfirm}
+              yes={PREP.occApplyYes}
+              no={PREP.occApplyNo}
+              onConfirm={() => dispatch({ type: "applyOccMeeting" })}
+            />
+          )}
+        </div>
+      )}
     </section>
   );
 }
