@@ -949,6 +949,9 @@ export const HR = {
   // 満了日が近いことは、満了日から自動で知らせる（見落とすと、退職扱いなどにつながる）
   todoEndNear: "休職期間の満了日が近づいています。延長が要るか、主治医・産業医の意見を早めに確かめましょう",
   endLeft: (n: number) => `あと${n}日`,
+  // 詳しい画面の上（開いたらまず満了日まであと何日かを見たい）
+  periodSince: (n: number) => `休職して${n}日`,
+  periodEnd: (d: string) => `満了日 ${d}`,
   afterReturnDate: (d: string) => `復職日：${d}`,
   afterReturnAccommodation: (t: string) => `就業上の配慮：${t}`,
   stageDemoOnly: "デモでは、最初に登録した人だけ操作できます",

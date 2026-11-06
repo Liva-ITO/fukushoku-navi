@@ -380,6 +380,16 @@ function HrDetail({ row, state, dispatch }: { row: HrRow } & Props) {
         </h1>
         <StageTag stage={row.stage} />
       </div>
+      {row.stage !== "afterReturn" && (
+        <p className="hr-period">
+          {HR.periodSince(daysSince(row.leaveStart))}　{HR.periodEnd(shortDate(row.leaveEnd))}
+          {daysUntil(row.leaveEnd) >= 0 && (
+            <span className={`end-left${daysUntil(row.leaveEnd) <= END_NOTICE_DAYS ? " end-near" : ""}`}>
+              {HR.endLeft(daysUntil(row.leaveEnd))}
+            </span>
+          )}
+        </p>
+      )}
 
       {newItems.length > 0 && (
         <section className="hr-card hr-card-new">
