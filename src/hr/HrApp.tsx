@@ -1668,6 +1668,8 @@ function BossApp({ state, dispatch }: Props) {
   // 復職・退職したら、上司も見られなくなる（hrRows は復職した人を含めない）
   const rows = me ? hrRows(state).filter((r) => r.bossId === me.id) : [];
   const selected = rows.find((r) => r.id === state.hrSelected);
+  // 担当していた人の復職が決まったら、一覧から外れる代わりに一報を出す
+  const returned = me && state.stage === "afterReturn" && state.live && state.live.bossId === me.id ? state.live : undefined;
   if (!me)
     return (
       <section className="hr-card">
@@ -1690,6 +1692,12 @@ function BossApp({ state, dispatch }: Props) {
         </ul>
       </section>
       <p className="muted">{BOSS.listNote}</p>
+      {returned && (
+        <section className="hr-card boss-returned">
+          <h2>{BOSS.returnedTitle}</h2>
+          <p>{BOSS.returnedText(returned.name)}</p>
+        </section>
+      )}
       {rows.length === 0 ? (
         <section className="hr-card">
           <p className="muted">{BOSS.listEmpty}</p>
