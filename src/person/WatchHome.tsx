@@ -15,11 +15,17 @@ export default function WatchHome({ state, dispatch }: Props) {
     <div className="home">
       <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
       {state.returnPlan && <p className="done-note">{COMMON.returnDay(japaneseDate(state.returnPlan.date))}</p>}
-      <section className="card card-intro">
-        {WATCH.lines.map((l) => (
-          <p key={l}>{l}</p>
-        ))}
-      </section>
+      {/* 回復期と同じく、閉じたら次からは出さない */}
+      {!state.watchIntroSeen && (
+        <section className="card card-intro">
+          {WATCH.lines.map((l) => (
+            <p key={l}>{l}</p>
+          ))}
+          <button className="btn-quiet" onClick={() => dispatch({ type: "closeWatchIntro" })}>
+            {WATCH.introClose}
+          </button>
+        </section>
+      )}
 
       <NewNoticeLink state={state} dispatch={dispatch} />
 

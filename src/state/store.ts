@@ -89,6 +89,7 @@ export type State = {
   // 面談のあと、本人が会社に伝えた希望（回復期に進みたい／もう少し休みたい）
   nextWish: "go" | "rest" | null;
   recoveryIntroSeen: boolean;
+  watchIntroSeen: boolean; // 復職後のはじめの説明を閉じたか（閉じたら出さない）
   // 段階が進んだときに一度だけ出すお祝いの画面（閉じるまで出す）
   celebrate: Exclude<Stage, "acute"> | null;
   recoveryJourneySeen: boolean;
@@ -192,6 +193,7 @@ export const initialState: State = {
   psychSchedule: null,
   nextWish: null,
   recoveryIntroSeen: false,
+  watchIntroSeen: false,
   celebrate: null,
   recoveryJourneySeen: false,
   preReturnJourneySeen: false,
@@ -272,6 +274,7 @@ export type Action =
   | { type: "planNextDay" }
   | { type: "markCoordSeen" }
   | { type: "closeRecoveryIntro" }
+  | { type: "closeWatchIntro" }
   | { type: "markJourneySeen"; stage: "recovery" | "preReturn" }
   | { type: "setPrepPath"; path: PrepPath | null }
   | { type: "applyCompanyMeeting" }
@@ -460,6 +463,8 @@ function reducer(state: State, action: Action): State {
       };
     case "closeRecoveryIntro":
       return { ...state, recoveryIntroSeen: true };
+    case "closeWatchIntro":
+      return { ...state, watchIntroSeen: true };
     case "markJourneySeen":
       return action.stage === "recovery" ? { ...state, recoveryJourneySeen: true } : { ...state, preReturnJourneySeen: true };
     case "setPrepPath":
