@@ -859,3 +859,11 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .diary-more textarea { width: 100%; box-sizing: border-box; }
 .plan-row { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
 .plan-row .plan-step { margin: 0 0 4px; }
+.flow { list-style: none; margin: 8px 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; position: relative; }
+.flow li { display: flex; }
+.flow-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: transparent; font-size: 12px; line-height: 1.3; color: inherit; }
+.flow-step[aria-expanded="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.flow-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.flow li:not(:last-child)::after { content: "›"; align-self: center; margin-left: 2px; color: var(--muted); }
+.flow-detail { background: var(--accent-soft); border-radius: 8px; padding: 8px 12px; }
+.flow-detail p { margin: 4px 0; }

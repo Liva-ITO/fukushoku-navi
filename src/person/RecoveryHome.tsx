@@ -3,6 +3,7 @@ import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../consta
 import { whenOf, type Action, type State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import PlanCard from "./PlanCard";
+import { MAX_STEP, PLAN_CATS } from "../data/recoveryPlan";
 import { SelfReportAbout, SelfReportCard } from "./SelfReportCard";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -12,6 +13,36 @@ const REWORK_PATHS: PrepPath[] = ["rivatore", "rivabiz"];
 // 回復期：生活のリズムを整える。ゴールは見せるが、急かさない
 // 2026-11-10 → 11月10日
 const japaneseDate = (d: string) => `${Number(d.slice(5, 7))}月${Number(d.slice(8, 10))}日`;
+
+// 自分で準備する人の、回復期の流れ。いつも全部の説明を出さず、押したステップだけ開く
+function SelfFlow({ state }: { state: State }) {
+  const [open, setOpen] = useState<number | null>(null);
+  const s = open === null ? null : RECOVERY.selfSteps[open];
+  return (
+    <section className="card self-flow">
+      <h2>{RECOVERY.selfStepsTitle}</h2>
+      <ol className="flow">
+        {RECOVERY.selfSteps.map((st, i) => (
+          <li key={st.name}>
+            <button className="flow-step" aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)}>
+              <span className="flow-num">{i + 1}</span>
+              <span className="flow-name">{st.short}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      {s && open !== null ? (
+        <div className="flow-detail">
+          <p className="self-step-name">{s.name}</p>
+          <p>{s.body}</p>
+          <p className="muted">{RECOVERY.selfStepsNow(state.plan.steps[PLAN_CATS[open]], MAX_STEP)}</p>
+        </div>
+      ) : (
+        <p className="muted">{RECOVERY.selfStepsNote}</p>
+      )}
+    </section>
+  );
+}
 
 export default function RecoveryHome({ state, dispatch }: Props) {
   const path = state.prepPath;
@@ -68,6 +99,8 @@ export default function RecoveryHome({ state, dispatch }: Props) {
         </button>
       )}
 
+      {path === "self" && <SelfFlow state={state} />}
+
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
       {/* リワークを使う人は、プログラムの中で負荷を上げていくので出さない */}
@@ -119,16 +152,6 @@ export default function RecoveryHome({ state, dispatch }: Props) {
       {path === "self" && (
         <section className="card">
           <h2>{RECOVERY.selfTitle}</h2>
-          <p className="path-group">{RECOVERY.selfStepsTitle}</p>
-          <ol className="self-steps">
-            {RECOVERY.selfSteps.map((s) => (
-              <li key={s.name}>
-                <span className="self-step-name">{s.name}</span>
-                <span className="muted">{s.body}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="muted">{RECOVERY.selfStepsNote}</p>
           <p className="path-group">{RECOVERY.booksTitle}</p>
           <ul className="list-plain">
             {RECOVERY.books.map((b, i) =>
