@@ -829,7 +829,7 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .send-hint .ai-box { width: 100%; }
 .send-hint-example { margin: 4px 0; }
 
-/* 回復期の「きょうのひとつ」 */
+/* 回復期の「きょうやること」 */
 .plan-head { margin: 0 0 8px; padding: 8px 12px; border-radius: 8px; background: var(--accent-soft); }
 .plan-step { margin: 10px 0 2px; font-size: 13px; }
 .plan-task { margin: 0 0 6px; font-size: 18px; font-weight: 700; line-height: 1.5; }
@@ -857,3 +857,5 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .diary-more { margin-top: 14px; }
 .diary-more .field { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
 .diary-more textarea { width: 100%; box-sizing: border-box; }
+.plan-row { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+.plan-row .plan-step { margin: 0 0 4px; }

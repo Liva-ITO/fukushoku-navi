@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 import type { SelfReport } from "./selfReport";
-import { INITIAL_PLAN, AFTER_REST_DAYS, answerPlan, decideUp, planToday, type Plan, type PlanCat, type PlanResult } from "../data/recoveryPlan";
+import { INITIAL_PLAN, AFTER_REST_DAYS, answerPlan, decideUp, nextDay, normalizePlan, planToday, type Plan, type PlanCat, type PlanResult } from "../data/recoveryPlan";
 import { ACUTE, BOSS, CONSULT, HR, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
   DEMO_TODAY,
@@ -73,7 +73,7 @@ export type State = {
   stage: Stage;
   stageHistory: StageChange[];
   restMode: boolean;
-  plan: Plan; // 回復期の「きょうのひとつ」
+  plan: Plan; // 回復期の「きょうやること」
   tab: Tab;
   introSeen: boolean;
   hrMessages: HrMessage[];
@@ -264,9 +264,9 @@ export type Action =
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
   | { type: "sendWish"; wish: "go" | "rest" }
-  | { type: "planPickCat"; cat: PlanCat }
-  | { type: "planAnswer"; result: PlanResult; easy: boolean }
-  | { type: "planDecideUp"; up: boolean }
+  | { type: "planToggleCat"; cat: PlanCat }
+  | { type: "planAnswer"; cat: PlanCat; result: PlanResult; easy: boolean }
+  | { type: "planDecideUp"; cat: PlanCat; up: boolean }
   | { type: "planNextDay" }
   | { type: "markCoordSeen" }
   | { type: "closeRecoveryIntro" }
@@ -398,23 +398,29 @@ function reducer(state: State, action: Action): State {
       };
     }
     case "setRestMode":
-      // 休息モードを終えたら、しばらくは「きょうのひとつ」を、しんどい日の分だけにする
+      // 休息モードを終えたら、しばらくは「きょうやること」を、しんどい日の分だけにする
       return {
         ...state,
         restMode: action.on,
         tab: "home",
         plan: state.restMode && !action.on ? { ...state.plan, afterRest: AFTER_REST_DAYS } : state.plan,
       };
-    case "planPickCat":
-      return { ...state, plan: { ...state.plan, cat: action.cat } };
+    case "planToggleCat": {
+      // いくつでも選べる。ただし、ゼロにはしない（最後の1つは外せない）。結果を押した種類は外さない
+      const { cats, done } = state.plan;
+      if (cats.includes(action.cat)) {
+        if (cats.length === 1 || done.includes(action.cat)) return state;
+        return { ...state, plan: { ...state.plan, cats: cats.filter((c) => c !== action.cat) } };
+      }
+      return { ...state, plan: { ...state.plan, cats: [...cats, action.cat] } };
+    }
     case "planAnswer":
-      if (state.plan.doneToday) return state;
-      return { ...state, plan: answerPlan(state.plan, planToday(state.plan), action.result, action.easy, DEMO_TODAY) };
+      return { ...state, plan: answerPlan(state.plan, planToday(state.plan, action.cat), action.result, action.easy, DEMO_TODAY) };
     case "planDecideUp":
-      return { ...state, plan: decideUp(state.plan, action.up) };
+      return { ...state, plan: decideUp(state.plan, action.cat, action.up) };
     case "planNextDay":
       // デモは日付が進まないので、次の日にする操作を置く
-      return { ...state, plan: { ...state.plan, doneToday: false } };
+      return { ...state, plan: nextDay(state.plan) };
     case "closeCelebrate":
       return { ...state, celebrate: null, tab: "home" };
     case "setTab":
@@ -882,6 +888,8 @@ function load(): State {
   } catch {
     // 保存できない環境でも、最初の状態で動かす
   }
+  // 「きょうのひとつ」を1つずつ選ぶ形のときに保存したものも読めるようにする
+  s = { ...s, plan: normalizePlan(s.plan) };
   // 見本の上司を足す前に保存した見本にも、上司を足す
   return BROWSE ? withSampleBoss(s) : s;
 }

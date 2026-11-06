@@ -1,17 +1,17 @@
-// 回復期の「きょうのひとつ」。4つの種類 × 5つのステップの課題と、しんどい日の分。
+// 回復期の「きょうやること」。4つの種類 × 5つのステップの課題と、しんどい日の分。種類はいくつでも同時に選べる。
 // リワークが通所でやっている「少しずつ負荷を上げて、きつかったら下げる」を、ひとりでも回せるようにする。
 // ここは軽い版：その日の出し方は「いつもの／休み明け／ゆっくりの日」だけ。記録の数字から調子を読み取る出し方（ならし・お試しなど）は、あとで足す
 export type PlanCat = "rhythm" | "out" | "work" | "reflect";
 export type PlanResult = "good" | "ok" | "hard";
 export type PlanEntry = { date: string; at: number; cat: PlanCat; step: number; task: string; easy: boolean; result: PlanResult };
 export type Plan = {
-  cat: PlanCat; // 次にやる種類（本人が選ぶ）
+  cats: PlanCat[]; // きょうやる種類（本人が選ぶ。いくつでも）
   steps: Record<PlanCat, number>; // 種類ごとの、いまのステップ（1〜5）
   since: Record<PlanCat, number>; // いまのステップになったときの、記録の件数（3回を数えなおすため）
   log: PlanEntry[];
-  doneToday: boolean;
+  done: PlanCat[]; // きょう、やってみた結果を押した種類
   afterRest: number; // 休息モードを終えたあと、しんどい日の分だけを出す残りの日数
-  offerUp: PlanCat | null; // 次のステップをすすめている種類
+  offerUp: PlanCat[]; // 次のステップをすすめている種類
 };
 
 export const PLAN_CATS: PlanCat[] = ["rhythm", "out", "work", "reflect"];
@@ -66,21 +66,39 @@ export const PLAN_TASKS: Record<PlanCat, { name: string; steps: Step[] }> = {
 };
 
 export const INITIAL_PLAN: Plan = {
-  cat: "rhythm",
+  cats: ["rhythm"],
   steps: { rhythm: 1, out: 1, work: 1, reflect: 1 },
   since: { rhythm: 0, out: 0, work: 0, reflect: 0 },
   log: [],
-  doneToday: false,
+  done: [],
   afterRest: 0,
-  offerUp: null,
+  offerUp: [],
 };
+
+// 1つずつ選ぶ形のときに保存したデータも、いまの形に直して読む
+type OldPlan = { cat?: PlanCat; doneToday?: boolean; offerUp?: PlanCat[] | PlanCat | null };
+export function normalizePlan(p: (Partial<Plan> & OldPlan) | undefined): Plan {
+  if (!p) return INITIAL_PLAN;
+  const cats = Array.isArray(p.cats) && p.cats.length > 0 ? p.cats : p.cat ? [p.cat] : INITIAL_PLAN.cats;
+  const done = Array.isArray(p.done) ? p.done : p.doneToday && p.cat ? [p.cat] : [];
+  const offerUp = Array.isArray(p.offerUp) ? p.offerUp : p.offerUp ? [p.offerUp] : [];
+  return {
+    cats,
+    steps: p.steps ?? INITIAL_PLAN.steps,
+    since: p.since ?? INITIAL_PLAN.since,
+    log: p.log ?? [],
+    done,
+    afterRest: p.afterRest ?? 0,
+    offerUp,
+  };
+}
 
 export type PlanMode = "usual" | "afterRest" | "gentle";
 export type PlanToday = { mode: PlanMode; cat: PlanCat; step: number; task: string; easy: string };
 
-// きょう出す課題。休み明けは、しんどい日の分だけ。前の回が「きつかった」なら、1つやさしいステップにする（その日だけ）
-export function planToday(plan: Plan, cat: PlanCat = plan.cat): PlanToday {
-  const last = plan.log[plan.log.length - 1];
+// きょう出す課題（種類ごと）。休み明けは、しんどい日の分だけ。その種類の前の回が「きつかった」なら、1つやさしいステップにする（その日だけ）
+export function planToday(plan: Plan, cat: PlanCat): PlanToday {
+  const last = [...plan.log].reverse().find((e) => e.cat === cat);
   const mode: PlanMode = plan.afterRest > 0 ? "afterRest" : last?.result === "hard" ? "gentle" : "usual";
   const step = mode === "gentle" ? Math.max(1, plan.steps[cat] - 1) : plan.steps[cat];
   const s = PLAN_TASKS[cat].steps[step - 1];
@@ -91,9 +109,10 @@ export function planToday(plan: Plan, cat: PlanCat = plan.cat): PlanToday {
 
 // やってみた結果を残し、ステップを上げ下げする。上げるのは本人が決める（すすめるだけ）。下げるのは黙って下げる
 export function answerPlan(plan: Plan, today: PlanToday, result: PlanResult, easy: boolean, date: string): Plan {
-  const entry: PlanEntry = { date, at: Date.now(), cat: today.cat, step: today.step, task: easy ? today.easy : today.task, easy, result };
-  const log = [...plan.log, entry];
   const cat = today.cat;
+  if (plan.done.includes(cat)) return plan;
+  const entry: PlanEntry = { date, at: Date.now(), cat, step: today.step, task: easy ? today.easy : today.task, easy, result };
+  const log = [...plan.log, entry];
   const now = plan.steps[cat];
   const mine = log.slice(plan.since[cat]).filter((e) => e.cat === cat);
   const lastHard = mine.slice(-DOWN_AFTER);
@@ -101,23 +120,26 @@ export function answerPlan(plan: Plan, today: PlanToday, result: PlanResult, eas
   if (lastHard.length === DOWN_AFTER && lastHard.every((e) => e.result === "hard") && now > 1) {
     steps = { ...steps, [cat]: now - 1 };
     since = { ...since, [cat]: log.length };
-    if (offerUp === cat) offerUp = null;
+    offerUp = offerUp.filter((c) => c !== cat);
   } else if (now < MAX_STEP && mine.filter((e) => e.step === now && !e.easy && e.result !== "hard").length >= UP_AFTER) {
-    offerUp = cat;
+    if (!offerUp.includes(cat)) offerUp = [...offerUp, cat];
   }
-  return { ...plan, log, steps, since, offerUp, doneToday: true, afterRest: Math.max(0, plan.afterRest - 1) };
+  return { ...plan, log, steps, since, offerUp, done: [...plan.done, cat] };
 }
 
 // 次のステップをすすめられて、本人が答えたとき。どちらでも数えなおす
-export function decideUp(plan: Plan, up: boolean): Plan {
-  const cat = plan.offerUp;
-  if (!cat) return plan;
+export function decideUp(plan: Plan, cat: PlanCat, up: boolean): Plan {
+  if (!plan.offerUp.includes(cat)) return plan;
   const step = up ? Math.min(MAX_STEP, plan.steps[cat] + 1) : plan.steps[cat];
   return {
     ...plan,
     steps: { ...plan.steps, [cat]: step },
     since: { ...plan.since, [cat]: plan.log.length },
-    cat: up ? cat : plan.cat,
-    offerUp: null,
+    offerUp: plan.offerUp.filter((c) => c !== cat),
   };
+}
+
+// 次の日になったとき（デモでは押して進める）。休み明けの残り日数は、1日に1つ減らす
+export function nextDay(plan: Plan): Plan {
+  return { ...plan, done: [], afterRest: Math.max(0, plan.afterRest - 1) };
 }
