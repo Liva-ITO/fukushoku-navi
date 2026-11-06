@@ -24,9 +24,11 @@ export default function PreReturnHome({ state, dispatch }: Props) {
       </p>
 
       <NewNoticeLink state={state} dispatch={dispatch} />
-      <DiaryEntryCard state={state} dispatch={dispatch} />
 
+      {/* 回復期と同じく、手順の流れをいちばん上に。説明は「いまここ」だけ開き、ほかは押したら開く */}
       <ReturnSteps state={state} dispatch={dispatch} />
+
+      <DiaryEntryCard state={state} dispatch={dispatch} />
 
       <TorisetsuCard state={state} dispatch={dispatch} />
 
@@ -99,6 +101,7 @@ function ReturnSteps({ state, dispatch }: Props) {
       ? [steps.torisetsu, steps.review, steps.occ, steps.decision, steps.doctor, steps.plan]
       : [steps.torisetsu, steps.review, steps.doctor, steps.occ, steps.decision, steps.plan];
   const now = order.findIndex((s) => !s.done);
+  const [open, setOpen] = useState<string | null>(null);
 
   return (
     <section className="card">
@@ -107,10 +110,22 @@ function ReturnSteps({ state, dispatch }: Props) {
       <ol className="next-steps prep-steps">
         {order.map((s, i) => (
           <li key={s.name} className={i === now ? "step-now" : s.done ? "step-done" : undefined}>
-            {s.name}
-            {s.done && <span className="tag-soft">{PREP.doneTag}</span>}
-            {i === now && <span className="tag-soft">{PREP.hereTag}</span>}
-            <span className="step-sub">{s.note}</span>
+            {i === now ? (
+              <>
+                {s.name}
+                <span className="tag-soft">{PREP.hereTag}</span>
+                <span className="step-sub">{s.note}</span>
+              </>
+            ) : (
+              <>
+                <button className="step-toggle" aria-expanded={open === s.name} onClick={() => setOpen(open === s.name ? null : s.name)}>
+                  {s.name}
+                  {s.done && <span className="tag-soft">{PREP.doneTag}</span>}
+                  <span className="step-caret" aria-hidden="true">{open === s.name ? "▲" : "▼"}</span>
+                </button>
+                {open === s.name && <span className="step-sub">{s.note}</span>}
+              </>
+            )}
             {s === steps.review && reviewing && (
               <div className="step-action">
                 {state.prepPath === "self" && <SelfReportCard state={state} dispatch={dispatch} />}
