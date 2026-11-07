@@ -35,10 +35,13 @@ export default function PersonApp({ state, dispatch }: Props) {
   const [journeyOpen, setJourneyOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
 
-  // タブ・段階・休息モードが変わったら、いちばん上から見せる
+  // 画面が切り替わったら、いちばん上から見せる（タブ・段階・休息モード・お祝い・コンテンツ・薬の画面・流れ・できること）。
+  // 下までスクロールしたまま切り替えると、上に出た画面が見えず、何も出ていないように見えるため
+  const medKey = JSON.stringify(state.medView);
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [state.tab, state.stage, state.restMode, state.personStarted]);
+    document.querySelectorAll(".phone-body, .sheet").forEach((e) => (e.scrollTop = 0));
+  }, [state.tab, state.stage, state.restMode, state.personStarted, state.celebrate, state.contentOpen, medKey, journeyOpen, aboutOpen]);
   const unread = state.coordInbox.length - state.coordSeen + (state.hrMessages.length - state.personHrSeen);
 
   // 回復期・準備期に入ったときに一度だけ、ようこその画面を閉じたあとに、復職までの流れを見せる
