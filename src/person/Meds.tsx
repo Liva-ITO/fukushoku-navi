@@ -16,6 +16,7 @@ import {
   type PrnMed,
 } from "../data/meds";
 import type { Action, State } from "../state/store";
+import { ConfirmButton } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -153,11 +154,29 @@ export function MedSheet({ state, dispatch }: Props) {
     title = MED.settingsTitle;
     body = <Settings state={state} dispatch={dispatch} />;
   } else if (v.kind === "med") {
-    title = v.id ? MED.medFormEdit : MED.medFormTitle;
-    body = <MedForm key={v.id ?? "new"} med={state.meds.find((m) => m.id === v.id) ?? null} dispatch={dispatch} onCancel={toSettings} />;
+    const from = v.from ? state.meds.find((m) => m.id === v.from) : undefined;
+    title = from ? MED.switchTitle : v.id ? MED.medFormEdit : MED.medFormTitle;
+    body = (
+      <MedForm
+        key={v.id ?? v.from ?? "new"}
+        med={state.meds.find((m) => m.id === v.id) ?? null}
+        from={from}
+        dispatch={dispatch}
+        onCancel={toSettings}
+      />
+    );
   } else if (v.kind === "prn") {
-    title = v.id ? MED.prnFormEdit : MED.prnFormTitle;
-    body = <PrnForm key={v.id ?? "new"} prn={state.prnMeds.find((m) => m.id === v.id) ?? null} dispatch={dispatch} onCancel={toSettings} />;
+    const from = v.from ? state.prnMeds.find((m) => m.id === v.from) : undefined;
+    title = from ? MED.switchTitle : v.id ? MED.prnFormEdit : MED.prnFormTitle;
+    body = (
+      <PrnForm
+        key={v.id ?? v.from ?? "new"}
+        prn={state.prnMeds.find((m) => m.id === v.id) ?? null}
+        from={from}
+        dispatch={dispatch}
+        onCancel={toSettings}
+      />
+    );
   } else if (v.kind === "prnTake") {
     title = MED.prnTakeTitle;
     body = <PrnTake key={v.id} id={v.id} state={state} dispatch={dispatch} />;
@@ -183,7 +202,8 @@ export function MedSheet({ state, dispatch }: Props) {
 }
 
 function Settings({ state, dispatch }: Props) {
-  const meds = state.meds.filter((m) => !m.ended);
+  // 飲む時間の早い順に並べる（別の薬に変えても、並びが変わらないように）
+  const meds = state.meds.filter((m) => !m.ended).sort((a, b) => (a.times[0]?.at ?? "").localeCompare(b.times[0]?.at ?? ""));
   const prns = state.prnMeds.filter((p) => !p.ended);
   const ended = [...state.meds, ...state.prnMeds].filter((m) => m.ended);
   const alarm = state.alarm;
@@ -191,18 +211,27 @@ function Settings({ state, dispatch }: Props) {
     <>
       <p className="muted">{MED.settingsNote}</p>
 
+      {(meds.length > 0 || prns.length > 0) && (
+        <details className="card card-quiet">
+          <summary>{MED.changeHelpTitle}</summary>
+          <ul className="list-plain">
+            {MED.changeHelp.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+
       <section className="card">
         <h2>{MED.dailyTitle}</h2>
         {meds.map((m) => (
           <div key={m.id} className="med-item">
             <p className="med-item-head">
               <span className="med-name">💊 {m.label}</span>
-              <button className="link-small" onClick={() => dispatch({ type: "medOpen", view: { kind: "med", id: m.id } })}>
-                {MED.change} ›
-              </button>
             </p>
             <p className="muted med-sub">
               {[
+                m.name,
                 MED.daily,
                 m.times[0]?.amount ? MED.perTime(m.times[0].amount) : "",
                 m.stock !== null ? MED.stockLeft(m.stock) : "",
@@ -223,6 +252,7 @@ function Settings({ state, dispatch }: Props) {
                 </button>
               ))}
             </div>
+            <MedActions id={m.id} label={m.label} kind="med" dispatch={dispatch} />
           </div>
         ))}
         <button className="btn-outline btn-wide" onClick={() => dispatch({ type: "medOpen", view: { kind: "med", id: null } })}>
@@ -237,11 +267,9 @@ function Settings({ state, dispatch }: Props) {
           <div key={p.id} className="med-item">
             <p className="med-item-head">
               <span className="med-name">💊 {p.label}</span>
-              <button className="link-small" onClick={() => dispatch({ type: "medOpen", view: { kind: "prn", id: p.id } })}>
-                {MED.change} ›
-              </button>
             </p>
             <p className="muted med-sub">{MED.prnSummary(p)}</p>
+            <MedActions id={p.id} label={p.label} kind="prn" dispatch={dispatch} />
           </div>
         ))}
         <button className="btn-outline btn-wide" onClick={() => dispatch({ type: "medOpen", view: { kind: "prn", id: null } })}>
@@ -291,7 +319,10 @@ function Settings({ state, dispatch }: Props) {
             {ended.map((m) => (
               <li key={m.id}>
                 {m.label}
-                <span className="muted">（{MED.endedAt(jpDate(m.ended!))}）</span>
+                <span className="muted">（{MED.endedAt(jpDate(m.ended!))}）</span>{" "}
+                <button className="link-small" onClick={() => dispatch({ type: "medRestart", id: m.id })}>
+                  {MED.restart}
+                </button>
               </li>
             ))}
           </ul>
@@ -316,13 +347,15 @@ function Toggle({ label, on, onChange }: { label: string; on: boolean; onChange:
   );
 }
 
-function MedForm({ med, dispatch, onCancel }: { med: Med | null; dispatch: Dispatch<Action>; onCancel: () => void }) {
-  const [label, setLabel] = useState(med?.label ?? "");
+function MedForm({ med, from, dispatch, onCancel }: { med: Med | null; from?: Med; dispatch: Dispatch<Action>; onCancel: () => void }) {
+  // 別の薬に変わったときは、前の薬の呼び名・時間・メモを引き継ぐ（名前と残りは新しく）
+  const base = med ?? from ?? null;
+  const [label, setLabel] = useState(base?.label ?? "");
   const [name, setName] = useState(med?.name ?? "");
-  const [times, setTimes] = useState(med?.times ?? [{ at: "09:00", alarm: true, amount: 1 }]);
-  const [alarm, setAlarm] = useState(med ? med.times.some((t) => t.alarm) : true);
+  const [times, setTimes] = useState(base?.times ?? [{ at: "09:00", alarm: true, amount: 1 }]);
+  const [alarm, setAlarm] = useState(base ? base.times.some((t) => t.alarm) : true);
   const [stock, setStock] = useState(med?.stock?.toString() ?? "");
-  const [memo, setMemo] = useState(med?.memo ?? "");
+  const [memo, setMemo] = useState(base?.memo ?? "");
   const defaults = ["09:00", "21:00", "13:00", "17:00"];
   const setCount = (n: number) =>
     setTimes(
@@ -333,6 +366,7 @@ function MedForm({ med, dispatch, onCancel }: { med: Med | null; dispatch: Dispa
   const save = () =>
     dispatch({
       type: "medSave",
+      replaces: from?.id,
       med: {
         id: med?.id ?? newId("m"),
         label: label.trim(),
@@ -345,6 +379,7 @@ function MedForm({ med, dispatch, onCancel }: { med: Med | null; dispatch: Dispa
     });
   return (
     <>
+      {from && <p className="muted">{MED.switchNote(from.label)}</p>}
       <section className="card">
         <p className="path-group">{MED.secMed}</p>
         <label className="field">
@@ -441,13 +476,14 @@ function MedForm({ med, dispatch, onCancel }: { med: Med | null; dispatch: Dispa
   );
 }
 
-function PrnForm({ prn, dispatch, onCancel }: { prn: PrnMed | null; dispatch: Dispatch<Action>; onCancel: () => void }) {
-  const [label, setLabel] = useState(prn?.label ?? "");
+function PrnForm({ prn, from, dispatch, onCancel }: { prn: PrnMed | null; from?: PrnMed; dispatch: Dispatch<Action>; onCancel: () => void }) {
+  // 別の頓服に変わったときは、呼び名と理由だけ引き継ぐ（間隔・上限は新しい薬の指示を入れる）
+  const [label, setLabel] = useState(prn?.label ?? from?.label ?? "");
   const [name, setName] = useState(prn?.name ?? "");
   const [amount, setAmount] = useState(prn?.amount?.toString() ?? "1");
   const [interval, setInterval] = useState<number | null>(prn?.intervalHours ?? null);
   const [max, setMax] = useState<number | null | "none">(prn ? prn.maxPerDay : null);
-  const [reasons, setReasons] = useState<string[]>(prn?.reasons ?? [...PRN_REASONS]);
+  const [reasons, setReasons] = useState<string[]>(prn?.reasons ?? from?.reasons ?? [...PRN_REASONS]);
   const [extra, setExtra] = useState("");
   const [toMemo, setToMemo] = useState(prn?.toMemo ?? true);
   const [stock, setStock] = useState(prn?.stock?.toString() ?? "");
@@ -455,6 +491,7 @@ function PrnForm({ prn, dispatch, onCancel }: { prn: PrnMed | null; dispatch: Di
   const save = () =>
     dispatch({
       type: "prnSave",
+      replaces: from?.id,
       prn: {
         id: prn?.id ?? newId("p"),
         label: label.trim(),
@@ -470,6 +507,7 @@ function PrnForm({ prn, dispatch, onCancel }: { prn: PrnMed | null; dispatch: Di
     });
   return (
     <>
+      {from && <p className="muted">{MED.switchNote(from.label)}</p>}
       <section className="card">
         <p className="path-group">{MED.secMed}</p>
         <label className="field">
@@ -717,5 +755,56 @@ export function MedEditLink({ dispatch }: { dispatch: Dispatch<Action> }) {
         💊 {MED.editLink} ›
       </button>
     </p>
+  );
+}
+
+// 薬ごとの入口：量・時間を変える／別の薬に変わった／終わった／もらった分を足す
+function MedActions({ id, label, kind, dispatch }: { id: string; label: string; kind: "med" | "prn"; dispatch: Dispatch<Action> }) {
+  const [refill, setRefill] = useState(false);
+  const [n, setN] = useState("");
+  return (
+    <div className="med-actions">
+      <div className="med-action-row">
+        <button className="btn-outline btn-small" onClick={() => dispatch({ type: "medOpen", view: { kind, id } })}>
+          {MED.editAmount}
+        </button>
+        <button className="btn-outline btn-small" onClick={() => dispatch({ type: "medOpen", view: { kind, id: null, from: id } })}>
+          {MED.switchMed}
+        </button>
+        <ConfirmButton
+          quiet
+          modal
+          label={MED.endShort}
+          confirm={MED.endConfirm(label)}
+          yes={MED.endYes}
+          no={MED.cancel}
+          onConfirm={() => dispatch({ type: kind === "med" ? "medEnd" : "prnEnd", id })}
+        />
+      </div>
+      {refill ? (
+        <div className="med-time-row">
+          <input type="number" min={1} className="input-num" value={n} autoFocus onChange={(e) => setN(e.target.value)} />
+          <span className="muted">{MED.tablets}</span>
+          <button
+            className="btn-outline btn-small"
+            disabled={!(Number(n) > 0)}
+            onClick={() => {
+              dispatch({ type: "medRefill", id, n: Number(n) });
+              setRefill(false);
+              setN("");
+            }}
+          >
+            {MED.refillAdd}
+          </button>
+          <button className="btn-quiet btn-small" onClick={() => setRefill(false)}>
+            {MED.cancel}
+          </button>
+        </div>
+      ) : (
+        <button className="link-small" onClick={() => setRefill(true)}>
+          ＋{MED.refill}
+        </button>
+      )}
+    </div>
   );
 }

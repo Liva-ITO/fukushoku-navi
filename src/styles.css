@@ -929,3 +929,5 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .meet-rows dt { color: var(--muted); font-size: 13px; }
 .meet-rows dd { margin: 0; }
 .med-edit-link { text-align: center; margin: 8px 0 0; }
+.med-actions { margin-top: 8px; }
+.med-action-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 4px; }

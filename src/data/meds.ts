@@ -34,8 +34,8 @@ export type DoctorMemo = { date: string; kind: DoctorMemoKind };
 export type AlarmSetting = { on: boolean; sound: boolean; onlyIfNotTaken: boolean; device: boolean; visit?: boolean };
 export type MedView =
   | { kind: "settings" }
-  | { kind: "med"; id: string | null }
-  | { kind: "prn"; id: string | null }
+  | { kind: "med"; id: string | null; from?: string } // from：別の薬に変わったとき、前の薬（時間などを引き継いで、新しく入れる）
+  | { kind: "prn"; id: string | null; from?: string }
   | { kind: "prnTake"; id: string }
   | { kind: "memo" };
 // 鳴っているアラーム。「30分あとにもう一度」は1回だけ（snoozed のあいだは閉じていて、次に鳴ったら「もう一度」は出さない）

@@ -289,8 +289,10 @@ export type Action =
   | { type: "tap"; what: "wake" | "sleep"; time: string | null }
   | { type: "medOpen"; view: MedView | null }
   | { type: "openContent"; id: string | null }
-  | { type: "medSave"; med: Med }
-  | { type: "prnSave"; prn: PrnMed }
+  | { type: "medSave"; med: Med; replaces?: string }
+  | { type: "prnSave"; prn: PrnMed; replaces?: string }
+  | { type: "medRestart"; id: string }
+  | { type: "medRefill"; id: string; n: number }
   | { type: "medEnd"; id: string }
   | { type: "prnEnd"; id: string }
   | { type: "medTake"; medId: string; at: string; time: string }
@@ -478,13 +480,29 @@ function reducer(state: State, action: Action): State {
     case "medOpen":
       return { ...state, medView: action.view };
     case "medSave": {
-      const has = state.meds.some((m) => m.id === action.med.id);
-      return { ...state, meds: has ? state.meds.map((m) => (m.id === action.med.id ? action.med : m)) : [...state.meds, action.med], medView: { kind: "settings" } };
+      // 別の薬に変わったときは、前の薬を「終わった」にして、記録は残す
+      const meds = state.meds.map((m) => (m.id === action.replaces ? { ...m, ended: DEMO_TODAY } : m));
+      const has = meds.some((m) => m.id === action.med.id);
+      return { ...state, meds: has ? meds.map((m) => (m.id === action.med.id ? action.med : m)) : [...meds, action.med], medView: { kind: "settings" } };
     }
     case "prnSave": {
-      const has = state.prnMeds.some((m) => m.id === action.prn.id);
-      return { ...state, prnMeds: has ? state.prnMeds.map((m) => (m.id === action.prn.id ? action.prn : m)) : [...state.prnMeds, action.prn], medView: { kind: "settings" } };
+      const prns = state.prnMeds.map((m) => (m.id === action.replaces ? { ...m, ended: DEMO_TODAY } : m));
+      const has = prns.some((m) => m.id === action.prn.id);
+      return { ...state, prnMeds: has ? prns.map((m) => (m.id === action.prn.id ? action.prn : m)) : [...prns, action.prn], medView: { kind: "settings" } };
     }
+    case "medRestart":
+      return {
+        ...state,
+        meds: state.meds.map((m) => (m.id === action.id ? { ...m, ended: null } : m)),
+        prnMeds: state.prnMeds.map((m) => (m.id === action.id ? { ...m, ended: null } : m)),
+      };
+    case "medRefill":
+      // 薬をもらったら、残りに足す
+      return {
+        ...state,
+        meds: state.meds.map((m) => (m.id === action.id ? { ...m, stock: (m.stock ?? 0) + action.n } : m)),
+        prnMeds: state.prnMeds.map((m) => (m.id === action.id ? { ...m, stock: (m.stock ?? 0) + action.n } : m)),
+      };
     case "medEnd":
       return { ...state, meds: state.meds.map((m) => (m.id === action.id ? { ...m, ended: DEMO_TODAY } : m)), medView: { kind: "settings" } };
     case "prnEnd":
