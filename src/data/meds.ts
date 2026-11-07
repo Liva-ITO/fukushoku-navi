@@ -30,7 +30,8 @@ export type MedLog = { date: string; medId: string; at: string; takenAt: string 
 export type PrnLog = { date: string; prnId: string; time: string; reason: string | null };
 export type DoctorMemoKind = "sideEffect" | "noEffect" | "wantStop";
 export type DoctorMemo = { date: string; kind: DoctorMemoKind };
-export type AlarmSetting = { on: boolean; sound: boolean; onlyIfNotTaken: boolean; device: boolean };
+// visit：通院の前の日と当日に知らせる（前に保存したものにはないので、ないときはオン扱い）
+export type AlarmSetting = { on: boolean; sound: boolean; onlyIfNotTaken: boolean; device: boolean; visit?: boolean };
 export type MedView =
   | { kind: "settings" }
   | { kind: "med"; id: string | null }
@@ -50,6 +51,8 @@ export type MedState = {
   alarm: AlarmSetting;
   medView: MedView | null;
   alarmNow: AlarmNow | null;
+  visitDemo: boolean; // デモ用：通院の前の日として見せる
+  visitClosed: string | null; // 通院の知らせを閉じた日（その日はもう出さない）
 };
 
 export const INITIAL_MEDS: MedState = {
@@ -59,10 +62,20 @@ export const INITIAL_MEDS: MedState = {
   prnLog: [],
   nextVisit: null,
   doctorMemo: [],
-  alarm: { on: true, sound: false, onlyIfNotTaken: true, device: false },
+  alarm: { on: true, sound: false, onlyIfNotTaken: true, device: false, visit: true },
   medView: null,
   alarmNow: null,
+  visitDemo: false,
+  visitClosed: null,
 };
+
+// 次の通院まで何日か（当日は0）。過ぎていたら null
+export function daysToVisit(s: MedState): number | null {
+  if (!s.nextVisit) return null;
+  if (s.visitDemo) return 1;
+  const d = Math.round((new Date(`${s.nextVisit}T00:00:00`).getTime() - new Date(`${DEMO_TODAY}T00:00:00`).getTime()) / 86400000);
+  return d < 0 ? null : d;
+}
 
 export const PRN_REASONS = ["不安", "眠れない", "動悸", "そのほか"];
 

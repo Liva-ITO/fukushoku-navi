@@ -1,6 +1,7 @@
 import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import { whenOf, type Action, type State } from "../state/store";
+import { MedCard, MedTop } from "./Meds";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import PlanCard from "./PlanCard";
 import { MAX_STEP, PLAN_CATS } from "../data/recoveryPlan";
@@ -85,6 +86,7 @@ export default function RecoveryHome({ state, dispatch }: Props) {
 
       {/* 回復期のホームは長いので、相談の新しいお知らせは上にも出す */}
       <NewNoticeLink state={state} dispatch={dispatch} />
+      <MedTop state={state} dispatch={dispatch} />
 
       {/* 会社との面談の日が決まったら、上にも出す（たたんだ目安の中だけだと見落とすため） */}
       {state.companyMeeting?.status === "scheduled" && state.companyMeeting.date && (
@@ -105,6 +107,9 @@ export default function RecoveryHome({ state, dispatch }: Props) {
 
       {/* リワークを使う人は、プログラムの中で負荷を上げていくので出さない */}
       {(path === null || path === "self") && <PlanCard state={state} dispatch={dispatch} />}
+
+      {/* 薬は、量や種類が変わるので、どの段階でも見られて、変えられるようにする */}
+      <MedCard state={state} dispatch={dispatch} />
 
       <section className="card">
         <h2>{RECOVERY.pathTitle}</h2>

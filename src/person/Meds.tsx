@@ -3,6 +3,7 @@ import { MED } from "../constants/labels";
 import { DEMO_TODAY } from "../data/demo";
 import {
   PRN_REASONS,
+  daysToVisit,
   jpDate,
   newId,
   nowHm,
@@ -258,6 +259,11 @@ function Settings({ state, dispatch }: Props) {
           on={alarm.onlyIfNotTaken}
           onChange={(onlyIfNotTaken) => dispatch({ type: "setAlarm", alarm: { onlyIfNotTaken } })}
         />
+        <Toggle
+          label={MED.alarmVisit}
+          on={alarm.visit !== false}
+          onChange={(visit) => dispatch({ type: "setAlarm", alarm: { visit } })}
+        />
         <Toggle label={MED.alarmDevice} on={alarm.device} onChange={(device) => dispatch({ type: "setAlarm", alarm: { device } })} />
         <p className="muted">{MED.alarmDeviceNote}</p>
       </section>
@@ -271,6 +277,11 @@ function Settings({ state, dispatch }: Props) {
           onChange={(e) => dispatch({ type: "setNextVisit", date: e.target.value || null })}
         />
         <p className="muted">{MED.visitNote}</p>
+        {state.nextVisit && (
+          <button className="link-small link-muted" onClick={() => dispatch({ type: "visitDemo" })}>
+            {state.visitDemo ? MED.visitDemoOff : MED.visitDemo}
+          </button>
+        )}
       </section>
 
       {ended.length > 0 && (
@@ -666,6 +677,34 @@ function DoctorMemo({ state, dispatch }: Props) {
           </ul>
         </section>
       )}
+    </>
+  );
+}
+
+// 通院の前の日と当日に、ホームの上に出す知らせ。閉じたら、その日はもう出さない
+export function VisitAlert({ state, dispatch }: Props) {
+  const d = daysToVisit(state);
+  if (d === null || d > 1 || state.alarm.visit === false || state.visitClosed === DEMO_TODAY || !state.nextVisit) return null;
+  return (
+    <section className="alarm-panel visit-alert" role="status">
+      <p className="alarm-title">{d === 0 ? MED.visitToday : MED.visitTomorrow}</p>
+      <p className="muted">{MED.visitAlertNote}</p>
+      <button className="btn-outline btn-wide" onClick={() => dispatch({ type: "medOpen", view: { kind: "memo" } })}>
+        {MED.memoLink} ›
+      </button>
+      <button className="btn-quiet btn-wide" onClick={() => dispatch({ type: "visitClose" })}>
+        {MED.alarmClose}
+      </button>
+    </section>
+  );
+}
+
+// ホームの上に出す、薬のアラームと通院の知らせ（どの段階でも）
+export function MedTop({ state, dispatch }: Props) {
+  return (
+    <>
+      <AlarmPanel state={state} dispatch={dispatch} />
+      <VisitAlert state={state} dispatch={dispatch} />
     </>
   );
 }

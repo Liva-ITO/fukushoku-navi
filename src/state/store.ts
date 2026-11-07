@@ -95,6 +95,8 @@ export type State = {
   medView: MedState["medView"];
   contentOpen: string | null; // コンテンツのタブで開いているもの
   alarmNow: MedState["alarmNow"];
+  visitDemo: boolean;
+  visitClosed: string | null;
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
   // 急性期→回復期に必須の、復職コーディネーターとの面談（回復期に進む前）が済んだか（人事が記録する）
@@ -299,6 +301,8 @@ export type Action =
   | { type: "alarmSnooze" }
   | { type: "alarmClose" }
   | { type: "medSample" }
+  | { type: "visitDemo" }
+  | { type: "visitClose" }
   | { type: "toggleRecoveryCheck"; item: string }
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
@@ -541,6 +545,10 @@ function reducer(state: State, action: Action): State {
       return state.alarmNow ? { ...state, alarmNow: { ...state.alarmNow, snoozed: true, open: false } } : state;
     case "alarmClose":
       return { ...state, alarmNow: null };
+    case "visitDemo":
+      return { ...state, visitDemo: !state.visitDemo, visitClosed: null };
+    case "visitClose":
+      return { ...state, visitClosed: DEMO_TODAY };
     case "medSample":
       return { ...state, ...sampleMeds() };
     case "tap": {

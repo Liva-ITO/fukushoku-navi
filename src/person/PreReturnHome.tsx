@@ -1,6 +1,7 @@
 import { useState, type Dispatch } from "react";
 import { PREP, STAGE_LABELS, greeting } from "../constants/labels";
 import { whenOf, type Action, type State } from "../state/store";
+import { MedCard, MedTop } from "./Meds";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import { SelfReportCard } from "./SelfReportCard";
 import { TorisetsuCard } from "./Torisetsu";
@@ -24,11 +25,14 @@ export default function PreReturnHome({ state, dispatch }: Props) {
       </p>
 
       <NewNoticeLink state={state} dispatch={dispatch} />
+      <MedTop state={state} dispatch={dispatch} />
 
       {/* 回復期と同じく、手順の流れをいちばん上に。説明は「いまここ」だけ開き、ほかは押したら開く */}
       <ReturnSteps state={state} dispatch={dispatch} />
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
+
+      <MedCard state={state} dispatch={dispatch} />
 
       <TorisetsuCard state={state} dispatch={dispatch} />
 

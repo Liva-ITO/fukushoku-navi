@@ -86,7 +86,7 @@ export default function PersonApp({ state, dispatch }: Props) {
           </button>
         </span>
       </header>
-      {state.stage === "acute" && <MedSheet state={state} dispatch={dispatch} />}
+      <MedSheet state={state} dispatch={dispatch} />
       {journeyOpen && <JourneySheet stage={state.stage} onClose={() => setJourneyOpen(false)} />}
       {aboutOpen && (
         <div className="sheet" role="dialog" aria-modal="true" aria-label={ABOUT.title}>

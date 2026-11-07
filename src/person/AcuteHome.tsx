@@ -3,7 +3,7 @@ import { ACUTE, ACUTE_MORE, REST, greeting } from "../constants/labels";
 import { DEMO_TODAY } from "../data/demo";
 import { slotDate, type Action, type State } from "../state/store";
 import { LittleCard } from "./ContentsTab";
-import { AlarmPanel, MedCard } from "./Meds";
+import { MedCard, MedTop } from "./Meds";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, WishCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -27,7 +27,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
     <div className="home home-acute">
       <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
       {meet && isToday && <MeetToday meet={meet} />}
-      <AlarmPanel state={state} dispatch={dispatch} />
+      <MedTop state={state} dispatch={dispatch} />
       <p className="lead">{first ? ACUTE.messageFirst : ACUTE.message}</p>
 
       <WakeSleep state={state} dispatch={dispatch} />

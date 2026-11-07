@@ -2,6 +2,7 @@ import type { Dispatch } from "react";
 import { COMMON, WATCH, greeting } from "../constants/labels";
 import type { Action, State } from "../state/store";
 import { CoordinatorCard, NewNoticeLink } from "./parts";
+import { MedCard, MedTop } from "./Meds";
 import { TorisetsuCard } from "./Torisetsu";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -28,6 +29,9 @@ export default function WatchHome({ state, dispatch }: Props) {
       )}
 
       <NewNoticeLink state={state} dispatch={dispatch} />
+      <MedTop state={state} dispatch={dispatch} />
+
+      <MedCard state={state} dispatch={dispatch} />
 
       <TorisetsuCard state={state} dispatch={dispatch} readOnly />
 
