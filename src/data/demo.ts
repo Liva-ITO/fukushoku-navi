@@ -22,6 +22,8 @@ export type SentItem = {
   at?: number;
   kind: "reply" | "visit" | "wish" | "new" | "accommodation";
   body: string;
+  // 体調に関わる連絡（上司には出さない）：通院の報告、用件「体調のこと」、人事からの連絡への返信
+  health?: boolean;
 };
 
 export type DiaryEntry = {

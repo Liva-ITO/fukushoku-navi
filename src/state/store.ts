@@ -354,7 +354,7 @@ export type Action =
   | { type: "undoReturnDecision" }
   | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
-  | { type: "sendToHr"; kind: SentItem["kind"]; body: string }
+  | { type: "sendToHr"; kind: SentItem["kind"]; body: string; health?: boolean }
   | { type: "sendHrMessage"; personId: string; title: string; body: string; noReplyNeeded: boolean; by?: string }
   | { type: "openHrMessage"; id: string | null; goContact?: boolean }
   | { type: "hrSelect"; id: string | null; incoming?: number; prevSeen?: number; keys?: string[]; prevKeys?: string[] }
@@ -809,7 +809,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         sentToHr: [
           ...state.sentToHr,
-          { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, at: Date.now(), kind: action.kind, body: action.body },
+          { id: `s${state.sentToHr.length + 1}`, date: DEMO_TODAY, at: Date.now(), kind: action.kind, body: action.body, health: action.kind === "visit" || action.health },
         ],
       };
     case "sendHrMessage": {

@@ -36,7 +36,7 @@ export const bossTodos = (r: HrRow): HrTodo[] => (r.bossTodo ? [r.bossTodo] : []
 
 // 上司に出す連絡の項目：返信のあとに届いたもののうち、体調の報告（通院）でないもの
 function bossTodoOf(state: State): HrTodo | undefined {
-  const notHealth = (s: State["sentToHr"][number]) => s.kind !== "visit";
+  const notHealth = (s: State["sentToHr"][number]) => s.kind !== "visit" && !s.health;
   const since = state.sentToHr.slice(Math.max(state.hrRepliedAt, state.bossRepliedAt)).filter(notHealth);
   if (since.length === 0) return undefined;
   return {
@@ -120,7 +120,7 @@ function eventsOf(state: State): HrEvent[] {
   return byDate([
     ...(start ? [{ date: start.date, kind: "stage" as const, body: STAGE_LABELS[start.stage] }] : []),
     ...state.hrMessages.map((m) => ({ date: m.date, at: m.at, kind: "fromHr" as const, body: m.by ? `${m.title}（${m.by}）` : m.title, noReply: m.noReplyNeeded, by: m.by })),
-    ...state.sentToHr.map((s) => ({ date: s.date, at: s.at, kind: "fromPerson" as const, body: s.body, health: s.kind === "visit" })),
+    ...state.sentToHr.map((s) => ({ date: s.date, at: s.at, kind: "fromPerson" as const, body: s.body, health: s.kind === "visit" || !!s.health })),
     ...logged,
     ...meetings,
     ...(state.doctorNote ? [{ date: today, kind: "submit" as const, body: HR.stepDoctor, byHr: true }] : []),

@@ -31,10 +31,11 @@ function Inner({ events, audience, cacheKey, reveal }: Props & { cacheKey: strin
   const [error, setError] = useState<string | null>(null);
   if (events.length === 0) return null;
 
-  // 会社が「確認した」を押した記録は、要約には要らないので送らない。番号は、もとの一覧の番号に戻して使う
+  // 会社が「確認した」を押した記録は、要約には要らないので送らない。
+  // 登録内容の変更（氏名・メールアドレス・上司の名前が入る）も、AIには送らない。番号は、もとの一覧の番号に戻して使う
   const sent = events
     .map((e, i) => ({ e, i }))
-    .filter(({ e }) => e.kind !== "done")
+    .filter(({ e }) => e.kind !== "done" && e.kind !== "edit")
     .slice(-MAX_EVENTS);
 
   const run = async () => {

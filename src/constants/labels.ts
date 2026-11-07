@@ -1421,7 +1421,7 @@ export const MED = {
 
   // アラーム（画面の中に出す。「飲まない」ボタンは置かない。2回目は鳴らさない）
   alarmTitle: (label: string) => `${label}の時間です`,
-  alarmNote: "飲んだら押せます。あとでも大丈夫です",
+  alarmNote: "飲んだら押せます",
   alarmSnooze: "30分あとにもう一度",
   alarmClose: "閉じる",
 
@@ -1511,7 +1511,7 @@ export const MED = {
   stockNow: "いま手元に",
   stockNote: "飲んだ分だけ減ります",
   memo: "メモ（主治医・薬剤師に言われたこと）",
-  memoPh: "例：眠気が強ければ半分に、と言われた",
+  memoPh: "例：食後に飲む",
   save: "これで決める",
   cancel: "やめておく",
   endMed: "この薬を服薬終了にする",

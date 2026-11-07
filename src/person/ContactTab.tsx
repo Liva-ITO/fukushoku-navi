@@ -70,7 +70,7 @@ export default function ContactTab({ state, dispatch }: Props) {
                     {offerOf(state, m.id) ? (
                       <OfferPicker offerKey={offerOf(state, m.id) as OfferKey} state={state} dispatch={dispatch} />
                     ) : (
-                      <ReplyArea key={m.id} stage={state.stage} dispatch={dispatch} />
+                      <ReplyArea key={m.id} stage={state.stage} toBoss={!!m.by} dispatch={dispatch} />
                     )}
                   </div>
                 )}
@@ -186,7 +186,8 @@ function SupportInbox({ state, dispatch, seenBefore }: { state: State; dispatch:
 }
 
 // 返信は［返信する］を押してから書く
-function ReplyArea({ stage, dispatch }: { stage: State["stage"]; dispatch: Dispatch<Action> }) {
+// 人事からの連絡への返信は、体調のことが入りやすいので上司には出さない（上司からの連絡への返信は、上司にも出す）
+function ReplyArea({ stage, toBoss, dispatch }: { stage: State["stage"]; toBoss: boolean; dispatch: Dispatch<Action> }) {
   const [open, setOpen] = useState(false);
   if (!open)
     return (
@@ -194,11 +195,11 @@ function ReplyArea({ stage, dispatch }: { stage: State["stage"]; dispatch: Dispa
         {CONTACT.replyOpen}
       </button>
     );
-  return <div className="reply-area">{stage === "acute" ? <PickReply dispatch={dispatch} /> : <WriteReply dispatch={dispatch} />}</div>;
+  return <div className="reply-area">{stage === "acute" ? <PickReply health={!toBoss} dispatch={dispatch} /> : <WriteReply health={!toBoss} dispatch={dispatch} />}</div>;
 }
 
 // 急性期：例文を選ぶだけ。入力欄は出さない
-function PickReply({ dispatch }: { dispatch: Dispatch<Action> }) {
+function PickReply({ health, dispatch }: { health: boolean; dispatch: Dispatch<Action> }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
@@ -218,7 +219,7 @@ function PickReply({ dispatch }: { dispatch: Dispatch<Action> }) {
           <button
             className="btn-primary"
             onClick={() => {
-              dispatch({ type: "sendToHr", kind: "reply", body: picked });
+              dispatch({ type: "sendToHr", kind: "reply", body: picked, health });
               setSent(true);
             }}
           >
@@ -234,7 +235,7 @@ function PickReply({ dispatch }: { dispatch: Dispatch<Action> }) {
 }
 
 // 回復期・準備期：自分の言葉で書く。例文は書き出しの助けとして下に置く
-function WriteReply({ dispatch }: { dispatch: Dispatch<Action> }) {
+function WriteReply({ health, dispatch }: { health: boolean; dispatch: Dispatch<Action> }) {
   const [text, setText] = useState("");
   const [sent, setSent] = useState(false);
 
@@ -266,7 +267,7 @@ function WriteReply({ dispatch }: { dispatch: Dispatch<Action> }) {
         className="btn-primary btn-wide"
         disabled={!text.trim()}
         onClick={() => {
-          dispatch({ type: "sendToHr", kind: "reply", body: text.trim() });
+          dispatch({ type: "sendToHr", kind: "reply", body: text.trim(), health });
           setSent(true);
         }}
       >
@@ -328,7 +329,7 @@ function NewToHr({ stage, note, dispatch }: { stage: State["stage"]; note?: stri
             <button
               className="btn-primary"
               onClick={() => {
-                dispatch({ type: "sendToHr", kind: "new", body });
+                dispatch({ type: "sendToHr", kind: "new", body, health: topic === "health" });
                 reset();
                 setOpen(false);
                 setSent(true);
