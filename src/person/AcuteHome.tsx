@@ -1,9 +1,10 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ACUTE, REST, greeting } from "../constants/labels";
+import { ACUTE, ACUTE_MORE, REST, greeting } from "../constants/labels";
 import { DEMO_TODAY } from "../data/demo";
-import type { Action, State } from "../state/store";
+import { slotDate, type Action, type State } from "../state/store";
+import { LittleCard } from "./ContentsTab";
 import { AlarmPanel, MedCard } from "./Meds";
-import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard, WishCard } from "./parts";
+import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, WishCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -18,10 +19,14 @@ export default function AcuteHome({ state, dispatch }: Props) {
   const stepNow = !state.psychMeetingDone ? 0 : 1;
   // 急性期は、面談は1つずつ。心理の専門家との面談（チケット）が済むまでは、回復期に進む前のコーディネーターとの面談を申し込めない
   const coordBusy = state.coordinatorMeeting !== null && state.coordinatorReport === null;
+  const meet = upcomingMeeting(state);
+  const [dayDemo, setDayDemo] = useState(false);
+  const isToday = meet !== null && (dayDemo || slotDate(meet.slot) === DEMO_TODAY);
 
   return (
     <div className="home home-acute">
       <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
+      {meet && isToday && <MeetToday meet={meet} />}
       <AlarmPanel state={state} dispatch={dispatch} />
       <p className="lead">{first ? ACUTE.messageFirst : ACUTE.message}</p>
 
@@ -32,12 +37,15 @@ export default function AcuteHome({ state, dispatch }: Props) {
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
+      {meet && <MeetBox meet={meet} dayDemo={dayDemo} onDemo={() => setDayDemo(!dayDemo)} />}
+
       {state.psychMeetingDone && <WishCard state={state} dispatch={dispatch} />}
 
       {/* 大きく体調を崩している時期なので、休息モードと同じく、チケットがなければ公的な窓口を出す */}
-      <CoordinatorCard state={state} dispatch={dispatch} title={REST.hardTitle} note={REST.hardNote} publicWhenEmpty />
+      <CoordinatorCard state={state} dispatch={dispatch} title={REST.hardTitle} note={ACUTE_MORE.hardPsychNote} alwaysPublic />
 
-      <ReadingsCard />
+      {/* 何かをするより、見るだけのほうが負担が少ない。週替わりで2本だけ */}
+      <LittleCard state={state} dispatch={dispatch} />
 
       {/* 人事からの連絡は、上にあるとプレッシャーになるので下に。急性期は新しい1件だけ（仕様どおり） */}
       <HrNoticeList messages={state.hrMessages} max={1} dispatch={dispatch} />
@@ -120,6 +128,58 @@ function WakeSleep({ state, dispatch }: Props) {
             </button>
           </p>
         ))}
+    </div>
+  );
+}
+
+// 日程が決まった面談（急性期は、回復期に進む前のコーディネーターとの面談と、心理の専門家との面談）
+type Meet = { slot: string; who: string; what: string };
+function upcomingMeeting(state: State): Meet | null {
+  const ps = state.psychSchedule;
+  if (ps?.chosen && !state.psychMeetingDone) return { slot: ps.chosen, who: ACUTE_MORE.meetCoord, what: ACUTE_MORE.meetCoordWhat };
+  const cs = state.coordSchedule;
+  const r = state.coordinatorReport;
+  if (cs?.chosen && state.coordinatorMeeting !== null && r !== "done" && r !== "declined")
+    return { slot: cs.chosen, who: ACUTE_MORE.meetPsych, what: ACUTE_MORE.meetPsychWhat };
+  return null;
+}
+
+function MeetBox({ meet, dayDemo, onDemo }: { meet: Meet; dayDemo: boolean; onDemo: () => void }) {
+  return (
+    <section className="card">
+      <h2>{ACUTE_MORE.meetTitle}</h2>
+      <dl className="meet-rows">
+        <dt>{ACUTE_MORE.meetWhen}</dt>
+        <dd>{meet.slot}</dd>
+        <dt>{ACUTE_MORE.meetWhere}</dt>
+        <dd>{ACUTE_MORE.online}</dd>
+        <dt>{ACUTE_MORE.meetWho}</dt>
+        <dd>{meet.who}</dd>
+        <dt>{ACUTE_MORE.meetWhat}</dt>
+        <dd>{meet.what}</dd>
+      </dl>
+      <p className="muted">{ACUTE_MORE.meetPrivate}</p>
+      <button className="link-small link-muted" onClick={onDemo}>
+        {dayDemo ? ACUTE_MORE.demoTodayOff : ACUTE_MORE.demoToday}
+      </button>
+    </section>
+  );
+}
+
+// 面談の当日だけ、あいさつのすぐ下に短く出す
+function MeetToday({ meet }: { meet: Meet }) {
+  const [open, setOpen] = useState(false);
+  const time = meet.slot.match(/\d{1,2}:\d{2}/)?.[0] ?? "";
+  return (
+    <div className="meet-today">
+      <p>{ACUTE_MORE.todayTitle(time, meet.who)}</p>
+      {open ? (
+        <p className="muted">{ACUTE_MORE.howJoinText}</p>
+      ) : (
+        <button className="link-small" onClick={() => setOpen(true)}>
+          {ACUTE_MORE.howJoin} ›
+        </button>
+      )}
     </div>
   );
 }

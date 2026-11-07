@@ -1515,3 +1515,39 @@ export const MED = {
   memoEmpty: "まだありません",
   prnWeekTitle: "頓服の記録（1週間）",
 };
+
+// コンテンツ（読みもの）。読まなくても大丈夫、を先に書く
+export const CONTENTS_UI = {
+  title: "コンテンツ",
+  note: "読まなくても大丈夫です。開きたくなったときに",
+  nowTitle: "いまの時期に",
+  otherTitle: "ほかの時期のもの",
+  minutes: (n: number) => `${n}分`,
+  back: "コンテンツの一覧へ",
+  draft: "（本文はたたき台です。スタッフが書き直します）",
+  littleTitle: "余裕があるときに、少しだけ",
+  littleNote: "読まなくても大丈夫です。開きたくなったときに",
+  more: "ほかのコンテンツ",
+};
+
+// 急性期ホームの「しんどいときは」と「面談」の欄
+export const ACUTE_MORE = {
+  // 主治医と公的な窓口は、チケットの有無に関係なく、いつも出す
+  hardPsychNote: "心理の専門家にも相談できます。話した内容は、会社には伝わりません（申し込んだことは伝わります）",
+  meetTitle: "面談",
+  meetWhen: "日時",
+  meetWhere: "場所",
+  meetWho: "相手",
+  meetWhat: "内容",
+  online: "オンライン",
+  meetCoord: "復職コーディネーター",
+  meetPsych: "心理の専門家",
+  meetCoordWhat: "いまの過ごし方と、回復期に進めそうかを、一緒に確かめます",
+  meetPsychWhat: "いまのしんどさや、気になっていることを話せます",
+  meetPrivate: "話した内容は、会社には伝わりません",
+  todayTitle: (time: string, who: string) => `きょう ${time}／${who}と面談（オンライン）`,
+  howJoin: "参加のしかたを見る",
+  howJoinText: "時間になったら、連絡に届くお知らせのリンクから入れます。カメラはオフでも大丈夫です。（デモでは入れません）",
+  demoToday: "（デモ用）当日の表示を見る",
+  demoTodayOff: "（デモ用）当日の表示をやめる",
+};

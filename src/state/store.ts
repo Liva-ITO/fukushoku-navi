@@ -93,6 +93,7 @@ export type State = {
   doctorMemo: MedState["doctorMemo"];
   alarm: MedState["alarm"];
   medView: MedState["medView"];
+  contentOpen: string | null; // コンテンツのタブで開いているもの
   alarmNow: MedState["alarmNow"];
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
@@ -202,6 +203,7 @@ export const initialState: State = {
   acuteIntroSeen: false,
   taps: { date: DEMO_TODAY, wake: null, sleep: null },
   ...INITIAL_MEDS,
+  contentOpen: null,
   recoveryChecks: [],
   rivaMeetingApplied: false,
   psychMeetingDone: false,
@@ -281,6 +283,7 @@ export type Action =
   | { type: "markAcuteIntroSeen" }
   | { type: "tap"; what: "wake" | "sleep"; time: string | null }
   | { type: "medOpen"; view: MedView | null }
+  | { type: "openContent"; id: string | null }
   | { type: "medSave"; med: Med }
   | { type: "prnSave"; prn: PrnMed }
   | { type: "medEnd"; id: string }
@@ -378,7 +381,7 @@ export function currentBossId(state: State): string | null {
 }
 
 // 日程の候補（「11月9日（月）11:00」）から日付を取り出す。取れなければ今日
-function slotDate(slot: string | null | undefined): string {
+export function slotDate(slot: string | null | undefined): string {
   const m = slot?.match(/(\d+)月(\d+)日/);
   if (!m) return DEMO_TODAY;
   return `${DEMO_TODAY.slice(0, 4)}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
@@ -460,9 +463,11 @@ function reducer(state: State, action: Action): State {
     case "closeCelebrate":
       return { ...state, celebrate: null, tab: "home" };
     case "setTab":
-      return { ...state, tab: action.tab };
+      return { ...state, tab: action.tab, contentOpen: action.tab === "contents" ? null : state.contentOpen };
     case "closeIntro":
       return { ...state, introSeen: true };
+    case "openContent":
+      return { ...state, tab: "contents", contentOpen: action.id };
     case "medOpen":
       return { ...state, medView: action.view };
     case "medSave": {

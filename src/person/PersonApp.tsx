@@ -1,7 +1,8 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ABOUT, APP_NAME, CELEBRATE, COMMON, CONSULT, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
+import { ABOUT, APP_NAME, CELEBRATE, CONSULT, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
 import JourneySheet from "./JourneySheet";
 import { MedSheet } from "./Meds";
+import ContentsTab from "./ContentsTab";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
 import RecoveryHome from "./RecoveryHome";
@@ -122,7 +123,7 @@ export default function PersonApp({ state, dispatch }: Props) {
         {state.tab === "record" && <DiaryTab state={state} dispatch={dispatch} />}
         {state.tab === "contact" && <ContactTab state={state} dispatch={dispatch} />}
         {state.tab === "consult" && <ConsultTab state={state} dispatch={dispatch} />}
-        {state.tab === "contents" && <p className="placeholder">{COMMON.comingSoon}</p>}
+        {state.tab === "contents" && <ContentsTab state={state} dispatch={dispatch} />}
       </div>
 
       <nav className="tab-bar">

@@ -918,3 +918,13 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .alarm-panel p { margin: 0; }
 .alarm-time { font-size: 13px; color: var(--muted); }
 .alarm-title { font-size: 18px; font-weight: 700; }
+
+.soft-rule { border: 0; border-top: 1px solid var(--line); margin: 10px 0; }
+.content-list { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
+.content-row { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 12px; min-height: 44px; display: flex; justify-content: space-between; align-items: center; color: var(--text); font: inherit; }
+.content-row::after { content: "›"; color: var(--accent); font-size: 18px; margin-left: 8px; }
+.meet-today { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; margin: 0 0 14px; }
+.meet-today p { margin: 0 0 4px; }
+.meet-rows { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0; }
+.meet-rows dt { color: var(--muted); font-size: 13px; }
+.meet-rows dd { margin: 0; }

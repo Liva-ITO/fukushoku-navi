@@ -13,6 +13,7 @@ export function CoordinatorCard({
   publicWhenEmpty = false,
   showNewLink = true,
   pickHere = false,
+  alwaysPublic = false,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
@@ -21,6 +22,7 @@ export function CoordinatorCard({
   publicWhenEmpty?: boolean;
   showNewLink?: boolean;
   pickHere?: boolean; // 日程の候補をここで選べるか（いまは使わない。候補は連絡タブで選ぶ）
+  alwaysPublic?: boolean; // 主治医と公的な窓口を、チケットに関係なく先に出す（急性期）
 }) {
   const hasTickets = state.ticketsLeft > 0;
   const report = state.coordinatorReport;
@@ -49,6 +51,12 @@ export function CoordinatorCard({
     <section className="card">
       <h2>{title}</h2>
       {newLink}
+      {alwaysPublic && (
+        <>
+          <PublicLines max={2} />
+          <hr className="soft-rule" />
+        </>
+      )}
       {!open && cs?.chosen && <p className="done-note">{CONSULT.decidedNote(cs.chosen)}</p>}
       {!open && cs?.offerId &&
         (pickHere ? (
@@ -178,10 +186,10 @@ export function NewNoticeLink({ state, dispatch }: { state: State; dispatch: Dis
   );
 }
 
-export function PublicLines() {
+export function PublicLines({ max }: { max?: number } = {}) {
   return (
     <ul className="list-plain">
-      {CONSULT.publicPlaces.map((p) => (
+      {CONSULT.publicPlaces.slice(0, max).map((p) => (
         <li key={p.name}>
           {p.name}
           {p.tel && (
