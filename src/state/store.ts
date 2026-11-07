@@ -145,6 +145,8 @@ export type State = {
   reworkReports: { month: string; days: number; rate: number; date: string }[];
   occMeeting: { status: "scheduled" | "done"; date: string; time?: string; opinion?: OccOpinion } | null;
   occApplied: boolean; // 本人が産業医との面談を申し込んだ
+  // 「もう少し準備が必要」と判断したあと、会社がまだ本人に課題を伝えていない
+  occIssuePending: boolean;
   prepReviewed: boolean; // 準備期に、産業医との面談に向けてレポートを見直した
   // 産業医の意見の記録（面談をやり直しても残す。経緯に出す）
   occOpinions: (OccOpinion & { date: string; at?: number })[];
@@ -243,6 +245,7 @@ export const initialState: State = {
   reworkReports: [],
   occMeeting: null,
   occApplied: false,
+  occIssuePending: false,
   prepReviewed: false,
   occOpinions: [],
   meetingLog: [],
@@ -347,6 +350,7 @@ export type Action =
   | { type: "rescheduleCompanyMeeting" }
   | { type: "setReturnPlan"; date: string; accommodation: string }
   | { type: "decideReturn"; result: "ok" | "notYet" }
+  | { type: "sendOccIssues"; body: string }
   | { type: "undoReturnDecision" }
   | { type: "confirmReturn" }
   | { type: "saveDiary"; entry: DiaryEntry }
@@ -441,7 +445,7 @@ function reducer(state: State, action: Action): State {
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
           ? // 会社との面談（準備期に進むための面談）も、もう一度申し込むところから。済んだ記録は経緯に残る
-            { occMeeting: null, occApplied: false, prepReviewed: false, doctorNote: false, returnPlan: null, returnDecision: null, companyMeeting: null, offers: {} }
+            { occMeeting: null, occApplied: false, occIssuePending: false, prepReviewed: false, doctorNote: false, returnPlan: null, returnDecision: null, companyMeeting: null, offers: {} }
           : {}),
       };
     }
@@ -767,10 +771,18 @@ function reducer(state: State, action: Action): State {
       const when = state.occMeeting.date > DEMO_TODAY ? state.occMeeting.date : DEMO_TODAY;
       const log = [...state.returnDecisionLog, { date: when, at: Date.now(), result: action.result }];
       // もう少し準備が必要なら、準備期のまま産業医との面談をもう一度にする（段階は戻さない）。
-      // 本人には会社から知らせが届き、もう一度の申し込みは本人の準備ができたときにする
+      // 流れ：会社が本人に課題を連絡する → 本人が受け取る → 本人がもう一度申し込む → 会社が日程の候補を送る
       return action.result === "ok"
         ? { ...state, returnDecision: "ok", returnDecisionLog: log }
-        : withHrMessage({ ...state, returnDecision: null, occMeeting: null, occApplied: false, offers: { ...state.offers, occ: undefined }, returnDecisionLog: log }, HR.notYetNotice);
+        : { ...state, returnDecision: null, occMeeting: null, occApplied: false, occIssuePending: true, offers: { ...state.offers, occ: undefined }, returnDecisionLog: log };
+    }
+    case "sendOccIssues": {
+      if (!state.occIssuePending) return state;
+      const next = withHrMessage({ ...state, occIssuePending: false }, { title: HR.issue.title, text: action.body, noReply: false });
+      // 連絡は判断のあと。デモで判断の日が先の日付なら、連絡もその日にする（経緯の順番がくずれないように）
+      const decidedOn = state.returnDecisionLog.at(-1)?.date ?? DEMO_TODAY;
+      if (decidedOn <= DEMO_TODAY) return next;
+      return { ...next, hrMessages: next.hrMessages.map((m, i, arr) => (i === arr.length - 1 ? { ...m, date: decidedOn } : m)) };
     }
     case "undoReturnDecision": {
       const last = state.returnDecisionLog[state.returnDecisionLog.length - 1];

@@ -63,6 +63,7 @@ function todosOf(state: State): HrTodo[] {
   const needOffer = (k: "company" | "occ") => !state.offers[k] || state.offers[k]?.declined;
   if (state.companyMeeting?.status === "applied" && needOffer("company")) at("a-company", HR.todoA.companyMeeting);
   if (state.stage === "preReturn" && state.occApplied && !state.occMeeting && needOffer("occ")) at("a-occ", HR.todoA.occMeeting);
+  if (state.stage === "preReturn" && state.occIssuePending) at("a-occ-issue", HR.todoA.occIssue);
   // コーディネーターとの面談の申し込みは、人事がすることがないので「対応が必要なこと」に出さない
   if (state.coordinatorMeeting === "requested" && !state.coordinatorReport && !state.coordSchedule) at("a-coord-req", HR.todoA.coordinatorRequested(CONSULT.who[state.coordWho]));
   // 本人からの連絡は、届いた件数ごとに別の項目にする（対応済みのあとに新しく届いたら、また出す）

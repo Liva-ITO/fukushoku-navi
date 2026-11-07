@@ -1,5 +1,5 @@
 import { useState, type Dispatch } from "react";
-import { PREP, STAGE_LABELS, greeting } from "../constants/labels";
+import { HR, PREP, STAGE_LABELS, greeting } from "../constants/labels";
 import { whenOf, type Action, type State } from "../state/store";
 import { MedEditLink, MedTop } from "./Meds";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
@@ -51,8 +51,12 @@ function ReturnSteps({ state, dispatch }: Props) {
   // 前回の会社の確認が「もう少し準備が必要」で、まだ次の面談が決まっていない
   const lastDecision = state.returnDecisionLog[state.returnDecisionLog.length - 1];
   const again = lastDecision?.result === "notYet" && state.returnDecision !== "ok";
+  // 会社からの課題の連絡（判断のあとに届いたもの）
+  const issueMsg = [...state.hrMessages].reverse().find((m) => m.title === HR.issue.title);
   // 取説 → レポートの見直し がそろってから、産業医との面談を申し込める
   const canApply = state.torisetsu !== null && state.prepReviewed;
+  // 課題の連絡を受け取るまでは、もう一度の申し込みはできない
+  const canApplyNow = canApply && !(again && state.occIssuePending);
   const reviewing = state.torisetsu !== null && !state.prepReviewed;
   const steps = {
     torisetsu: {
@@ -84,7 +88,9 @@ function ReturnSteps({ state, dispatch }: Props) {
               : state.occApplied
                 ? PREP.occWait
                 : again
-                  ? PREP.occAgainNote(japaneseDate(lastDecision.date))
+                  ? state.occIssuePending || !issueMsg
+                    ? PREP.occAgainWait
+                    : PREP.occAgainNote(japaneseDate(issueMsg.date))
                   : canApply
                     ? PREP.occApplyReady
                     : PREP.occApplyNote,
@@ -113,7 +119,7 @@ function ReturnSteps({ state, dispatch }: Props) {
       : ["torisetsu", "review", "doctor", "occ", "decision", "plan"];
   const now = keys.findIndex((k) => !steps[k].done);
   // 本人が押すボタンがある手順（レポートの見直し・面談の申し込み）
-  const hasAction = (k: Key) => (k === "review" && reviewing) || (k === "occ" && !occ && !state.occApplied && canApply);
+  const hasAction = (k: Key) => (k === "review" && reviewing) || (k === "occ" && !occ && !state.occApplied && canApplyNow);
   // はじめは、ボタンのある手順か「いまここ」の説明を出す。番号を押すと、その手順の説明に替わる
   const [picked, setPicked] = useState<Key | null>(null);
   const sel: Key | undefined = picked ?? keys.find(hasAction) ?? keys[now];
@@ -154,7 +160,7 @@ function ReturnSteps({ state, dispatch }: Props) {
               </button>
             </div>
           )}
-          {sel === "occ" && !occ && !state.occApplied && canApply && (
+          {sel === "occ" && !occ && !state.occApplied && canApplyNow && (
             <ConfirmButton
               quiet
               modal

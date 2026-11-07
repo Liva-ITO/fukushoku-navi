@@ -659,6 +659,8 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
 
   // 会社の判断は人事が操作する。産業医との面談が済むまでは押せない
   const decided = state.returnDecision === "ok";
+  // 「もう少し準備が必要」のあとに本人へ送った課題の連絡（次の面談が決まるまで出す）
+  const issueSent = !occ && state.returnDecisionLog.at(-1)?.result === "notYet" ? [...state.hrMessages].reverse().find((m) => m.title === HR.issue.title) : undefined;
   const decisionStep = (
     <li key="decision">
       <p className="step-title">
@@ -698,8 +700,13 @@ function ReturnSteps({ row, state, dispatch }: { row: HrRow } & Props) {
             onConfirm={() => dispatch({ type: "decideReturn", result: "notYet" })}
           />
         </div>
+      ) : state.occIssuePending ? (
+        <OccIssueBox dispatch={dispatch} />
       ) : (
-        <p className="muted">{HR.decisionLocked}</p>
+        <>
+          {issueSent && <p className="done-note">{HR.issue.sent(shortDate(issueSent.date).slice(5))}</p>}
+          <p className="muted">{HR.decisionLocked}</p>
+        </>
       )}
     </li>
   );
@@ -1281,6 +1288,21 @@ function OccNotify({ date, time, state, company = false }: { name: string; date:
   const t = company ? HR.companyNotifyTemplate(whenOf(date, time)) : HR.templatesPreReturn(whenOf(date, time))[0];
   const done = state.hrMessages.some((m) => m.title === t.title && m.body === t.text);
   return done ? <p className="done-note">{HR.occNotified}</p> : null;
+}
+
+// 「もう少し準備が必要」と判断したあと、本人にこれからの課題を伝える。例文を下書きにして、人事が書き足して送る
+function OccIssueBox({ dispatch }: { dispatch: Dispatch<Action> }) {
+  const [text, setText] = useState<string>(HR.issue.template);
+  return (
+    <div className="offer-box">
+      <p className="step-title">{HR.issue.boxTitle}</p>
+      <p className="muted">{HR.issue.boxNote}</p>
+      <textarea rows={9} value={text} onChange={(e) => setText(e.target.value)} aria-label={HR.issue.boxTitle} />
+      <button className="btn-primary btn-small" disabled={!text.trim()} onClick={() => dispatch({ type: "sendOccIssues", body: text.trim() })}>
+        {HR.issue.send}
+      </button>
+    </div>
+  );
 }
 
 // 面談の日程の候補を3つまで送る。本人が「連絡」で選ぶと、日程が決まる。どれも難しいときは、送り直す
