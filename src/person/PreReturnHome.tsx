@@ -48,6 +48,9 @@ export default function PreReturnHome({ state, dispatch }: Props) {
 // 復職までの手順。順番は会社の設定に合わせる。本人がすることと、会社がすることを分けて書く
 function ReturnSteps({ state, dispatch }: Props) {
   const occ = state.occMeeting;
+  // 前回の会社の確認が「もう少し準備が必要」で、まだ次の面談が決まっていない
+  const lastDecision = state.returnDecisionLog[state.returnDecisionLog.length - 1];
+  const again = lastDecision?.result === "notYet" && state.returnDecision !== "ok";
   // 取説 → レポートの見直し がそろってから、産業医との面談を申し込める
   const canApply = state.torisetsu !== null && state.prepReviewed;
   const reviewing = state.torisetsu !== null && !state.prepReviewed;
@@ -80,14 +83,16 @@ function ReturnSteps({ state, dispatch }: Props) {
               ? PREP.occOffered
               : state.occApplied
                 ? PREP.occWait
-                : canApply
-                  ? PREP.occApplyReady
-                  : PREP.occApplyNote,
+                : again
+                  ? PREP.occAgainNote(japaneseDate(lastDecision.date))
+                  : canApply
+                    ? PREP.occApplyReady
+                    : PREP.occApplyNote,
     },
     decision: {
       name: PREP.steps.decision,
       done: state.returnDecision === "ok",
-      note: state.returnDecision === "ok" ? PREP.decisionDone : PREP.decisionWait,
+      note: state.returnDecision === "ok" ? PREP.decisionDone : again ? PREP.decisionNotYetNote : PREP.decisionWait,
     },
     doctor: {
       name: PREP.steps.doctor,
@@ -153,7 +158,7 @@ function ReturnSteps({ state, dispatch }: Props) {
             <ConfirmButton
               quiet
               modal
-              label={PREP.occApply}
+              label={again ? PREP.occApplyAgain : PREP.occApply}
               confirm={PREP.occApplyConfirm}
               yes={PREP.occApplyYes}
               no={PREP.occApplyNo}

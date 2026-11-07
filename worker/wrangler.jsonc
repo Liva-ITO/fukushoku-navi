@@ -11,7 +11,7 @@
   "ratelimits": [
     // 同じ人（IP）からは1分に5回まで
     { "name": "PER_IP", "namespace_id": "4801", "simple": { "limit": 5, "period": 60 } },
-    // 全体でも1分に30回まで（公開のデモなので、連打でクレジットを使い切られないように）
-    { "name": "ALL", "namespace_id": "4802", "simple": { "limit": 30, "period": 60 } }
+    // 全体でも1分に10回まで（公開のデモなので、連打でクレジットを使い切られないように）
+    { "name": "ALL", "namespace_id": "4802", "simple": { "limit": 10, "period": 60 } }
   ]
 }

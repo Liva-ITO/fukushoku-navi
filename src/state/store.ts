@@ -766,10 +766,11 @@ function reducer(state: State, action: Action): State {
       // 判断は面談のあと。デモで面談の日が先の日付なら、判断もその日にする（経緯の順番がくずれないように）
       const when = state.occMeeting.date > DEMO_TODAY ? state.occMeeting.date : DEMO_TODAY;
       const log = [...state.returnDecisionLog, { date: when, at: Date.now(), result: action.result }];
-      // もう少し準備が必要なら、準備期のまま産業医との面談をもう一度にする（段階は戻さない）
+      // もう少し準備が必要なら、準備期のまま産業医との面談をもう一度にする（段階は戻さない）。
+      // 本人には会社から知らせが届き、もう一度の申し込みは本人の準備ができたときにする
       return action.result === "ok"
         ? { ...state, returnDecision: "ok", returnDecisionLog: log }
-        : { ...state, returnDecision: null, occMeeting: null, returnDecisionLog: log };
+        : withHrMessage({ ...state, returnDecision: null, occMeeting: null, occApplied: false, offers: { ...state.offers, occ: undefined }, returnDecisionLog: log }, HR.notYetNotice);
     }
     case "undoReturnDecision": {
       const last = state.returnDecisionLog[state.returnDecisionLog.length - 1];

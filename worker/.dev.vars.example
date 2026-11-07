@@ -1,0 +1,3 @@
+# 手元で worker/.dev.vars にコピーして使います。値はリポジトリに入れません
+# 本番は npx wrangler secret put ANTHROPIC_API_KEY で入れます
+ANTHROPIC_API_KEY=
