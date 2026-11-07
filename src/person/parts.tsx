@@ -150,7 +150,13 @@ export function DiaryEntryCard({ state, dispatch }: { state: State; dispatch: Di
       <span>
         <span className="diary-entry-title">{HOME.diaryTitle}</span>
         <span className="muted diary-entry-note">
-          {done ? HOME.diaryDone : state.stage === "acute" ? HOME.diaryNoteAcute : HOME.diaryNote}
+          {done
+            ? HOME.diaryDone
+            : state.stage === "acute"
+              ? state.taps?.date === DEMO_TODAY && state.taps.wake
+                ? HOME.diaryNoteWake
+                : HOME.diaryNoteAcute
+              : HOME.diaryNote}
         </span>
       </span>
     </button>

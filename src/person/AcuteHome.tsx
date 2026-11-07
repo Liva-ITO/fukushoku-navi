@@ -1,5 +1,6 @@
 import { useEffect, useState, type Dispatch } from "react";
 import { ACUTE, REST, greeting } from "../constants/labels";
+import { DEMO_TODAY } from "../data/demo";
 import type { Action, State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard, WishCard } from "./parts";
 
@@ -21,6 +22,8 @@ export default function AcuteHome({ state, dispatch }: Props) {
     <div className="home home-acute">
       <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
       <p className="lead">{first ? ACUTE.messageFirst : ACUTE.message}</p>
+
+      <WakeSleep state={state} dispatch={dispatch} />
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
@@ -73,6 +76,45 @@ export default function AcuteHome({ state, dispatch }: Props) {
           </div>
         )}
       </details>
+    </div>
+  );
+}
+
+// 「起きた」「寝る」の2タップ。押した時刻が日記に入る。取り消しもできる
+function WakeSleep({ state, dispatch }: Props) {
+  const taps = state.taps?.date === DEMO_TODAY ? state.taps : { wake: null, sleep: null };
+  const now = () => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+  const kinds = [
+    { what: "wake" as const, label: ACUTE.wake, time: taps.wake },
+    { what: "sleep" as const, label: ACUTE.sleep, time: taps.sleep },
+  ];
+  return (
+    <div className="tap-row">
+      <div className="tap-buttons">
+        {kinds.map((k) => (
+          <button
+            key={k.what}
+            className="tap-btn"
+            aria-pressed={k.time !== null}
+            onClick={() => dispatch({ type: "tap", what: k.what, time: now() })}
+          >
+            {k.label}
+          </button>
+        ))}
+      </div>
+      {kinds
+        .filter((k) => k.time !== null)
+        .map((k) => (
+          <p key={k.what} className="tap-saved">
+            <span>{ACUTE.tapSaved(k.label, k.time!)}</span>
+            <button className="link-small link-muted" onClick={() => dispatch({ type: "tap", what: k.what, time: null })}>
+              {ACUTE.tapUndo}
+            </button>
+          </p>
+        ))}
     </div>
   );
 }

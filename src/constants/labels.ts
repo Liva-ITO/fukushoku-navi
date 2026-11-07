@@ -41,6 +41,11 @@ export const ACUTE = {
   messageFirst:
     "いまは、休んでいて大丈夫です。焦りが出てくるのも、回復の途中ではよくあることです。開きたくなったときだけで、だいじょうぶです。",
   message: "いまは、休んでいて大丈夫です。",
+  // 起きた・寝るの2タップ。押した時刻が日記に入る。「今日も」「◯日目」は出さない
+  wake: "起きた",
+  sleep: "寝る",
+  tapSaved: (what: string, t: string) => `${what}：${t}に残しました`,
+  tapUndo: "取り消す",
   hrContactSummary: (n: number) => `会社からのお知らせが${n}件`,
   readingsTitle: "少し楽になる読みもの",
   readings: [
@@ -1220,6 +1225,7 @@ export const HOME = {
   diaryTitle: "今日の日記",
   diaryNote: "タップで1分ほど。書けない日は、書かなくて大丈夫です",
   diaryNoteAcute: "気分を顔で選ぶだけでも大丈夫です。書けない日は、書かなくて大丈夫です",
+  diaryNoteWake: "きょうの起きた時刻は残っています。気分を顔で選ぶだけでも大丈夫です",
   diaryDone: "今日の分は書きました",
 };
 

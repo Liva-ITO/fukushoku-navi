@@ -28,7 +28,11 @@ export default function DiaryTab({ state, dispatch }: Props) {
   const saved = state.diary[DEMO_TODAY];
   const acute = state.stage === "acute";
   // 時刻は、前の日に書いたものを最初から入れておく（同じなら触らずに済む）
-  const [entry, setEntry] = useState<DiaryEntry>(saved ?? withLastTimes(state.diary));
+  // ホームで「起きた」を押していれば、その時刻を入れておく
+  const tappedWake = state.taps?.date === DEMO_TODAY ? state.taps.wake : null;
+  const [entry, setEntry] = useState<DiaryEntry>(
+    saved ?? { ...withLastTimes(state.diary), ...(tappedWake ? { wake: tappedWake } : {}) },
+  );
   const [editing, setEditing] = useState(!saved);
   const [thanks, setThanks] = useState<string | null>(null);
   const [skipped, setSkipped] = useState(false);

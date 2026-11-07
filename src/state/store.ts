@@ -81,6 +81,8 @@ export type State = {
   // デモの本人以外への連絡（デモでは人事の経緯に残るだけ）
   hrMessagesOthers: Record<string, HrMessage[]>;
   acuteIntroSeen: boolean; // 急性期のはじめの3文を見たか（2回目からは1文）
+  // ホームの「起きた」「寝る」を押した時刻（その日の分だけ）。起きたは今日の日記に入る。寝るは次の日の日記の「寝た時刻」になる
+  taps: { date: string; wake: string | null; sleep: string | null };
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
   // 急性期→回復期に必須の、復職コーディネーターとの面談（回復期に進む前）が済んだか（人事が記録する）
@@ -187,6 +189,7 @@ export const initialState: State = {
   contactOpen: null,
   hrMessagesOthers: {},
   acuteIntroSeen: false,
+  taps: { date: DEMO_TODAY, wake: null, sleep: null },
   recoveryChecks: [],
   rivaMeetingApplied: false,
   psychMeetingDone: false,
@@ -264,6 +267,7 @@ export type Action =
   | { type: "setTab"; tab: Tab }
   | { type: "closeIntro" }
   | { type: "markAcuteIntroSeen" }
+  | { type: "tap"; what: "wake" | "sleep"; time: string | null }
   | { type: "toggleRecoveryCheck"; item: string }
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
@@ -431,6 +435,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, tab: action.tab };
     case "closeIntro":
       return { ...state, introSeen: true };
+    case "tap": {
+      const base = state.taps?.date === DEMO_TODAY ? state.taps : { date: DEMO_TODAY, wake: null, sleep: null };
+      return { ...state, taps: { ...base, [action.what]: action.time } };
+    }
     case "markAcuteIntroSeen":
       return state.acuteIntroSeen ? state : { ...state, acuteIntroSeen: true };
     case "applyRivaMeeting":
