@@ -480,7 +480,7 @@ function reducer(state: State, action: Action): State {
     case "medOpen":
       return { ...state, medView: action.view };
     case "medSave": {
-      // 別の薬に変わったときは、前の薬を「終わった」にして、記録は残す
+      // 別の薬に変わったときは、前の薬を「服薬終了」にして、記録は残す
       const meds = state.meds.map((m) => (m.id === action.replaces ? { ...m, ended: DEMO_TODAY } : m));
       const has = meds.some((m) => m.id === action.med.id);
       return { ...state, meds: has ? meds.map((m) => (m.id === action.med.id ? action.med : m)) : [...meds, action.med], medView: { kind: "settings" } };

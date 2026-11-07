@@ -12,7 +12,7 @@ export type Med = {
   times: MedTime[];
   stock: number | null; // 残り。飲んだ分だけ減る
   memo: string; // 主治医・薬剤師に言われたこと
-  ended: string | null; // 終わった日（消さずに残す）
+  ended: string | null; // 服薬終了の日（消さずに残す）
 };
 export type PrnMed = {
   id: string;

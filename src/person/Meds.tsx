@@ -758,7 +758,7 @@ export function MedEditLink({ dispatch }: { dispatch: Dispatch<Action> }) {
   );
 }
 
-// 薬ごとの入口：量・時間を変える／別の薬に変わった／終わった／もらった分を足す
+// 薬ごとの入口：量・時間を変える／別の薬に変わった／服薬終了／もらった分を足す
 function MedActions({ id, label, kind, dispatch }: { id: string; label: string; kind: "med" | "prn"; dispatch: Dispatch<Action> }) {
   const [refill, setRefill] = useState(false);
   const [n, setN] = useState("");

@@ -1418,19 +1418,19 @@ export const MED = {
   changeHelp: [
     "量や飲む時間が変わった → 「量・時間を変える」",
     "別の薬になった → 「別の薬に変わった」",
-    "出なくなった → 「終わった」",
+    "出なくなった → 「服薬終了」",
     "新しく出た → 「薬を足す」",
   ],
   editAmount: "量・時間を変える",
   switchMed: "別の薬に変わった",
-  endShort: "終わった",
-  endConfirm: (label: string) => `「${label}」を終わったにします。これまでの記録は残ります。あとから「また飲む」にもできます`,
-  endYes: "終わったにする",
+  endShort: "服薬終了",
+  endConfirm: (label: string) => `「${label}」を服薬終了にします。これまでの記録は残ります。あとから「また飲む」にもできます`,
+  endYes: "服薬終了にする",
   refill: "もらった分を足す",
   refillAdd: "足す",
   restart: "また飲む",
   switchTitle: "別の薬に変える",
-  switchNote: (label: string) => `「${label}」は終わったにして、新しい薬として入れます。前の薬の内容を引き継いでいます`,
+  switchNote: (label: string) => `「${label}」は服薬終了にして、新しい薬として入れます。前の薬の内容を引き継いでいます`,
   dailyTitle: "毎日飲む薬",
   change: "変える",
   daily: "毎日",
@@ -1469,8 +1469,8 @@ export const MED = {
   alarmDeviceNote: "（デモでは動きません。本番でどう鳴らすかは、これから決めます）",
   visitTitle: "次の通院",
   visitNote: "主治医に伝えるメモは、通院のときに見せられます",
-  endedTitle: "終わった薬",
-  endedAt: (d: string) => `${d}に終わった`,
+  endedTitle: "服薬終了した薬",
+  endedAt: (d: string) => `${d}に服薬終了`,
   sample: "（デモ用）例の薬を入れる",
 
   // 薬を足す・変える
@@ -1498,8 +1498,8 @@ export const MED = {
   memoPh: "例：眠気が強ければ半分に、と言われた",
   save: "これで決める",
   cancel: "やめておく",
-  endMed: "この薬は終わった",
-  endNote: "終わったときは「終わった」にします。記録は残ります",
+  endMed: "この薬を服薬終了にする",
+  endNote: "飲まなくなったときは「服薬終了」にします。記録は残ります",
 
   // 頓服を足す
   prnFormTitle: "頓服を足す",
@@ -1518,7 +1518,7 @@ export const MED = {
   reasonAdd: "理由を足す",
   toMemo: "飲んだ記録を、主治医に伝えるメモに入れる",
   secPrnStock: "3 残り（書かなくても大丈夫です）",
-  endPrn: "この頓服は終わった",
+  endPrn: "この頓服を服薬終了にする",
 
   // 頓服を飲んだ
   prnTakeTitle: "頓服を飲んだ",
