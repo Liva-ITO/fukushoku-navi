@@ -80,7 +80,7 @@ export type State = {
   contactOpen: string | null; // 連絡タブで開いている人事からの連絡
   // デモの本人以外への連絡（デモでは人事の経緯に残るだけ）
   hrMessagesOthers: Record<string, HrMessage[]>;
-  acuteChecks: boolean[];
+  acuteIntroSeen: boolean; // 急性期のはじめの3文を見たか（2回目からは1文）
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
   // 急性期→回復期に必須の、復職コーディネーターとの面談（回復期に進む前）が済んだか（人事が記録する）
@@ -186,7 +186,7 @@ export const initialState: State = {
   hrMessages: [],
   contactOpen: null,
   hrMessagesOthers: {},
-  acuteChecks: ACUTE.checkItems.map(() => false),
+  acuteIntroSeen: false,
   recoveryChecks: [],
   rivaMeetingApplied: false,
   psychMeetingDone: false,
@@ -263,7 +263,7 @@ export type Action =
   | { type: "closeCelebrate" }
   | { type: "setTab"; tab: Tab }
   | { type: "closeIntro" }
-  | { type: "toggleAcuteCheck"; index: number }
+  | { type: "markAcuteIntroSeen" }
   | { type: "toggleRecoveryCheck"; item: string }
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
@@ -373,7 +373,6 @@ function withMessage(state: State, from: MeetingKind, body: string, options?: st
   return { ...state, coordInbox: [...state.coordInbox, { id, date: DEMO_TODAY, from, who, body, options }] };
 }
 
-const toggleAt = (list: boolean[], index: number) => list.map((v, i) => (i === index ? !v : v));
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -432,8 +431,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, tab: action.tab };
     case "closeIntro":
       return { ...state, introSeen: true };
-    case "toggleAcuteCheck":
-      return { ...state, acuteChecks: toggleAt(state.acuteChecks, action.index) };
+    case "markAcuteIntroSeen":
+      return state.acuteIntroSeen ? state : { ...state, acuteIntroSeen: true };
     case "applyRivaMeeting":
       if (state.coordinatorMeeting !== null && state.coordinatorReport === null) return state;
       return { ...state, rivaMeetingApplied: true };

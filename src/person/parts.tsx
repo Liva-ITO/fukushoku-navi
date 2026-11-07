@@ -149,7 +149,9 @@ export function DiaryEntryCard({ state, dispatch }: { state: State; dispatch: Di
     <button className="link-soft diary-entry" onClick={() => dispatch({ type: "setTab", tab: "record" })}>
       <span>
         <span className="diary-entry-title">{HOME.diaryTitle}</span>
-        <span className="muted diary-entry-note">{done ? HOME.diaryDone : HOME.diaryNote}</span>
+        <span className="muted diary-entry-note">
+          {done ? HOME.diaryDone : state.stage === "acute" ? HOME.diaryNoteAcute : HOME.diaryNote}
+        </span>
       </span>
     </button>
   );
@@ -160,10 +162,12 @@ export function NewNoticeLink({ state, dispatch }: { state: State; dispatch: Dis
   // 人事からも、コーディネーター・専門家からも、新しいお知らせは「連絡」に届く
   const unread = state.coordInbox.length - state.coordSeen + (state.hrMessages.length - state.personHrSeen);
   if (unread <= 0) return null;
+  // 急性期は、数字を出さない（件数が急かすので）
+  const quiet = state.stage === "acute";
   return (
     <button className="new-link" onClick={() => dispatch({ type: "setTab", tab: "contact" })}>
-      <span className="tab-badge">{unread}</span>
-      {CONSULT.newLink(unread)}
+      {!quiet && <span className="tab-badge">{unread}</span>}
+      {quiet ? CONSULT.newLinkQuiet : CONSULT.newLink(unread)}
     </button>
   );
 }

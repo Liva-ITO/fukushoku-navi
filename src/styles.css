@@ -455,6 +455,8 @@ details[open] > summary::after { content: "▲"; }
   background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; line-height: 1;
   vertical-align: 1px;
 }
+/* 急性期は数字を出さず、小さな点だけ（件数が急かすので） */
+.tab-dot { display: inline-block; width: 7px; height: 7px; margin-left: 4px; border-radius: 50%; background: var(--accent); vertical-align: 2px; }
 .new-link { display: flex; align-items: center; gap: 6px; border: 0; background: var(--accent-soft); color: var(--text); border-radius: 10px; padding: 8px 12px; margin: 4px 0 10px; width: 100%; text-align: left; }
 .new-link .tab-badge { margin-left: 0; }
 .new-link { min-height: 44px; }

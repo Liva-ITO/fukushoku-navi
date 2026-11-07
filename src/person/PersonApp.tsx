@@ -1,5 +1,5 @@
 import { useEffect, useState, type Dispatch } from "react";
-import { ABOUT, APP_NAME, CELEBRATE, COMMON, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
+import { ABOUT, APP_NAME, CELEBRATE, COMMON, CONSULT, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
 import JourneySheet from "./JourneySheet";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
@@ -133,7 +133,7 @@ export default function PersonApp({ state, dispatch }: Props) {
           >
             {TABS[t]}
             {/* 支援機関からの新しいお知らせを見逃さないよう、数を出す（赤ではなく落ち着いた色） */}
-            {t === "contact" && unread > 0 && <span className="tab-badge">{unread}</span>}
+            {t === "contact" && unread > 0 && (state.stage === "acute" ? <span className="tab-dot" aria-label={CONSULT.newLinkQuiet} /> : <span className="tab-badge">{unread}</span>)}
           </button>
         ))}
       </nav>

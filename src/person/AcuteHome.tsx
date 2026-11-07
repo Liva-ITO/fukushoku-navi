@@ -1,4 +1,4 @@
-import type { Dispatch } from "react";
+import { useEffect, useState, type Dispatch } from "react";
 import { ACUTE, REST, greeting } from "../constants/labels";
 import type { Action, State } from "../state/store";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard, WishCard } from "./parts";
@@ -7,30 +7,29 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 
 // 急性期：やることを求めない、静かなホーム。赤いバッジや数字は出さない
 export default function AcuteHome({ state, dispatch }: Props) {
-  const allChecked = state.acuteChecks.every(Boolean);
-  // 次の段階への道すじの、いまの位置（チェック → 専門家との面談 → 希望を伝える）
-  const stepNow = !allChecked ? 0 : !state.psychMeetingDone ? 1 : 2;
+  // はじめて開いたときだけ3文。開いた時点で「見た」にして、次からは1文にする
+  const [first] = useState(!state.acuteIntroSeen);
+  useEffect(() => {
+    dispatch({ type: "markAcuteIntroSeen" });
+  }, [dispatch]);
+  // 次の段階への道すじの、いまの位置（コーディネーターと話す → 希望を伝える → 回復期へ）
+  const stepNow = !state.psychMeetingDone ? 0 : 1;
   // 急性期は、面談は1つずつ。心理の専門家との面談（チケット）が済むまでは、回復期に進む前のコーディネーターとの面談を申し込めない
   const coordBusy = state.coordinatorMeeting !== null && state.coordinatorReport === null;
 
   return (
     <div className="home home-acute">
       <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
-      <p className="lead">{ACUTE.message}</p>
+      <p className="lead">{first ? ACUTE.messageFirst : ACUTE.message}</p>
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
       {state.psychMeetingDone && <WishCard state={state} dispatch={dispatch} />}
 
-      <ReadingsCard />
-
       {/* 大きく体調を崩している時期なので、休息モードと同じく、チケットがなければ公的な窓口を出す */}
       <CoordinatorCard state={state} dispatch={dispatch} title={REST.hardTitle} note={REST.hardNote} publicWhenEmpty />
 
-      <section className="card">
-        <h2>{ACUTE.todoTitle}</h2>
-        <p>{ACUTE.todo}</p>
-      </section>
+      <ReadingsCard />
 
       {/* 人事からの連絡は、上にあるとプレッシャーになるので下に。急性期は新しい1件だけ（仕様どおり） */}
       <HrNoticeList messages={state.hrMessages} max={1} dispatch={dispatch} />
@@ -43,32 +42,19 @@ export default function AcuteHome({ state, dispatch }: Props) {
             <li key={s} className={i === stepNow ? "step-now" : i < stepNow ? "step-done" : undefined}>
               {s}
               {i === stepNow && <span className="tag-soft">{ACUTE.checkHere}</span>}
-              {i === 1 && stepNow === 1 && state.psychSchedule?.chosen && (
+              {i === 0 && stepNow === 0 && state.psychSchedule?.chosen && (
                 <span className="step-sub">{ACUTE.checkStepDate(state.psychSchedule.chosen)}</span>
               )}
-              {i === 2 && stepNow === 2 && (
+              {i === 1 && stepNow === 1 && (
                 <span className="step-sub">{state.nextWish ? ACUTE.checkStepSent : ACUTE.checkStepWish}</span>
               )}
             </li>
           ))}
         </ol>
-        <ul className="list-plain">
-          {ACUTE.checkItems.map((item, i) => (
-            <li key={item}>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={state.acuteChecks[i]}
-                  onChange={() => dispatch({ type: "toggleAcuteCheck", index: i })}
-                />
-                {item}
-              </label>
-            </li>
-          ))}
-        </ul>
-        {allChecked && !state.psychMeetingDone && (
+        <p className="muted">{ACUTE.checkOutlook}</p>
+        {!state.psychMeetingDone && (
           <div className="next-step">
-            <p>{ACUTE.checkAllDone}</p>
+            <p>{ACUTE.checkMeetNote}</p>
             {state.rivaMeetingApplied ? (
               <p className="done-note">{ACUTE.checkApplied}</p>
             ) : coordBusy ? (
