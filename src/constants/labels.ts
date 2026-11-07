@@ -39,7 +39,7 @@ export const COMMON = {
 export const ACUTE = {
   // はじめて開いたときだけ3文。2回目からは1文だけ（毎回読ませない）
   messageFirst:
-    "いまは、休んでいて大丈夫です。焦りが出てくるのも、回復の途中ではよくあることです。開きたくなったときだけで、だいじょうぶです。",
+    "いまは、休んでいて大丈夫です。焦りが出てくるのも、回復の途中ではよくあることです。開きたくなったときだけで、大丈夫です。",
   message: "いまは、休んでいて大丈夫です。",
   // 起きた・寝るの2タップ。押した時刻が日記に入る。「今日も」「◯日目」は出さない
   wake: "起きた",
@@ -54,19 +54,19 @@ export const ACUTE = {
     { title: "家族に今の状態を伝えるには", minutes: 4 },
   ],
   recordEntry: "日記",
-  // 「目安」だと開かれないので「次の段階へ」。何をすれば進めるのかを、道すじで見せる（ナビなので）
-  checkTitle: "次の段階へ",
+  // 「目安」だと開かれず、「次の段階へ」は進めと急かされる感じがするので「この先の流れ」。道すじで見せる（ナビなので）
+  checkTitle: "この先の流れ",
   // 本人のチェックはやめた。進めそうかは、復職コーディネーターとの面談で一緒に確かめる（面談は必ず通る）
-  checkNote: "焦らなくて大丈夫です。こんな順番で、回復期に進みます",
+  checkNote: "焦らなくていい時期です。こんな順番で、回復期に進みます",
   checkSteps: ["復職コーディネーターと話す", "会社に、これからの希望を伝える", "回復期へ"],
-  checkOutlook: "回復期に入ると、起きたらカーテンを開ける、くらいの小さなことから始めます",
-  checkMeetNote: "回復期に進む前に、一度、復職コーディネーターと話します。進めそうかは、そこで一緒に確かめます。話してみたくなったら、いつでも申し込めます",
+  checkOutlook: "回復期は、カーテンを開ける、くらいの小さなことから始まります",
+  checkMeetNote: "回復期に進む前に、一度、復職コーディネーターと話します。いまの過ごし方を、一緒にふり返る時間です。話してみたくなったら、いつでも申し込めます",
   checkStepWish: "希望は、日記の下から送れます",
-  checkStepSent: "会社に伝えました。回復期に進めるかは、会社が決めます",
+  checkStepSent: "会社に伝えました。これからのことは、会社から連絡が届きます",
   checkStepDate: (slot: string) => `${slot}に面談します。済んだら、次にすることがここに出ます`,
   checkHere: "いまここ",
   checkButton: "復職コーディネーターと話してみる",
-  checkConfirm: "復職コーディネーターとの面談を申し込みます。申し込むと、コーディネーターから日程の連絡が届きます。申し込んだことは会社にも伝わります。話した内容は伝わりません。",
+  checkConfirm: "復職コーディネーターとの面談を申し込みます。日程の連絡が届きます。申し込んだことだけ会社に伝わり、話した内容は伝わりません。",
   checkConfirmYes: "申し込む",
   checkConfirmNo: "やめておく",
   checkApplied: "申し込みました。コーディネーターから日程の連絡が届きます",
@@ -1224,7 +1224,7 @@ export const ABOUT = {
 export const HOME = {
   diaryTitle: "今日の日記",
   diaryNote: "タップで1分ほど。書けない日は、書かなくて大丈夫です",
-  diaryNoteAcute: "気分を顔で選ぶだけでも大丈夫です。書けない日は、書かなくて大丈夫です",
+  diaryNoteAcute: "気分を顔で選ぶだけでも。書けない日は、書かなくていい日です",
   diaryNoteWake: "きょうの起きた時刻は残っています。気分を顔で選ぶだけでも大丈夫です",
   diaryDone: "今日の分は書きました",
 };
@@ -1384,7 +1384,7 @@ export const MED = {
   took: "飲んだ",
   undo: "取り消す",
   prnRow: (label: string) => `頓服（${label}）`,
-  prnLast: (when: string, ago: string) => `前回 ${when}（${ago}）`,
+  prnLast: (when: string) => `前回 ${when}`,
   prnNone: "まだ記録はありません",
   prnInterval: (h: number) => `あける間隔 ${h}時間`,
   beforeAlarm: "アラームの前に飲んだら、押せばアラームは鳴りません",
@@ -1403,7 +1403,7 @@ export const MED = {
   // 薬の設定
   settingsTitle: "薬の設定",
   close: "閉じる",
-  settingsNote: "主治医や薬剤師に言われたとおりに入れておく場所です。ここに入れたことは、自分だけが見られます。会社にも、コーディネーターにも届きません",
+  settingsNote: "主治医や薬剤師に言われたことを書いておく場所です。自分だけが見られます。会社にも、コーディネーターにも届きません",
   dailyTitle: "毎日飲む薬",
   change: "変える",
   daily: "毎日",
@@ -1426,7 +1426,8 @@ export const MED = {
       .filter(Boolean)
       .join("・"),
   addPrn: "頓服を足す",
-  prnNote: "間隔と上限は、薬の説明書か、主治医・薬剤師の指示をそのまま入れる欄です。アプリは「飲んでよい」「まだ」とは言いません。前回からの時間を出すだけです",
+  // アプリは「飲んでよい／まだ」を言わない（判断しない）。本人向けの文には、作り手の都合は書かない
+  prnNote: "主治医・薬剤師に言われた間隔と上限を入れる欄です。飲んだときの画面には、前回からの時間を出すだけです",
   alarmTitleSet: "アラーム",
   alarmOnLabel: "時間になったら知らせる",
   alarmSound: "音を鳴らす（オフなら振動だけ）",
@@ -1452,7 +1453,7 @@ export const MED = {
   label: "呼び名",
   labelPh: "例：朝の薬",
   name: "薬の名前（書かなくても動きます）",
-  nameNote: "書いておくと、通院のときに見返せます。名前の検索やお薬手帳との連携は、このアプリにはありません",
+  nameNote: "書いておくと、通院のときに見返せます",
   secWhen: "2 いつ飲む",
   freq: "頻度",
   freqPrn: "必要なとき（頓服として足す）",
@@ -1470,7 +1471,7 @@ export const MED = {
   memoPh: "例：眠気が強ければ半分に、と言われた",
   save: "これで決める",
   cancel: "やめておく",
-  endMed: "この薬は終わった（主治医の指示で）",
+  endMed: "この薬は終わった",
   endNote: "終わったときは「終わった」にします。記録は残ります",
 
   // 頓服を足す
@@ -1490,20 +1491,21 @@ export const MED = {
   reasonAdd: "理由を足す",
   toMemo: "飲んだ記録を、主治医に伝えるメモに入れる",
   secPrnStock: "3 残り（書かなくても大丈夫です）",
-  endPrn: "この頓服は終わった（主治医の指示で）",
+  endPrn: "この頓服は終わった",
 
   // 頓服を飲んだ
   prnTakeTitle: "頓服を飲んだ",
   prnOf: (label: string) => `${label} の薬`,
   takenTime: "飲んだ時刻",
-  prnFacts: (p: { last: string | null; interval: number | null; max: number | null; nth: number }) =>
+  // 事実だけ。「◯回目」と数えると、守れなかったと言われている気がするので、記録として出す
+  prnFacts: (p: { last: string | null; interval: number | null; max: number | null; before: number }) =>
     [
       p.last ? `前回は ${p.last}です。` : "",
       p.interval ? `あける間隔は${p.interval}時間以上` : "",
       p.interval && p.max ? "、" : "",
       p.max ? `1日の上限は${p.max}回` : "",
       p.interval || p.max ? "と設定しています。" : "",
-      `きょうは${p.nth}回目です`,
+      p.before > 0 ? `きょうの記録：これまで${p.before}回` : "",
     ].join(""),
   reasonPick: "理由（選ばなくても大丈夫です）",
   keep: "残す",
@@ -1516,7 +1518,7 @@ export const MED = {
   worryNote: "選ぶと、主治医に伝えるメモに入るだけです",
   worries: { sideEffect: "副作用がつらい", noEffect: "効いている気がしない", wantStop: "やめたい" } as const,
   memoListTitle: "これまでのメモ",
-  diaryTitle: "きょうの薬（ホームで押した分が入ります）",
+  diaryTitle: "きょうの薬（自分だけが見られます。会社に出すものには入りません）",
   diaryPrn: (n: number) => `頓服 ${n}回`,
   memoEmpty: "まだありません",
   prnWeekTitle: "頓服の記録（1週間）",
@@ -1532,14 +1534,14 @@ export const CONTENTS_UI = {
   back: "コンテンツの一覧へ",
   draft: "（本文はたたき台です。スタッフが書き直します）",
   littleTitle: "余裕があるときに、少しだけ",
-  littleNote: "読まなくても大丈夫です。開きたくなったときに",
+  littleNote: "開きたくなったときに",
   more: "ほかのコンテンツ",
 };
 
 // 急性期ホームの「しんどいときは」と「面談」の欄
 export const ACUTE_MORE = {
   // 主治医と公的な窓口は、チケットの有無に関係なく、いつも出す
-  hardPsychNote: "心理の専門家にも相談できます。話した内容は、会社には伝わりません（申し込んだことは伝わります）",
+  hardPsychNote: "心理の専門家にも相談できます。申し込んだことだけは会社に伝わりますが、話した内容は伝わりません",
   meetTitle: "面談",
   meetWhen: "日時",
   meetWhere: "場所",
@@ -1548,7 +1550,7 @@ export const ACUTE_MORE = {
   online: "オンライン",
   meetCoord: "復職コーディネーター",
   meetPsych: "心理の専門家",
-  meetCoordWhat: "いまの過ごし方と、回復期に進めそうかを、一緒に確かめます",
+  meetCoordWhat: "いまの過ごし方を、一緒にふり返ります。この先のことも、話せたら話します",
   meetPsychWhat: "いまのしんどさや、気になっていることを話せます",
   meetPrivate: "話した内容は、会社には伝わりません",
   todayTitle: (time: string, who: string) => `きょう ${time}／${who}と面談（オンライン）`,

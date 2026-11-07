@@ -42,7 +42,7 @@ export default function AcuteHome({ state, dispatch }: Props) {
       {state.psychMeetingDone && <WishCard state={state} dispatch={dispatch} />}
 
       {/* 大きく体調を崩している時期なので、休息モードと同じく、チケットがなければ公的な窓口を出す */}
-      <CoordinatorCard state={state} dispatch={dispatch} title={REST.hardTitle} note={ACUTE_MORE.hardPsychNote} alwaysPublic />
+      <CoordinatorCard state={state} dispatch={dispatch} title={REST.hardTitle} note={ACUTE_MORE.hardPsychNote} alwaysPublic showNewLink={false} />
 
       {/* 何かをするより、見るだけのほうが負担が少ない。週替わりで2本だけ */}
       <LittleCard state={state} dispatch={dispatch} />

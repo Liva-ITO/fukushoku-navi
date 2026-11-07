@@ -83,7 +83,7 @@ export function MedCard({ state, dispatch }: Props) {
               <span>
                 <span className="med-name">{MED.prnRow(p.label)}</span>
                 <span className="muted med-sub">
-                  {last ? MED.prnLast(last.when, last.ago) : MED.prnNone}
+                  {last ? MED.prnLast(last.when) : MED.prnNone}
                   {p.intervalHours ? `・${MED.prnInterval(p.intervalHours)}` : ""}
                 </span>
               </span>
@@ -589,7 +589,7 @@ function PrnTake({ id, state, dispatch }: { id: string } & Props) {
             last: last ? `${last.when}（${last.ago}）` : null,
             interval: prn.intervalHours,
             max: prn.maxPerDay,
-            nth: prnTodayCount(state, prn.id) + 1,
+            before: prnTodayCount(state, prn.id),
           })}
         </p>
         {prn.reasons.length > 0 && (

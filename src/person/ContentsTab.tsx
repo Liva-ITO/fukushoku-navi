@@ -19,7 +19,6 @@ export default function ContentsTab({ state, dispatch }: Props) {
         {open.body.map((p) => (
           <p key={p}>{p}</p>
         ))}
-        <p className="muted">{CONTENTS_UI.draft}</p>
       </div>
     );
   }

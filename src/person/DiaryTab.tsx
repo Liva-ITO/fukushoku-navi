@@ -397,7 +397,8 @@ function VoiceInput({ onText }: { onText: (t: string) => void }) {
 function DiaryMeds({ state, dispatch }: Props) {
   const meds = state.meds.filter((m) => !m.ended);
   if (meds.length === 0 && state.prnMeds.every((p) => p.ended)) return null;
-  const rows = meds.flatMap((m) => m.times.map((t) => ({ m, t, taken: takenToday(state, m.id, t.at) })));
+  // 飲んだ分だけ並べる（押していない行は、やり残しに見えるので出さない）
+  const rows = meds.flatMap((m) => m.times.map((t) => ({ m, t, taken: takenToday(state, m.id, t.at) }))).filter((r) => r.taken);
   const prn = state.prnLog.filter((l) => l.date === DEMO_TODAY).length;
   return (
     <fieldset>
@@ -406,7 +407,7 @@ function DiaryMeds({ state, dispatch }: Props) {
         {rows.map(({ m, t, taken }) => (
           <li key={`${m.id}-${t.at}`}>
             {m.label}
-            <span className="muted">（{taken ? MED.takenAt(taken.takenAt) : MED.plainAt(t.at)}）</span>
+            <span className="muted">（{MED.takenAt(taken!.takenAt)}）</span>
           </li>
         ))}
         {prn > 0 && <li>{MED.diaryPrn(prn)}</li>}
