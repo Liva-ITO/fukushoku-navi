@@ -21,7 +21,8 @@ export function TorisetsuCard({ state, dispatch, readOnly = false }: Props & { r
         <h2>{TORISETSU.title}</h2>
         {t ? (
           <dl className="report-view">
-            {TORISETSU.fields.map((f) => (
+            {/* 復職後は、休職に至った背景を毎回出さない（職場で開いたときに目に入らないように） */}
+            {TORISETSU.fields.filter((f) => !readOnly || f.key !== "reason").map((f) => (
               <div key={f.key}>
                 <dt>{f.label}</dt>
                 <dd>{t[f.key] || "—"}</dd>

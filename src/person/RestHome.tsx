@@ -1,5 +1,5 @@
 import type { Dispatch } from "react";
-import { REST, STAGE_LABELS } from "../constants/labels";
+import { REST, personStageLabel } from "../constants/labels";
 import type { Action, State } from "../state/store";
 import { CoordinatorCard, DiaryEntryCard, ReadingsCard } from "./parts";
 
@@ -9,7 +9,7 @@ type Props = { state: State; dispatch: Dispatch<Action> };
 export default function RestHome({ state, dispatch }: Props) {
   return (
     <div className="home home-rest">
-      <p className="stage-chip">{STAGE_LABELS[state.stage]}</p>
+      <p className="stage-chip">{personStageLabel(state.stage)}</p>
       {REST.lines.map((l, i) => (
         <p key={l} className={i === 0 ? "lead" : "rest-note"}>
           {l}

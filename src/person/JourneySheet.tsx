@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { JOURNEY, STAGE_LABELS, type Stage } from "../constants/labels";
+import { JOURNEY, personStageLabel, type Stage } from "../constants/labels";
 
 type Props = { stage: Stage; onClose: () => void };
 
@@ -71,7 +71,7 @@ export default function JourneySheet({ stage, onClose }: Props) {
 
         <div className="journey-info">
           <p className="journey-name">
-            {STAGE_LABELS[picked]}
+            {personStageLabel(picked)}
             {picked === stage && <span className="tag-soft">{JOURNEY.nowTag}</span>}
           </p>
           <p className="journey-body">{info?.body}</p>

@@ -5,6 +5,9 @@ export type Stage = "acute" | "recovery" | "preReturn" | "afterReturn";
 
 export const APP_NAME = "復職ナビポータル（仮）";
 
+// 本人の画面で見せる段階名（「見守り」は見張られると聞こえるので、本人には別の呼び名）
+export const personStageLabel = (s: Stage) => (s === "afterReturn" ? "復職（自分のペースで）" : STAGE_LABELS[s]);
+
 export const STAGE_LABELS: Record<Stage, string> = {
   acute: "急性期",
   recovery: "回復期",
@@ -87,7 +90,7 @@ export type PrepPath = "rivatore" | "rivabiz" | "self";
 // 回復期の「きょうやること」。できなくても責めない。下げるときは理由を言わない（記録を見張られていると感じさせないため）
 export const PLAN = {
   title: "きょうやること",
-  lead: "生活のリズム・外に出る・仕事に近いこと・ふり返りの4つから選びます。1つでも、いくつでも。少しずつ重くしていきます",
+  lead: "4つから、やれそうなものを選びます。1つでも大丈夫です。慣れてきたら、次のステップをおすすめします（進むかは自分で決めます）",
   pick: "きょうやるもの（いくつでも）",
   head: {
     usual: "",
@@ -120,7 +123,7 @@ export const PLAN = {
 export const RECOVERY = {
   // リワークを使うときの同意。会社が把握している課題を、リワークのスタッフに共有してよいか
   consentTitle: "会社からリワークへの共有",
-  consentBody: "会社が把握している、復職に向けた課題を、リワークのスタッフに共有してもよいですか？ スタッフが、あなたに合った準備を考えるために使います。",
+  consentBody: "休職前の働き方などで、会社が気にかけていることを、リワークのスタッフに伝えてもよいですか？ スタッフが、あなたに合った準備を考えるために使います。",
   consentYes: "共有してよい",
   consentNo: "共有しない",
   consentDoneYes: "共有してよい、と会社に伝えました",
@@ -162,8 +165,9 @@ export const RECOVERY = {
   // 準備期に進む目安。「やること」ではなく「できている状態」で書く。次に進むかを決めるのはアプリではなく面談
   // ※仮置き。厚生労働省「心の健康問題により休業した労働者の職場復帰支援の手引き」の判断基準の例を参考にした。基準はこれから詰める
   // 急性期とそろえて「次の段階へ」。道すじと、できている状態のチェックを並べる
-  nextTitle: "次の段階へ",
-  nextLead: "焦らなくて大丈夫です。こんな順番で、準備期に進みます",
+  nextTitle: "この先の流れ",
+  // チェックがそろったかどうかは人事の画面に出る（どの項目かは出ない）。本人にもそれを書いておく
+  nextLead: "こんな順番で、準備期に進みます。下のチェックがそろうと、そろったことだけが会社に伝わります",
   nextSteps: {
     withReport: ["下のチェックがそろう", "会社に出すレポートを作って送る", "会社と面談して、準備期へ"],
     noReport: ["下のチェックがそろう", "会社と面談して、準備期へ"],
@@ -173,21 +177,21 @@ export const RECOVERY = {
   reportItem: "休職のふり返りができて、会社に出すレポートを書けそう",
   next: {
     none: [
-      "決まった時間に起きて、日中に活動できている",
-      "通勤と同じ時間帯に、外出できている",
-      "図書館などで、仕事に近い作業を続けられている",
-      "疲れが、次の日までに回復している",
+      "決まった時間に起きて、日中に活動できる日が増えてきた",
+      "通勤と同じ時間帯に、外出できる日が増えてきた",
+      "図書館などで、仕事に近い作業を続けられる日が増えてきた",
+      "疲れが、次の日までに回復する日が増えてきた",
     ],
     rework: [
-      "決まった時間に起きて、日中に活動できている",
-      "プログラムに、決まった日数参加できている",
-      "疲れが、次の日までに回復している",
+      "決まった時間に起きて、日中に活動できる日が増えてきた",
+      "プログラムに、決まった日数参加できる週が増えてきた",
+      "疲れが、次の日までに回復する日が増えてきた",
     ],
     self: [
-      "決まった時間に起きて、日中に活動できている",
-      "通勤と同じ時間帯に、外出できている",
-      "図書館などで、仕事に近い作業を続けられている",
-      "疲れが、次の日までに回復している",
+      "決まった時間に起きて、日中に活動できる日が増えてきた",
+      "通勤と同じ時間帯に、外出できる日が増えてきた",
+      "図書館などで、仕事に近い作業を続けられる日が増えてきた",
+      "疲れが、次の日までに回復する日が増えてきた",
       "休職のふり返りができて、会社に出すレポートを書けそう",
     ],
   },
@@ -201,8 +205,8 @@ export const RECOVERY = {
   // 目安は急性期と同じく、たたんでおき、自分でチェックできる。そろったときの一言は、進め方で変わる
   nextAllDone: {
     none: "",
-    rework: "目安がそろってきました。プログラムのスタッフに伝えてみよう",
-    self: "目安がそろってきました。会社との面談を申し込んでみよう",
+    rework: "目安がそろってきました。よければ、プログラムのスタッフに伝えられます",
+    self: "目安がそろってきました。よければ、会社との面談を申し込めます",
   },
 
   restButton: "今日はしんどい",
@@ -233,10 +237,10 @@ export const RECOVERY = {
     title: "会社に出すレポート",
     // ここでは作らず、なぜ出すのかと、何を書くのかだけを見せる。作るのは「次の段階へ」から
     // 1つにまとめると読むのが重いので、3つの見出しに分け、押すと説明が開く
-    aboutWhyTitle: "なぜ作成する？",
+    aboutWhyTitle: "何のために出す？",
     aboutWhy: [
-      "リワークを使わずに自分で準備しているときは、会社からは、ふだんの生活の様子が見えません。",
-      "レポートがあると、会社は、準備期に進めるかや復職できるかを、あなたの実際の様子をもとに考えられます。面談で何を話すかも、はっきりします。",
+      "自分で準備しているときに、ここまで整えてきたことを、会社に伝えるためのものです。",
+      "会社との面談のとき、話のきっかけになります。",
       "レポートは、自分で中身を確かめてから送ります。送ったものだけが会社に届きます。",
     ],
     aboutWhatTitle: "どんな内容？",
@@ -256,7 +260,7 @@ export const RECOVERY = {
     open: "レポートを作る",
     again: "新しく作って送る",
     sent: (d: string) => `${d}に会社に送りました`,
-    fromDiary: (period: number, days: number) => `日記からまとめた部分（この${period}日のうち、書いた日${days}日）`,
+    fromDiary: (period: number, _days: number) => `日記から、睡眠・活動・外出の時間だけをまとめます（この${period}日）。気分やひとことは入りません`,
     noDiary: "日記がまだないので、睡眠と外出はまとめられません。日記を書くと、ここに入ります",
     condition: "体調の変化",
     conditionHint: "例：朝の起きづらさが減ってきた。午後に疲れが出やすい",
@@ -273,11 +277,11 @@ export const RECOVERY = {
 
   meetCompanyNote: "目安に近づいてきたと感じたら、申し込めます",
   meetCompany: "会社と面談する",
-  meetCompanyConfirm: "会社との面談を申し込みます。申し込むと、会社から日程の連絡が届きます。",
+  meetCompanyConfirm: "会社との面談を申し込みます。会社から日程の連絡が届きます。日記の中身は、会社には届きません。",
   meetCompanyApplied: "申し込みました。会社から日程の連絡が届きます",
   meetCompanyScheduled: (d: string) => `会社との面談は、${d}に決まりました`,
   meetCompanyDone: "会社との面談が済みました",
-  meetCompanyTop: (d: string) => `準備期に進むための面談：${d}`,
+  meetCompanyTop: (d: string) => `会社との面談：${d}`,
   confirmYes: "申し込む",
   confirmNo: "やめておく",
 };
@@ -388,7 +392,7 @@ export const RECORD = {
   wake: "起きた時刻",
   sleep: "寝た時刻",
   sleepQuality: "眠れた感じ",
-  sleepQualityOptions: { good: "よく眠れた", normal: "あまり眠れなかった", poor: "ほとんど眠れなかった" } satisfies Record<SleepQuality, string>,
+  sleepQualityOptions: { good: "よく眠れた", normal: "まあまあ眠れた", poor: "ほとんど眠れなかった" } satisfies Record<SleepQuality, string>,
   meals: "食事",
   mealOptions: { morning: "朝", noon: "昼", night: "夜" } satisfies Record<Meal, string>,
   activity: "体を動かした・外に出た",
@@ -418,7 +422,7 @@ export const RECORD = {
   nap: "昼寝",
   napOptions: [0, 30, 60, 120],
   napLabel: (n: number) => (n === 0 ? "しなかった" : n >= 120 ? "2時間以上" : n === 60 ? "1時間くらい" : `${n}分くらい`),
-  focus: "活動の集中度",
+  focus: "集中できた感じ",
   focusEnds: ["集中できなかった", "よく集中できた"],
   stress: "今日のストレス（いくつでも）",
   stressOptions: ["人間関係", "体調", "お金", "家族", "先の見通し", "とくになし"],
@@ -426,7 +430,7 @@ export const RECORD = {
   moreClose: "閉じる",
   moodReason: "その気分だった理由",
   stressCoping: "ストレスにどう対応して、どうなったか",
-  workIdea: "職場で活かせそうなこと",
+  workIdea: "気づいたこと、やってみたいこと",
   noteRecovery: "今日のひとこと",
   notePreReturn: "今日のまとめ",
   voice: "話して入力",
@@ -451,7 +455,7 @@ export const RECORD = {
 export const JOURNEY = {
   open: "復職までの流れ",
   title: "復職までの流れ",
-  lead: "休職から復職までは、だいたいこんな流れです。調子は一直線には良くならず、波を描きながら少しずつ上がっていきます。",
+  lead: "調子は、波を描きながら少しずつ上がっていきます。",
   now: "いまここ",
   // 期間は出さない（「もう○か月なのに」と焦らせないため）
   paceNote: "進み方やかかる時間は、人によって違います。",
@@ -468,19 +472,19 @@ export const JOURNEY = {
 
 // 準備期の本人（たたき台。代表とスタッフがブラッシュアップする）
 export const PREP = {
-  stageNote: "会社と一緒に、復職の日を決めていく時期です。焦らず、ひとつずつ進めましょう",
+  stageNote: "会社と一緒に、復職の日を決めていく時期です。ひとつずつで大丈夫です",
   restButton: "今日はしんどい",
   stepsTitle: "復職までの手順",
-  stepsNote: "会社と一緒に進めます。順番は会社の決まりに合わせています。番号を押すと説明が出ます",
+  stepsNote: "会社と一緒に進めます。番号を押すと説明が出ます",
   // 上に①〜⑥を横に並べるときの短い名前
-  stepsShort: { torisetsu: "取説", review: "見直し", occ: "産業医", decision: "判断", doctor: "診断書", plan: "復職日" },
-  steps: { torisetsu: "自分の取説をつくる", review: "レポートを見直す", occ: "産業医との面談", decision: "会社の復職判断", doctor: "主治医の診断書", plan: "復職日と配慮" },
+  stepsShort: { torisetsu: "取説", review: "見直し", occ: "産業医", decision: "会社の確認", doctor: "診断書", plan: "復職日" },
+  steps: { torisetsu: "自分の取説をつくる", review: "レポートを見直す", occ: "産業医との面談", decision: "会社の確認", doctor: "主治医の診断書", plan: "復職日と配慮" },
   // 順番：取説をつくる → レポートを見直す → 産業医との面談を申し込む → 会社から候補 → 選ぶ
   torisetsuWait: "下の「自分の取説」で作れます。できたら、面談に向けてレポートを見直します",
   torisetsuDone: "できました。あとから何度でも書き直せます",
   reviewWait: "取説ができたら、ここでレポートを見直します",
-  reviewSelf: "産業医との面談の前に、会社に出したレポートを見直しましょう。いまの様子に合わせて新しく作って送るか、このままでよければ「見直した」を押します",
-  reviewRework: "産業医との面談の前に、リワークの月次レポートの内容を、スタッフと一緒に確かめておきましょう",
+  reviewSelf: "面談の前に、送ったレポートを見直します。いまの様子と違えば新しく送り、同じなら「見直した」を押します",
+  reviewRework: "産業医との面談の前に、リワークの月次レポートの内容を、スタッフと一緒に確かめておけます",
   reviewKeep: "見直した（このままでいい）",
   reviewReworkDone: "確かめた",
   reviewDone: "見直しました",
@@ -493,21 +497,22 @@ export const PREP = {
   occApplyConfirm: "産業医との面談を申し込みます。申し込むと、会社から日程の候補が届きます。自分の取説の中身は、会社には届きません。",
   occApplyYes: "申し込む",
   occApplyNo: "やめておく",
-  occWait: "申し込みました。会社から日程の候補が届きます",
+  // 会社を待つ手順は「いまは、あなたがすることはありません」で始める（自分の番か、待つ番かが分かるように）
+  occWait: "いまは、あなたがすることはありません。会社から日程の候補が届いたら、ホームと「連絡」に出ます",
   occOffered: "日程の候補が届いています。「連絡」から選べます",
   occDate: (d: string) => `${d}に面談します`,
   occDone: "面談が済みました",
-  decisionWait: "産業医との面談のあと、会社が決めます",
+  decisionWait: "いまは、あなたがすることはありません。産業医との面談のあと、会社が確認して、ここでお知らせします",
   decisionDone: "会社が、復職できると判断しました",
   doctorWait: "主治医に、復職についての診断書をお願いします。書いてもらったら、「連絡」の「書類を送る」から送れます",
   doctorDone: "会社に届きました",
-  planWait: "会社と一緒に決めます",
+  planWait: "会社と一緒に決めます。配慮してほしいことは、下から先に伝えておけます",
   planDone: (d: string) => `${d}に復職する予定です`,
   occPrepTitle: "産業医との面談の準備",
   occPrepSelf: "面談の前に、新しいレポートを会社に送っておくと、いまの様子が伝わります",
   occPrepRework: "リワークの月次レポートが、会社と産業医に届いています。気になることは、スタッフに相談できます",
   accTitle: "配慮してほしいことを伝える",
-  accNote: "復職したあと、はじめのうち配慮してほしいことを、会社に伝えておけます。決めるのは会社です",
+  accNote: "復職したあと、はじめのうち配慮してほしいことを、会社に伝えておけます。会社が、この希望をもとに考えます",
   accOpen: "配慮してほしいことを書く",
   accAgain: "書き直して送る",
   accOptions: ["残業を控えたい", "短い時間から始めたい", "通院の時間がほしい", "業務の量を相談したい", "席や環境を相談したい"],
@@ -554,7 +559,7 @@ export const CELEBRATE = {
   },
   preReturn: {
     mark: "☀️",
-    title: "あと少し！",
+    title: "ここまで来ましたね",
     lines: [
       "生活のリズムを整えて、ここまで進んできました。",
       "準備期は、復職に向けた最後の仕上げの時期です。会社と一緒に、復職の日を決めていきます。",
@@ -583,8 +588,8 @@ export const WATCH = {
   ],
   introClose: "閉じる",
   talkTitle: "話したいときは",
-  talkNote: "復職コーディネーターに相談できます。会社には伝わりません",
-  contactNote: "会社との連絡は、復職で終わりました。ここには、コーディネーターや専門家からのお知らせだけが届きます",
+  talkNote: "復職コーディネーターに相談できます。話した内容は、会社には伝わりません",
+  contactNote: "復職したので、会社とのやり取りは、ふだんの職場の連絡で行います。ここには、コーディネーターや専門家からのお知らせが届きます",
 };
 
 export const CONTACT = {
@@ -619,7 +624,7 @@ export const CONTACT = {
   replyTitle: "返信する",
   // 急性期は例文を選ぶだけ。回復期からは自分の言葉で書く（復職に向けた練習）
   replyPickNote: "選ぶだけで送れます",
-  replyWriteNote: "自分の言葉で書いてみよう。短くて大丈夫です",
+  replyWriteNote: "自分の言葉で書けます。短くて大丈夫です",
   replyExamplesLabel: "書き出しの例",
   examples: ["少しずつ良くなっています", "今は休むことに専念しています", "確認しました", "もう少し時間をください", "ありがとうございます"],
   send: "送る",
@@ -630,9 +635,8 @@ export const CONTACT = {
   visitButton: "通院してきました",
   visitNote: "選んで送るだけで、人事に届きます",
   visitPreview: "人事に届く文",
-  visitOptions: ["順調と言われました", "少し様子を見ることになりました", "薬が変わりました"],
-  // 急性期は、薬のことは本人の手元だけに置く（会社に伝える選択肢に出さない）
-  visitOptionsAcute: ["順調と言われました", "少し様子を見ることになりました"],
+  // 薬のことは本人の手元だけに置くので、会社に届く選択肢には出さない
+  visitOptions: ["順調と言われました", "少し様子を見ることになりました"],
   visitSent: "送りました。おつかれさまでした",
   visitBody: (option: string) => `通院してきました。${option}`,
 
@@ -924,7 +928,8 @@ export const HR = {
     dept: "部署",
     submitted: "提出日",
     period: "対象期間",
-    periodBody: (a: string, b: string, days: number, p: number) => `${a}〜${b}（${p}日のうち、日記を書いた日 ${days}日）`,
+    // 書いた日数は出さない（書けなかった日を数えられていると感じるため）
+    periodBody: (a: string, b: string, _days: number, p: number) => `${a}〜${b}（${p}日）`,
     rhythm: "生活のリズム（日記から）",
     sleepSub: (bed: string, wake: string) => `${bed}ごろ寝て、${wake}ごろ起きる`,
     activitySub: "横にならずに過ごした時間",
@@ -942,9 +947,9 @@ export const HR = {
   occMaterialNone: "まだ届いていません",
   rep: {
     activityChart: "日ごとの活動時間（日記から）",
-    activityChartNote: "棒がない日は、日記に書いていない日です",
+    activityChartNote: "棒がない日は、記録がない日です",
     period: "期間",
-    periodBody: (p: number, d: number) => `この${p}日（日記を書いた日 ${d}日）`,
+    periodBody: (p: number, _d: number) => `この${p}日`,
     sleep: "睡眠（平均）",
     sleepBody: (bed: string, wake: string, h: number) => `${bed}ごろ寝て、${wake}ごろ起きる（${h}時間）`,
     activity: "1日の活動時間（平均）",
@@ -1368,7 +1373,7 @@ export const BOSS = {
   by: (name: string) => `上司 ${name}`,
   noBoss: "上司の画面は、会社の設定で窓口を「直属の上司」にし、担当の上司を入れて休職者を登録すると見られます",
   // 本人の画面
-  personNote: (name: string) => `会社との連絡は、上司の${name}さんが受けます。人事・産業保健スタッフも見ています`,
+  personNote: (name: string) => `ここから送った連絡は、上司の${name}さんと、人事・産業保健スタッフに届きます`,
   personNewNote: (name: string) => `上司の${name}さんに、自分から連絡できます`,
 };
 

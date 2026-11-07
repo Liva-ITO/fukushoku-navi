@@ -84,7 +84,7 @@ export default function ContactTab({ state, dispatch }: Props) {
 
       <NewToHr stage={state.stage} note={boss ? BOSS.personNewNote(boss.name) : undefined} dispatch={dispatch} />
 
-      <VisitReport stage={state.stage} dispatch={dispatch} />
+      <VisitReport dispatch={dispatch} />
 
       <section className="card card-quiet-box">
         <h2>{CONTACT.historyTitle}</h2>
@@ -416,7 +416,7 @@ function NewToHr({ stage, note, dispatch }: { stage: State["stage"]; note?: stri
 }
 
 // 通院のあとの報告：「会社に何と連絡すればいいか」で悩まないよう、選ぶだけにする
-function VisitReport({ stage, dispatch }: { stage: State["stage"]; dispatch: Dispatch<Action> }) {
+function VisitReport({ dispatch }: { dispatch: Dispatch<Action> }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   // 選んだだけでは送らない（選ぶ → 届く文を見る → 送る）
@@ -435,7 +435,7 @@ function VisitReport({ stage, dispatch }: { stage: State["stage"]; dispatch: Dis
         <>
           <p className="muted">{CONTACT.visitNote}</p>
           <div className="chips chips-stack">
-            {(stage === "acute" ? CONTACT.visitOptionsAcute : CONTACT.visitOptions).map((opt) => (
+            {CONTACT.visitOptions.map((opt) => (
               <button key={opt} className="chip" aria-pressed={picked === opt} onClick={() => setPicked(opt)}>
                 {opt}
               </button>
