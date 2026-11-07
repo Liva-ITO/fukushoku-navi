@@ -708,3 +708,14 @@ export function MedTop({ state, dispatch }: Props) {
     </>
   );
 }
+
+// 回復期から先のホームの下に置く、薬の設定への入口（量や種類が変わったとき用）
+export function MedEditLink({ dispatch }: { dispatch: Dispatch<Action> }) {
+  return (
+    <p className="med-edit-link">
+      <button className="link-small link-muted" onClick={() => dispatch({ type: "medOpen", view: { kind: "settings" } })}>
+        💊 {MED.editLink} ›
+      </button>
+    </p>
+  );
+}

@@ -1,7 +1,7 @@
 import { useState, type Dispatch } from "react";
 import { RECOVERY, REST, STAGE_LABELS, greeting, type PrepPath } from "../constants/labels";
 import { whenOf, type Action, type State } from "../state/store";
-import { MedCard, MedTop } from "./Meds";
+import { MedEditLink, MedTop } from "./Meds";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import PlanCard from "./PlanCard";
 import { MAX_STEP, PLAN_CATS } from "../data/recoveryPlan";
@@ -107,9 +107,6 @@ export default function RecoveryHome({ state, dispatch }: Props) {
 
       {/* リワークを使う人は、プログラムの中で負荷を上げていくので出さない */}
       {(path === null || path === "self") && <PlanCard state={state} dispatch={dispatch} />}
-
-      {/* 薬は、量や種類が変わるので、どの段階でも見られて、変えられるようにする */}
-      <MedCard state={state} dispatch={dispatch} />
 
       <section className="card">
         <h2>{RECOVERY.pathTitle}</h2>
@@ -256,6 +253,9 @@ export default function RecoveryHome({ state, dispatch }: Props) {
 
       {/* 相談は段階に関係なく、相談したいときに選ぶ（急性期・休息モードと同じ枠） */}
       <CoordinatorCard state={state} dispatch={dispatch} title={REST.talkTitle} note={REST.talkNote} showNewLink={false} />
+
+      {/* 薬の種類・量が変わったとき用。設定そのものは急性期に済ませている前提 */}
+      <MedEditLink dispatch={dispatch} />
     </div>
   );
 }

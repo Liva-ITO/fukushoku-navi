@@ -1,7 +1,7 @@
 import { useState, type Dispatch } from "react";
 import { PREP, STAGE_LABELS, greeting } from "../constants/labels";
 import { whenOf, type Action, type State } from "../state/store";
-import { MedCard, MedTop } from "./Meds";
+import { MedEditLink, MedTop } from "./Meds";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, NewNoticeLink } from "./parts";
 import { SelfReportCard } from "./SelfReportCard";
 import { TorisetsuCard } from "./Torisetsu";
@@ -32,14 +32,15 @@ export default function PreReturnHome({ state, dispatch }: Props) {
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
 
-      <MedCard state={state} dispatch={dispatch} />
-
       <TorisetsuCard state={state} dispatch={dispatch} />
 
       <AccommodationCard state={state} dispatch={dispatch} />
 
       <HrNoticeList messages={state.hrMessages} max={3} dispatch={dispatch} />
       <CoordinatorCard state={state} dispatch={dispatch} showNewLink={false} />
+
+      {/* 薬の種類・量が変わったとき用。設定そのものは急性期に済ませている前提 */}
+      <MedEditLink dispatch={dispatch} />
     </div>
   );
 }

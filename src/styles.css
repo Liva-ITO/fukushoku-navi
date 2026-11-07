@@ -928,3 +928,4 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .meet-rows { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0; }
 .meet-rows dt { color: var(--muted); font-size: 13px; }
 .meet-rows dd { margin: 0; }
+.med-edit-link { text-align: center; margin: 8px 0 0; }
