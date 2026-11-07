@@ -2,6 +2,7 @@ import { useEffect, useState, type Dispatch } from "react";
 import { ACUTE, REST, greeting } from "../constants/labels";
 import { DEMO_TODAY } from "../data/demo";
 import type { Action, State } from "../state/store";
+import { AlarmPanel, MedCard } from "./Meds";
 import { ConfirmButton, CoordinatorCard, DiaryEntryCard, HrNoticeList, ReadingsCard, WishCard } from "./parts";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
@@ -21,9 +22,13 @@ export default function AcuteHome({ state, dispatch }: Props) {
   return (
     <div className="home home-acute">
       <p className="greeting">{greeting(state.live?.name ?? "", new Date().getHours())}</p>
+      <AlarmPanel state={state} dispatch={dispatch} />
       <p className="lead">{first ? ACUTE.messageFirst : ACUTE.message}</p>
 
       <WakeSleep state={state} dispatch={dispatch} />
+
+      {/* 急性期でいちばん大事なのは、治療を切らないこと（服薬と通院）。薬のことは本人の端末だけ */}
+      <MedCard state={state} dispatch={dispatch} />
 
       <DiaryEntryCard state={state} dispatch={dispatch} />
 

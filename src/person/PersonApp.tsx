@@ -1,6 +1,7 @@
 import { useEffect, useState, type Dispatch } from "react";
 import { ABOUT, APP_NAME, CELEBRATE, COMMON, CONSULT, JOURNEY, TABS, type Tab, WELCOME } from "../constants/labels";
 import JourneySheet from "./JourneySheet";
+import { MedSheet } from "./Meds";
 import type { Action, State } from "../state/store";
 import AcuteHome from "./AcuteHome";
 import RecoveryHome from "./RecoveryHome";
@@ -84,6 +85,7 @@ export default function PersonApp({ state, dispatch }: Props) {
           </button>
         </span>
       </header>
+      {state.stage === "acute" && <MedSheet state={state} dispatch={dispatch} />}
       {journeyOpen && <JourneySheet stage={state.stage} onClose={() => setJourneyOpen(false)} />}
       {aboutOpen && (
         <div className="sheet" role="dialog" aria-modal="true" aria-label={ABOUT.title}>

@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from "react";
 import type { SelfReport } from "./selfReport";
+import { INITIAL_MEDS, nextAlarm, sampleMeds, type AlarmSetting, type DoctorMemoKind, type Med, type MedState, type MedView, type PrnMed } from "../data/meds";
 import { INITIAL_PLAN, AFTER_REST_DAYS, answerPlan, decideUp, nextDay, normalizePlan, planToday, type Plan, type PlanCat, type PlanResult } from "../data/recoveryPlan";
 import { ACUTE, BOSS, CONSULT, HR, RECOVERY, type PrepPath, type Stage, type Tab } from "../constants/labels";
 import {
@@ -83,6 +84,16 @@ export type State = {
   acuteIntroSeen: boolean; // 急性期のはじめの3文を見たか（2回目からは1文）
   // ホームの「起きた」「寝る」を押した時刻（その日の分だけ）。起きたは今日の日記に入る。寝るは次の日の日記の「寝た時刻」になる
   taps: { date: string; wake: string | null; sleep: string | null };
+  // 急性期の「きょうの薬」（本人の端末だけ。会社の画面・レポートには出さない）
+  meds: MedState["meds"];
+  prnMeds: MedState["prnMeds"];
+  medLog: MedState["medLog"];
+  prnLog: MedState["prnLog"];
+  nextVisit: MedState["nextVisit"];
+  doctorMemo: MedState["doctorMemo"];
+  alarm: MedState["alarm"];
+  medView: MedState["medView"];
+  alarmNow: MedState["alarmNow"];
   recoveryChecks: string[]; // 回復期の目安で、本人がチェックした項目
   rivaMeetingApplied: boolean;
   // 急性期→回復期に必須の、復職コーディネーターとの面談（回復期に進む前）が済んだか（人事が記録する）
@@ -190,6 +201,7 @@ export const initialState: State = {
   hrMessagesOthers: {},
   acuteIntroSeen: false,
   taps: { date: DEMO_TODAY, wake: null, sleep: null },
+  ...INITIAL_MEDS,
   recoveryChecks: [],
   rivaMeetingApplied: false,
   psychMeetingDone: false,
@@ -268,6 +280,22 @@ export type Action =
   | { type: "closeIntro" }
   | { type: "markAcuteIntroSeen" }
   | { type: "tap"; what: "wake" | "sleep"; time: string | null }
+  | { type: "medOpen"; view: MedView | null }
+  | { type: "medSave"; med: Med }
+  | { type: "prnSave"; prn: PrnMed }
+  | { type: "medEnd"; id: string }
+  | { type: "prnEnd"; id: string }
+  | { type: "medTake"; medId: string; at: string; time: string }
+  | { type: "medUntake"; medId: string; at: string }
+  | { type: "prnTake"; prnId: string; time: string; reason: string | null }
+  | { type: "setNextVisit"; date: string | null }
+  | { type: "setAlarm"; alarm: Partial<AlarmSetting> }
+  | { type: "toggleMedTime"; medId: string; at: string }
+  | { type: "doctorMemoToggle"; kind: DoctorMemoKind }
+  | { type: "alarmRing" }
+  | { type: "alarmSnooze" }
+  | { type: "alarmClose" }
+  | { type: "medSample" }
   | { type: "toggleRecoveryCheck"; item: string }
   | { type: "applyRivaMeeting" }
   | { type: "markPsychDone" }
@@ -435,6 +463,81 @@ function reducer(state: State, action: Action): State {
       return { ...state, tab: action.tab };
     case "closeIntro":
       return { ...state, introSeen: true };
+    case "medOpen":
+      return { ...state, medView: action.view };
+    case "medSave": {
+      const has = state.meds.some((m) => m.id === action.med.id);
+      return { ...state, meds: has ? state.meds.map((m) => (m.id === action.med.id ? action.med : m)) : [...state.meds, action.med], medView: { kind: "settings" } };
+    }
+    case "prnSave": {
+      const has = state.prnMeds.some((m) => m.id === action.prn.id);
+      return { ...state, prnMeds: has ? state.prnMeds.map((m) => (m.id === action.prn.id ? action.prn : m)) : [...state.prnMeds, action.prn], medView: { kind: "settings" } };
+    }
+    case "medEnd":
+      return { ...state, meds: state.meds.map((m) => (m.id === action.id ? { ...m, ended: DEMO_TODAY } : m)), medView: { kind: "settings" } };
+    case "prnEnd":
+      return { ...state, prnMeds: state.prnMeds.map((m) => (m.id === action.id ? { ...m, ended: DEMO_TODAY } : m)), medView: { kind: "settings" } };
+    case "medTake": {
+      // 飲んだ分だけ残りを減らす。鳴っていたアラームは止める
+      const med = state.meds.find((m) => m.id === action.medId);
+      const amount = med?.times.find((t) => t.at === action.at)?.amount ?? 1;
+      return {
+        ...state,
+        medLog: [...state.medLog, { date: DEMO_TODAY, medId: action.medId, at: action.at, takenAt: action.time }],
+        meds: state.meds.map((m) => (m.id === action.medId && m.stock !== null ? { ...m, stock: Math.max(0, m.stock - amount) } : m)),
+        alarmNow: state.alarmNow?.medId === action.medId && state.alarmNow.at === action.at ? null : state.alarmNow,
+      };
+    }
+    case "medUntake": {
+      const med = state.meds.find((m) => m.id === action.medId);
+      const amount = med?.times.find((t) => t.at === action.at)?.amount ?? 1;
+      return {
+        ...state,
+        medLog: state.medLog.filter((l) => !(l.medId === action.medId && l.at === action.at && l.date === DEMO_TODAY)),
+        meds: state.meds.map((m) => (m.id === action.medId && m.stock !== null ? { ...m, stock: m.stock + amount } : m)),
+      };
+    }
+    case "prnTake": {
+      const prn = state.prnMeds.find((p) => p.id === action.prnId);
+      return {
+        ...state,
+        prnLog: [...state.prnLog, { date: DEMO_TODAY, prnId: action.prnId, time: action.time, reason: action.reason }],
+        prnMeds: state.prnMeds.map((p) => (p.id === action.prnId && p.stock !== null ? { ...p, stock: Math.max(0, p.stock - (prn?.amount ?? 1)) } : p)),
+        medView: null,
+      };
+    }
+    case "setNextVisit":
+      return { ...state, nextVisit: action.date };
+    case "setAlarm":
+      return { ...state, alarm: { ...state.alarm, ...action.alarm } };
+    case "toggleMedTime":
+      return {
+        ...state,
+        meds: state.meds.map((m) =>
+          m.id === action.medId ? { ...m, times: m.times.map((t) => (t.at === action.at ? { ...t, alarm: !t.alarm } : t)) } : m,
+        ),
+      };
+    case "doctorMemoToggle": {
+      const has = state.doctorMemo.some((d) => d.date === DEMO_TODAY && d.kind === action.kind);
+      return {
+        ...state,
+        doctorMemo: has
+          ? state.doctorMemo.filter((d) => !(d.date === DEMO_TODAY && d.kind === action.kind))
+          : [...state.doctorMemo, { date: DEMO_TODAY, kind: action.kind }],
+      };
+    }
+    case "alarmRing": {
+      // デモ用：もう一度にしたものがあれば、それを鳴らす。なければ、まだ飲んでいない次の時間
+      if (state.alarmNow?.snoozed && !state.alarmNow.open) return { ...state, alarmNow: { ...state.alarmNow, open: true } };
+      const next = nextAlarm(state);
+      return next ? { ...state, alarmNow: { ...next, snoozed: false, open: true } } : state;
+    }
+    case "alarmSnooze":
+      return state.alarmNow ? { ...state, alarmNow: { ...state.alarmNow, snoozed: true, open: false } } : state;
+    case "alarmClose":
+      return { ...state, alarmNow: null };
+    case "medSample":
+      return { ...state, ...sampleMeds() };
     case "tap": {
       const base = state.taps?.date === DEMO_TODAY ? state.taps : { date: DEMO_TODAY, wake: null, sleep: null };
       return { ...state, taps: { ...base, [action.what]: action.time } };

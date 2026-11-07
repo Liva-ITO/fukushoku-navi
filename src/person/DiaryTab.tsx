@@ -2,6 +2,9 @@ import { useRef, useState, type Dispatch, type ReactNode } from "react";
 import { RECORD, type Meal, type SleepQuality } from "../constants/labels";
 import { DEMO_TODAY, emptyEntry, lastSevenDays, type DiaryEntry } from "../data/demo";
 import type { Action, State } from "../state/store";
+import { MED } from "../constants/labels";
+import { jpDate, takenToday } from "../data/meds";
+import { WorryChips } from "./Meds";
 
 type Props = { state: State; dispatch: Dispatch<Action> };
 
@@ -114,6 +117,8 @@ export default function DiaryTab({ state, dispatch }: Props) {
               ))}
             </div>
           </fieldset>
+
+          {acute && <DiaryMeds state={state} dispatch={dispatch} />}
 
           {!acute && (
             <fieldset>
@@ -384,5 +389,32 @@ function VoiceInput({ onText }: { onText: (t: string) => void }) {
     <button className="btn-quiet btn-voice" onClick={start} disabled={listening}>
       🎙 {listening ? RECORD.voiceListening : RECORD.voice}
     </button>
+  );
+}
+
+// 急性期の日記の「きょうの薬」。ホームで押した分を見せるだけ（日記では押さない）。
+// 気になることを選ぶと、主治医に伝えるメモに入るだけで、アプリは何も返さない。日記の保存とは別に残る
+function DiaryMeds({ state, dispatch }: Props) {
+  const meds = state.meds.filter((m) => !m.ended);
+  if (meds.length === 0 && state.prnMeds.every((p) => p.ended)) return null;
+  const rows = meds.flatMap((m) => m.times.map((t) => ({ m, t, taken: takenToday(state, m.id, t.at) })));
+  const prn = state.prnLog.filter((l) => l.date === DEMO_TODAY).length;
+  return (
+    <fieldset>
+      <legend>{MED.diaryTitle}</legend>
+      <ul className="list-plain diary-meds">
+        {rows.map(({ m, t, taken }) => (
+          <li key={`${m.id}-${t.at}`}>
+            {m.label}
+            <span className="muted">（{taken ? MED.takenAt(taken.takenAt) : MED.plainAt(t.at)}）</span>
+          </li>
+        ))}
+        {prn > 0 && <li>{MED.diaryPrn(prn)}</li>}
+      </ul>
+      <p className="field-label">{MED.worryLink}</p>
+      <WorryChips state={state} dispatch={dispatch} />
+      <p className="muted">{MED.worryNote}</p>
+      {state.nextVisit && <p className="muted">{MED.nextVisit(jpDate(state.nextVisit))}</p>}
+    </fieldset>
   );
 }

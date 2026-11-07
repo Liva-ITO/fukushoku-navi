@@ -892,3 +892,29 @@ th[aria-sort="ascending"] .th-sort, th[aria-sort="descending"] .th-sort { color:
 .tap-btn { min-height: 52px; border: 1.5px solid var(--accent); border-radius: 12px; background: var(--surface, #fff); color: var(--accent); font-size: 16px; font-weight: 700; }
 .tap-btn[aria-pressed="true"] { background: var(--accent-soft); }
 .tap-saved { display: flex; justify-content: space-between; align-items: center; margin: 6px 2px 0; font-size: 13px; color: var(--muted, #777); }
+
+/* 急性期の「きょうの薬」 */
+.med-rows { list-style: none; margin: 0; padding: 0; }
+.med-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.med-row:last-child { border-bottom: 0; }
+.med-row-prn { background: var(--bg); margin: 0 -12px; padding: 10px 12px; border-radius: 8px; }
+.med-name { display: block; font-weight: 700; }
+.med-sub { display: block; font-size: 13px; }
+.med-check { border: 0; background: none; color: var(--accent); font-size: 22px; min-width: 44px; min-height: 44px; }
+.med-note { font-size: 12px; margin: 8px 0 0; }
+.med-links { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; flex-wrap: wrap; }
+.med-item { padding: 8px 0 12px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+.med-item-head { display: flex; justify-content: space-between; align-items: center; margin: 0; }
+.med-time-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.med-time-row input[type="time"], .med-time-row input:not([type]) { flex: 1; min-height: 40px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.input-num { width: 64px; min-height: 40px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.input-wide { width: 100%; min-height: 44px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.field-label { margin: 12px 0 6px; font-size: 14px; }
+.toggle-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; min-height: 44px; }
+.toggle-row input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.sheet-head { display: flex; justify-content: space-between; align-items: baseline; }
+.med-visit { font-weight: 700; }
+.alarm-panel { background: var(--accent-soft); border-radius: var(--radius); padding: 16px; margin: 0 0 14px; text-align: center; display: grid; gap: 8px; }
+.alarm-panel p { margin: 0; }
+.alarm-time { font-size: 13px; color: var(--muted); }
+.alarm-title { font-size: 18px; font-weight: 700; }
