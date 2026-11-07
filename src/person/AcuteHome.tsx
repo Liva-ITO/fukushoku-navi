@@ -16,7 +16,8 @@ export default function AcuteHome({ state, dispatch }: Props) {
     dispatch({ type: "markAcuteIntroSeen" });
   }, [dispatch]);
   // 次の段階への道すじの、いまの位置（コーディネーターと話す → 希望を伝える → 回復期へ）
-  const stepNow = !state.psychMeetingDone ? 0 : 1;
+  const allChecked = state.acuteChecks.every(Boolean);
+  const stepNow = !allChecked && !state.rivaMeetingApplied ? 0 : !state.psychMeetingDone ? 1 : 2;
   // 急性期は、面談は1つずつ。心理の専門家との面談（チケット）が済むまでは、回復期に進む前のコーディネーターとの面談を申し込めない
   const coordBusy = state.coordinatorMeeting !== null && state.coordinatorReport === null;
   const meet = upcomingMeeting(state);
@@ -58,17 +59,32 @@ export default function AcuteHome({ state, dispatch }: Props) {
             <li key={s} className={i === stepNow ? "step-now" : i < stepNow ? "step-done" : undefined}>
               {s}
               {i === stepNow && <span className="tag-soft">{ACUTE.checkHere}</span>}
-              {i === 0 && stepNow === 0 && state.psychSchedule?.chosen && (
+              {i === 1 && stepNow === 1 && state.psychSchedule?.chosen && (
                 <span className="step-sub">{ACUTE.checkStepDate(state.psychSchedule.chosen)}</span>
               )}
-              {i === 1 && stepNow === 1 && (
+              {i === 2 && stepNow === 2 && (
                 <span className="step-sub">{state.nextWish ? ACUTE.checkStepSent : ACUTE.checkStepWish}</span>
               )}
             </li>
           ))}
         </ol>
+        <ul className="list-plain">
+          {ACUTE.checkItems.map((item, i) => (
+            <li key={item}>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={state.acuteChecks[i] ?? false}
+                  onChange={() => dispatch({ type: "toggleAcuteCheck", index: i })}
+                />
+                {item}
+              </label>
+            </li>
+          ))}
+        </ul>
         <p className="muted">{ACUTE.checkOutlook}</p>
-        {!state.psychMeetingDone && (
+        {!allChecked && !state.rivaMeetingApplied && <p className="muted">{ACUTE.checkGateNote}</p>}
+        {(allChecked || state.rivaMeetingApplied) && !state.psychMeetingDone && (
           <div className="next-step">
             <p>{ACUTE.checkMeetNote}</p>
             {state.rivaMeetingApplied ? (

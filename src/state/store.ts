@@ -82,6 +82,7 @@ export type State = {
   // デモの本人以外への連絡（デモでは人事の経緯に残るだけ）
   hrMessagesOthers: Record<string, HrMessage[]>;
   acuteIntroSeen: boolean; // 急性期のはじめの3文を見たか（2回目からは1文）
+  acuteChecks: boolean[]; // 急性期の目安。3つそろうと、復職コーディネーターとの面談を申し込める
   // ホームの「起きた」「寝る」を押した時刻（その日の分だけ）。起きたは今日の日記に入る。寝るは次の日の日記の「寝た時刻」になる
   taps: { date: string; wake: string | null; sleep: string | null };
   // 急性期の「きょうの薬」（本人の端末だけ。会社の画面・レポートには出さない）
@@ -203,6 +204,7 @@ export const initialState: State = {
   contactOpen: null,
   hrMessagesOthers: {},
   acuteIntroSeen: false,
+  acuteChecks: ACUTE.checkItems.map(() => false),
   taps: { date: DEMO_TODAY, wake: null, sleep: null },
   ...INITIAL_MEDS,
   contentOpen: null,
@@ -283,6 +285,7 @@ export type Action =
   | { type: "setTab"; tab: Tab }
   | { type: "closeIntro" }
   | { type: "markAcuteIntroSeen" }
+  | { type: "toggleAcuteCheck"; index: number }
   | { type: "tap"; what: "wake" | "sleep"; time: string | null }
   | { type: "medOpen"; view: MedView | null }
   | { type: "openContent"; id: string | null }
@@ -432,7 +435,7 @@ function reducer(state: State, action: Action): State {
         restMode: restAllowed && state.restMode,
         tab: "home",
         // 急性期に戻したら、回復期に進むための面談はもう一度
-        ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false, psychSchedule: null, nextWish: null } : {}),
+        ...(action.stage === "acute" ? { rivaMeetingApplied: false, psychMeetingDone: false, acuteChecks: ACUTE.checkItems.map(() => false), psychSchedule: null, nextWish: null } : {}),
         // 準備期より前に戻したら、復職までの手順はやり直し
         ...(action.stage === "acute" || action.stage === "recovery"
           ? // 会社との面談（準備期に進むための面談）も、もう一度申し込むところから。済んだ記録は経緯に残る
@@ -555,6 +558,8 @@ function reducer(state: State, action: Action): State {
       const base = state.taps?.date === DEMO_TODAY ? state.taps : { date: DEMO_TODAY, wake: null, sleep: null };
       return { ...state, taps: { ...base, [action.what]: action.time } };
     }
+    case "toggleAcuteCheck":
+      return { ...state, acuteChecks: state.acuteChecks.map((v, i) => (i === action.index ? !v : v)) };
     case "markAcuteIntroSeen":
       return state.acuteIntroSeen ? state : { ...state, acuteIntroSeen: true };
     case "applyRivaMeeting":
